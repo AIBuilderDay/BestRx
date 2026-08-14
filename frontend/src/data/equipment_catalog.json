@@ -1,0 +1,93 @@
+[
+  {
+    "hcpcs": "E0250",
+    "name": "Hospital Bed",
+    "description": "Fixed height, side rails, mattress",
+    "category": "bed",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 65.47,
+    "imagePath": "/images/equipment/e0250-hospital-bed.jpg"
+  },
+  {
+    "hcpcs": "E1390",
+    "name": "Oxygen Concentrator",
+    "description": "Single port, 85% or greater concentration",
+    "category": "respiratory",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 115.77,
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.jpg"
+  },
+  {
+    "hcpcs": "E0601",
+    "name": "CPAP Device",
+    "description": "Continuous positive airway pressure device. Most-fulfilled DME code nationally.",
+    "category": "respiratory",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 47.42,
+    "imagePath": "/images/equipment/e0601-cpap.jpg"
+  },
+  {
+    "hcpcs": "E0470",
+    "name": "BiPAP / Respiratory Assist Device",
+    "description": "Bi-level pressure device without backup rate",
+    "category": "respiratory",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 123.3,
+    "imagePath": "/images/equipment/e0470-bipap.jpg"
+  },
+  {
+    "hcpcs": "E1130",
+    "name": "Standard Wheelchair",
+    "description": "Fixed full-length arms, swing-away footrests",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 68.0,
+    "imagePath": "/images/equipment/e1130-wheelchair.jpg"
+  },
+  {
+    "hcpcs": "E0143",
+    "name": "Walker",
+    "description": "Folding, wheeled, adjustable or fixed height",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 64.17,
+    "imagePath": "/images/equipment/e0143-walker.jpg"
+  },
+  {
+    "hcpcs": "E0163",
+    "name": "Commode Chair",
+    "description": "Stationary, fixed arms",
+    "category": "bathroom_safety",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 68.4,
+    "imagePath": "/images/equipment/e0163-commode.jpg"
+  },
+  {
+    "hcpcs": "E0277",
+    "name": "Powered Air Mattress",
+    "description": "Powered pressure-reducing mattress overlay",
+    "category": "bed",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 212.49,
+    "imagePath": "/images/equipment/e0277-air-mattress.jpg"
+  },
+  {
+    "hcpcs": "E0431",
+    "name": "Portable Oxygen",
+    "description": "Portable gaseous oxygen system, regulator and cannula",
+    "category": "respiratory",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 21.19,
+    "imagePath": "/images/equipment/e0431-portable-oxygen.jpg"
+  },
+  {
+    "hcpcs": "A7030",
+    "name": "Full Face CPAP Mask",
+    "description": "Consumable. Payer-approved resupply cadence.",
+    "category": "consumable",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 121.08,
+    "resupplyCadenceDays": 90,
+    "imagePath": "/images/equipment/a7030-cpap-mask.jpg"
+  }
+]

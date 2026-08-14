@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+
+    /* TypeScript only. Do not turn allowJs on. */
+    "allowJs": false,
+    "checkJs": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Strictness. Keep all of these on. */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true
+  },
+  "include": ["src", "vite.config.ts"]
+}

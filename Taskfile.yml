@@ -1,0 +1,116 @@
+version: '3'
+
+# BestRx - every command runs through Docker Compose so the app behaves the same for everyone.
+# The frontend is the only service today; the backend slot is commented out in docker-compose.yml.
+
+vars:
+  FRONTEND_DIR: ./frontend
+  FRONTEND_SERVICE: frontend
+  FRONTEND_URL: http://localhost:5173
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    aliases: [help]
+    silent: true
+    cmds:
+      - task --list
+
+  start:
+    desc: "Build and start everything (frontend at http://localhost:5173)"
+    aliases: [up, dev]
+    silent: true
+    cmds:
+      - task: _check_docker
+      - docker compose up -d --build --remove-orphans
+      - |
+        echo ""
+        echo "Waiting for the frontend to answer..."
+        for i in $(seq 1 30); do
+          if curl -sf {{.FRONTEND_URL}} > /dev/null 2>&1; then break; fi
+          sleep 1
+        done
+        if curl -sf {{.FRONTEND_URL}} > /dev/null 2>&1; then
+          echo "BestRx is up:  {{.FRONTEND_URL}}"
+        else
+          echo "Frontend has not answered yet. Check: task logs"
+        fi
+        echo ""
+        echo "  task logs     tail container logs"
+        echo "  task test     typecheck and unit tests"
+        echo "  task stop     stop containers"
+
+  stop:
+    desc: "Stop containers (keeps images and node_modules)"
+    aliases: [down]
+    cmds:
+      - docker compose down --remove-orphans
+
+  restart:
+    desc: "Full reset: clean:all, reinstall dependencies, start again"
+    cmds:
+      - task: clean:all
+      - task: install
+      - task: start
+
+  logs:
+    desc: "Tail container logs. Pass a service after --, e.g. task logs -- frontend"
+    silent: true
+    cmds:
+      - docker compose logs -f --tail=100 {{.CLI_ARGS}}
+
+  shell:
+    desc: "Open a shell inside the frontend container"
+    interactive: true
+    cmds:
+      - docker compose exec {{.FRONTEND_SERVICE}} sh
+
+  install:
+    desc: "Install dependencies on the host (for editor tooling and local test runs)"
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - pnpm install
+
+  test:
+    desc: "Typecheck and run unit tests"
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - pnpm exec tsc --noEmit
+      - pnpm exec vitest run
+
+  build:
+    desc: "Production build (what a Cloudflare Pages deploy would run)"
+    dir: "{{.FRONTEND_DIR}}"
+    cmds:
+      - pnpm build
+
+  clean:
+    desc: "Stop containers and remove node_modules and build artifacts"
+    silent: true
+    cmds:
+      - docker compose down --remove-orphans || true
+      - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist {{.FRONTEND_DIR}}/.vite node_modules
+      # Future backend: uncomment when backend/ exists
+      # - find ./backend -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+      # - rm -rf ./backend/.venv ./backend/.pytest_cache ./backend/.ruff_cache
+      - echo "Cleaned node_modules and build artifacts."
+
+  clean:all:
+    desc: "clean plus Docker volumes, this project's images, and lockfiles"
+    silent: true
+    cmds:
+      - docker compose down -v --remove-orphans --rmi local || true
+      - task: clean
+      - rm -rf pnpm-lock.yaml {{.FRONTEND_DIR}}/pnpm-lock.yaml
+      - pnpm store prune || true
+      - echo "Removed containers, volumes, local images, dependencies, and lockfiles."
+
+  _check_docker:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        if ! docker info > /dev/null 2>&1; then
+          echo "Docker is not running. Start Docker Desktop or Colima, then retry."
+          exit 1
+        fi

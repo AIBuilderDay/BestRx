@@ -1,0 +1,13 @@
+[
+  { "serial": "HB-4471", "vendorId": "VND-001", "hcpcs": "E0250", "state": "in_stock", "orderId": null, "lastServicedAt": "2026-07-30" },
+  { "serial": "HB-4472", "vendorId": "VND-001", "hcpcs": "E0250", "state": "deployed", "orderId": "DME-10087", "lastServicedAt": "2026-07-12" },
+  { "serial": "HB-4473", "vendorId": "VND-001", "hcpcs": "E0250", "state": "in_stock", "orderId": null, "lastServicedAt": "2026-08-02" },
+  { "serial": "WC-1180", "vendorId": "VND-001", "hcpcs": "E1130", "state": "deployed", "orderId": "DME-10198", "lastServicedAt": "2026-07-25" },
+  { "serial": "AM-3320", "vendorId": "VND-001", "hcpcs": "E0277", "state": "deployed", "orderId": "DME-10298", "lastServicedAt": "2026-08-01" },
+  { "serial": "CP-2210", "vendorId": "VND-002", "hcpcs": "E0601", "state": "deployed", "orderId": "DME-10305", "lastServicedAt": "2026-07-19" },
+  { "serial": "CP-2211", "vendorId": "VND-002", "hcpcs": "E0601", "state": "maintenance", "orderId": null, "lastServicedAt": "2026-08-13" },
+  { "serial": "OX-7702", "vendorId": "VND-002", "hcpcs": "E1390", "state": "awaiting_pickup", "orderId": "DME-09911", "lastServicedAt": "2026-06-28" },
+  { "serial": "WC-1191", "vendorId": "VND-002", "hcpcs": "E1130", "state": "awaiting_pickup", "orderId": "DME-09911", "lastServicedAt": "2026-07-03" },
+  { "serial": "HB-9001", "vendorId": "VND-003", "hcpcs": "E0250", "state": "awaiting_pickup", "orderId": "DME-09803", "overdue": true, "lastServicedAt": "2026-05-14" },
+  { "serial": "HB-9002", "vendorId": "VND-003", "hcpcs": "E0250", "state": "in_stock", "orderId": null, "lastServicedAt": "2026-08-05" }
+]

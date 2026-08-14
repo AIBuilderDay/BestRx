@@ -18,3 +18,7 @@ __pycache__/
 .venv/
 .pytest_cache/
 .ruff_cache/
+
+# Build and tooling artifacts
+*.tsbuildinfo
+.pnpm-store/

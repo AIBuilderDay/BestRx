@@ -1,0 +1,35 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    container_name: bestrx-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Bind-mount the source for HMR, but keep the container's own node_modules.
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: node_modules/.bin/vite --host 0.0.0.0 --port 5173
+
+  # ── Future backend ──────────────────────────────────────────────────────────
+  # Python FastAPI, cloned in from our fast template when we need one. Until then the frontend
+  # reads JSON fixtures from frontend/src/data/. Deployment target is Cloudflare Workers.
+  #
+  # backend:
+  #   build:
+  #     context: ./backend
+  #   container_name: bestrx-backend
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./backend:/app
+  #   env_file:
+  #     - ./backend/.env
+  #   command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+  #
+  # And uncomment this on the frontend service so it can reach the API:
+  #   depends_on:
+  #     - backend

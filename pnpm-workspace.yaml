@@ -1,0 +1,6 @@
+packages:
+  - "frontend"
+  # - "backend"  # future: Python FastAPI, not a pnpm package
+# Vite's bundler ships a native binary that needs its postinstall script.
+allowBuilds:
+  esbuild: true
