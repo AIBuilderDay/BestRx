@@ -1,0 +1,26 @@
+[
+  {
+    "id": "HSP-001",
+    "name": "Sample Hospice A",
+    "market": "Salt Lake City, UT",
+    "emr": "HCHB",
+    "activeCensus": 142,
+    "logoPath": "/images/brand/hospice-a.svg"
+  },
+  {
+    "id": "HSP-002",
+    "name": "Sample Hospice B",
+    "market": "Provo, UT",
+    "emr": "Axxess",
+    "activeCensus": 87,
+    "logoPath": "/images/brand/hospice-b.svg"
+  },
+  {
+    "id": "HSP-003",
+    "name": "Sample Hospice C",
+    "market": "Ogden, UT",
+    "emr": "MatrixCare",
+    "activeCensus": 64,
+    "logoPath": "/images/brand/hospice-c.svg"
+  }
+]

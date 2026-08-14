@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DME Pulse</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #fafafa;
+    --surface: #ffffff;
+    --border: #eaeaea;
+    --border-strong: #d4d4d4;
+    --ink: #0a0a0a;
+    --ink-2: #555555;
+    --ink-3: #888888;
+    --pill-solid-bg: #0a0a0a;
+    --pill-solid-ink: #ffffff;
+    --hover: #f5f5f5;
+    --track: #ececec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a;
+      --bg-subtle: #111111;
+      --surface: #0f0f0f;
+      --border: #262626;
+      --border-strong: #3a3a3a;
+      --ink: #fafafa;
+      --ink-2: #a3a3a3;
+      --ink-3: #737373;
+      --pill-solid-bg: #fafafa;
+      --pill-solid-ink: #0a0a0a;
+      --hover: #171717;
+      --track: #222222;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a;
+    --bg-subtle: #111111;
+    --surface: #0f0f0f;
+    --border: #262626;
+    --border-strong: #3a3a3a;
+    --ink: #fafafa;
+    --ink-2: #a3a3a3;
+    --ink-3: #737373;
+    --pill-solid-bg: #fafafa;
+    --pill-solid-ink: #0a0a0a;
+    --hover: #171717;
+    --track: #222222;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  /* Sidebar */
+  .side { border-right: 1px solid var(--border); padding: 20px 14px; display: flex; flex-direction: column; gap: 4px; background: var(--bg); }
+  .logo { display: flex; align-items: center; gap: 9px; padding: 4px 10px 18px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); flex: none; }
+  .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); padding: 14px 10px 6px; }
+  .nav a { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; cursor: pointer; }
+  .nav a:hover { background: var(--hover); color: var(--ink); }
+  .nav a.active { background: var(--hover); color: var(--ink); font-weight: 500; }
+  .nav .count { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .side-foot { margin-top: auto; padding: 10px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--border); }
+  /* Main */
+  .main { padding: 26px 32px 60px; max-width: 1120px; }
+  .crumb { font-size: 12px; color: var(--ink-3); margin-bottom: 6px; }
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; font-weight: 600; }
+  .sub { color: var(--ink-2); margin-top: 4px; font-size: 13px; }
+  .btn { font: inherit; font-size: 13px; font-weight: 500; border-radius: 7px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--pill-solid-bg); color: var(--pill-solid-ink); border-color: var(--pill-solid-bg); }
+  .btn.primary:hover { opacity: 0.85; }
+  .btn:focus-visible, .nav a:focus-visible, .row:focus-visible, .tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  /* Stat row */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 26px; }
+  .stat { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
+  .stat .k { font-size: 12px; color: var(--ink-2); }
+  .stat .v { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat .d { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .stat.alert { border-color: var(--ink); }
+  .stat.alert .k::before { content: "●"; margin-right: 6px; font-size: 9px; vertical-align: 1px; }
+  /* Filters */
+  .filters { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+  .tab:hover { color: var(--ink); border-color: var(--border-strong); }
+  .tab.on { background: var(--pill-solid-bg); color: var(--pill-solid-ink); border-color: var(--pill-solid-bg); }
+  /* Table */
+  .tablewrap { border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 860px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); }
+  td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--hover); }
+  .mono { font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  .id { font-weight: 500; color: var(--ink); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--ink-2); white-space: nowrap; }
+  .pill.solid { background: var(--pill-solid-bg); color: var(--pill-solid-ink); border-color: var(--pill-solid-bg); }
+  .pill .tick { font-size: 10px; }
+  /* Lifecycle stepper */
+  .steps { display: flex; gap: 4px; align-items: center; }
+  .stepseg { width: 22px; height: 4px; border-radius: 2px; background: var(--track); }
+  .stepseg.done { background: var(--ink); }
+  .stepseg.warn { background: repeating-linear-gradient(45deg, var(--ink), var(--ink) 3px, var(--track) 3px, var(--track) 6px); }
+  /* Drawer */
+  .drawer { border: 1px solid var(--ink); border-radius: 12px; margin-top: 22px; padding: 20px 22px; background: var(--surface); }
+  .drawer h2 { margin: 0 0 2px; font-size: 16px; letter-spacing: -0.01em; }
+  .drawer .why { color: var(--ink-2); font-size: 13px; max-width: 62ch; }
+  .factors { margin: 14px 0 16px; display: grid; gap: 8px; }
+  .factor { display: flex; gap: 10px; align-items: baseline; font-size: 13px; }
+  .factor .b { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); position: relative; top: -2px; }
+  .riskbar { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; max-width: 320px; margin: 6px 0 2px; }
+  .riskbar > div { height: 100%; background: var(--ink); border-radius: 3px; }
+  .drawer-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .drawer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .x { background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; }
+  .x:hover { color: var(--ink); }
+  .toast { position: fixed; bottom: 22px; right: 22px; background: var(--pill-solid-bg); color: var(--pill-solid-ink); padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: all .25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .side { flex-direction: row; align-items: center; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    .side-foot, .nav-label { display: none; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 20px 16px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="side">
+    <div class="logo"><span class="logo-dot"></span>DME Pulse</div>
+    <nav class="nav" style="display:contents">
+      <div class="nav-label">Hospice</div>
+      <a class="active" href="#" onclick="return false">Orders <span class="count">9</span></a>
+      <a href="#" onclick="toast('New order flow — build target for the hackathon');return false">New order</a>
+      <a href="#" onclick="toast('Pickups queue — wired to EMR status changes');return false">Pickups <span class="count">2</span></a>
+      <a href="#" onclick="toast('Cost view — DME spend beside med spend');return false">Cost of care</a>
+      <div class="nav-label">Shared</div>
+      <a href="#" onclick="toast('Risk feed — every at-risk order, explained');return false">Risk feed <span class="count">2</span></a>
+      <a href="#" onclick="toast('Vendor scorecards — SLA vs actual');return false">Vendors</a>
+    </nav>
+    <div class="side-foot">Sample Hospice A · HCHB<br>Dana Whitfield, Case Manager</div>
+  </aside>
+
+  <main class="main">
+    <div class="crumb">Sample Hospice A / Orders</div>
+    <div class="page-head">
+      <div>
+        <h1>Orders</h1>
+        <div class="sub">Every DME order, admission to pickup, in one view — yours and the vendor's.</div>
+      </div>
+      <button class="btn primary" onclick="toast('Bedside ordering flow opens here')">New order</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Open orders</div><div class="v">7</div><div class="d">across 3 vendors</div></div>
+      <div class="stat alert"><div class="k">At risk</div><div class="v">2</div><div class="d">1 discharge · 1 pickup</div></div>
+      <div class="stat"><div class="k">Discharges tomorrow</div><div class="v">2</div><div class="d">1 equipment-confirmed</div></div>
+      <div class="stat"><div class="k">Median delivery</div><div class="v">6.2h</div><div class="d">last 30 days</div></div>
+    </div>
+
+    <div class="filters" role="tablist" aria-label="Order filters">
+      <button class="tab on" data-f="all" onclick="filter(this)">All</button>
+      <button class="tab" data-f="risk" onclick="filter(this)">At risk</button>
+      <button class="tab" data-f="delivery" onclick="filter(this)">Deliveries</button>
+      <button class="tab" data-f="pickup" onclick="filter(this)">Pickups</button>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th>Order</th><th>Patient</th><th>Equipment</th><th>Vendor</th><th>Lifecycle</th><th>Status</th><th>Window</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <div class="drawer" id="drawer" hidden>
+      <div class="drawer-top">
+        <div>
+          <h2 id="d-title">DME-10305 · At risk</h2>
+          <div class="why" id="d-why"></div>
+        </div>
+        <button class="x" aria-label="Close details" onclick="document.getElementById('drawer').hidden=true">✕</button>
+      </div>
+      <div class="riskbar"><div id="d-bar" style="width:87%"></div></div>
+      <div class="sub" id="d-score">Risk score 0.87 — high</div>
+      <div class="factors" id="d-factors"></div>
+      <div class="drawer-actions">
+        <button class="btn primary" onclick="toast('Escalation sent to Sample Vendor 2 dispatcher')">Escalate to vendor</button>
+        <button class="btn" onclick="toast('Discharge pushed to 5:30 PM in HCHB — family notified')">Shift discharge window</button>
+        <button class="btn" onclick="toast('Backup request sent to Sample Vendor 1 (94% on-time)')">Request backup vendor</button>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const ORDERS = [
+  {id:"DME-10231", pt:"PT-88421", eq:"E0250 Hospital Bed", vnd:"—", stage:1, status:"Ordered", pill:"", win:"Aug 4, 2:00 PM", kind:"delivery",
+   why:"Discharge tomorrow 2:00 PM and no vendor is assigned yet. 3 vendors serve zip 84103.",
+   score:0.42, factors:["No vendor assigned 18h after order","Discharge-readiness flag set, unconfirmed","Historical assignment lag for admission orders: 4h median"]},
+  {id:"DME-10198", pt:"PT-88190", eq:"E1130 Wheelchair", vnd:"Vendor 1", stage:2, status:"Dispatched", pill:"", win:"Today 3:40 PM", kind:"delivery",
+   why:"On route 4, no urgency flag. Vendor 1 on-time rate 94% over 30 days.", score:0.08,
+   factors:["ETA inside window by 3+ hours","Vendor 1 on-time 94% (30d)","Route capacity 72%"]},
+  {id:"DME-10305", pt:"PT-88502", eq:"E0601 CPAP / O2", vnd:"Vendor 2", stage:3, status:"At risk", pill:"warn", win:"Discharge 4:30 PM", kind:"risk delivery",
+   why:"Discharge is scheduled for 4:30 PM. Current ETA 5:10 PM misses that window by roughly 40 minutes.",
+   score:0.87, factors:["ETA 5:10 PM vs 4:30 PM discharge — 40 min late","Vendor 2 on-time rate 81% (30d), degrading on STAT orders","Vendor 2 route capacity at 91% today","STAT order type: highest historical failure class"]},
+  {id:"DME-10298", pt:"PT-88544", eq:"E0277 Air Mattress", vnd:"Vendor 1", stage:3, status:"In transit", pill:"", win:"Today 4:15 PM", kind:"delivery",
+   why:"On truck, ETA comfortably inside window.", score:0.11, factors:["ETA inside window","Vendor 1 on-time 94% (30d)"]},
+  {id:"DME-10087", pt:"PT-87950", eq:"E0250 Hospital Bed", vnd:"Vendor 1", stage:4, status:"Delivered", pill:"done", win:"Yesterday 11:52 AM", kind:"delivery",
+   why:"Proof of delivery on file: signature + timestamp. Billing claim (X12 837) triggered automatically.",
+   score:0, factors:["POD captured at 11:52 AM","Claim submitted — closes the 15–25% denial gap from missing docs"]},
+  {id:"DME-09911", pt:"PT-87602", eq:"Wheelchair + O2 Conc.", vnd:"Vendor 2", stage:5, status:"Pickup triggered", pill:"", win:"Due Aug 17", kind:"pickup",
+   why:"Pickup fired automatically from the EMR status change (deceased) at 7:05 AM — no phone call needed. Awaiting vendor scheduling.",
+   score:0.31, factors:["Auto-triggered from Axxess partner connection","Vendor 2 on-time pickup 74% (30d)","72h SLA window open until Aug 17"]},
+  {id:"DME-09803", pt:"PT-87411", eq:"E0250 Hospital Bed", vnd:"Vendor 3", stage:6, status:"Pickup delayed", pill:"warn", win:"4 days overdue", kind:"risk pickup",
+   why:"Pickup triggered four days ago with no scheduled retrieval. The family has called twice asking for the bed to be removed.",
+   score:0.95, factors:["96h elapsed vs 72h SLA — breached","Vendor 3 on-time pickup rate 52% (30d)","2 family complaint calls logged","Escalated to Vendor 3 account rep Aug 12"]},
+  {id:"DME-09950", pt:"PT-87602", eq:"E0250 Hospital Bed", vnd:"Vendor 1", stage:6, status:"Picked up", pill:"done", win:"Today 1:30 PM", kind:"pickup",
+   why:"Respectful same-day pickup, 6.5h after trigger. Family got a 30-minute window in advance. Proof of pickup: signature + photo.",
+   score:0, factors:["Family notified with 1:00–1:30 PM window","POP captured"]},
+];
+
+const rows = document.getElementById('rows');
+function stepper(stage, warn){
+  let h = '<div class="steps" aria-hidden="true">';
+  for(let i=1;i<=6;i++){
+    let c = i<=stage ? (warn && i===stage ? 'warn' : 'done') : '';
+    h += `<div class="stepseg ${c}"></div>`;
+  }
+  return h+'</div>';
+}
+function render(f){
+  rows.innerHTML='';
+  ORDERS.filter(o => f==='all' || o.kind.includes(f)).forEach(o=>{
+    const tr=document.createElement('tr');
+    tr.tabIndex=0;
+    const warn = o.pill==='warn';
+    tr.innerHTML = `<td class="id">${o.id}</td><td class="mono">${o.pt}</td><td>${o.eq}</td><td>${o.vnd}</td>
+      <td>${stepper(o.stage, warn)}</td>
+      <td><span class="pill ${warn?'solid':''}">${o.pill==='done'?'<span class="tick">✓</span>':''}${o.status}</span></td>
+      <td class="mono">${o.win}</td>`;
+    tr.onclick=()=>openDrawer(o);
+    tr.onkeydown=e=>{if(e.key==='Enter')openDrawer(o)};
+    rows.appendChild(tr);
+  });
+}
+function openDrawer(o){
+  document.getElementById('drawer').hidden=false;
+  document.getElementById('d-title').textContent = `${o.id} · ${o.status}`;
+  document.getElementById('d-why').textContent = o.why;
+  document.getElementById('d-bar').style.width = Math.round(o.score*100)+'%';
+  document.getElementById('d-score').textContent = o.score ? `Risk score ${o.score.toFixed(2)} — ${o.score>0.7?'high':o.score>0.3?'moderate':'low'} · every flag has a legible reason, never a black box` : 'Complete — no open risk';
+  document.getElementById('d-factors').innerHTML = o.factors.map(f=>`<div class="factor"><span class="b"></span><span>${f}</span></div>`).join('');
+  document.getElementById('drawer').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function filter(btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  render(btn.dataset.f);
+}
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
+}
+render('all');
+openDrawer(ORDERS[2]);
+</script>
+</body>
+</html>

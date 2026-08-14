@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* Design tokens shared across the app. Extend here rather than hardcoding colors in components. */
+@theme {
+  --color-ink: #0a0a0a;
+  --color-ink-2: #555555;
+  --color-ink-3: #888888;
+  --color-surface: #ffffff;
+  --color-line: #eaeaea;
+  --color-line-strong: #d4d4d4;
+  --color-risk: #b42318;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}

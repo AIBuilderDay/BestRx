@@ -1,0 +1,59 @@
+[
+  {
+    "id": "EMR-0001",
+    "eventType": "newOrUpdatePatient",
+    "receivedAt": "2026-08-03T08:40:00-06:00",
+    "source": "HCHB",
+    "hospiceId": "HSP-001",
+    "patientId": "PT-88421",
+    "payload": { "status": "pending_discharge", "dischargeAt": "2026-08-04T14:00:00-06:00" }
+  },
+  {
+    "id": "EMR-0002",
+    "eventType": "newOrUpdatePatient",
+    "receivedAt": "2026-08-14T09:15:00-06:00",
+    "source": "HCHB",
+    "hospiceId": "HSP-001",
+    "patientId": "PT-88502",
+    "payload": { "status": "pending_discharge", "dischargeAt": "2026-08-14T16:30:00-06:00" }
+  },
+  {
+    "id": "EMR-0003",
+    "eventType": "patientStatusChange",
+    "receivedAt": "2026-08-14T07:52:00-06:00",
+    "source": "Axxess",
+    "hospiceId": "HSP-002",
+    "patientId": "PT-87602",
+    "payload": { "status": "deceased", "effectiveAt": "2026-08-14T07:05:00-06:00" },
+    "note": "Arrived 47 minutes after the field nurse trigger. Confirms rather than initiates the pickup."
+  },
+  {
+    "id": "EMR-0004",
+    "eventType": "patientStatusChange",
+    "receivedAt": "2026-08-11T06:15:00-06:00",
+    "source": "MatrixCare",
+    "hospiceId": "HSP-003",
+    "patientId": "PT-87411",
+    "payload": { "status": "deceased", "effectiveAt": "2026-08-10T22:40:00-06:00" },
+    "note": "Arrived roughly 7.5 hours after death. The pickup was started by a phone call instead."
+  },
+  {
+    "id": "EMR-0005",
+    "eventType": "newMedications",
+    "receivedAt": "2026-08-14T10:05:00-06:00",
+    "source": "HCHB",
+    "hospiceId": "HSP-001",
+    "patientId": "PT-88502",
+    "payload": {
+      "medications": [
+        {
+          "externalId": "0b307548-2c46-4b40-8b16-bb5501f5d6c5",
+          "product": { "codeType": "NDC", "code": "00054051741", "name": "MORPHINE CONCENTRATE 100 MG/5 ML (20 MG/ML) ORAL SOLUTION" },
+          "sig": "TAKE 0.25ML BY MOUTH FOR MODERATE PAIN RATING OF 4-7/10.",
+          "physician": { "identifier": { "id": "1497771109", "idType": "npi" } }
+        }
+      ]
+    },
+    "note": "Included to show DME and medication events sharing one patient spine via the eRx integration."
+  }
+]

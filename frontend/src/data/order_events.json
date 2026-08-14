@@ -1,0 +1,41 @@
+[
+  { "id": "EVT-0001", "orderId": "DME-10231", "at": "2026-08-03T09:14:00-06:00", "event": "ordered", "actorId": "USR-001", "detail": "Hospital bed ordered for a discharge home on Aug 4 at 2:00 PM." },
+
+  { "id": "EVT-0002", "orderId": "DME-10198", "at": "2026-08-14T08:02:00-06:00", "event": "ordered", "actorId": "USR-003", "detail": "Routine wheelchair order." },
+  { "id": "EVT-0003", "orderId": "DME-10198", "at": "2026-08-14T09:15:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Assigned to route 4, ETA 3:40 PM." },
+
+  { "id": "EVT-0004", "orderId": "DME-10305", "at": "2026-08-14T10:20:00-06:00", "event": "ordered", "actorId": "USR-001", "detail": "STAT order ahead of a 4:30 PM discharge." },
+  { "id": "EVT-0005", "orderId": "DME-10305", "at": "2026-08-14T11:00:00-06:00", "event": "dispatched", "actorId": "USR-008", "detail": "Accepted by Sample Vendor 2 dispatch." },
+  { "id": "EVT-0006", "orderId": "DME-10305", "at": "2026-08-14T13:45:00-06:00", "event": "in_transit", "actorId": "USR-008", "detail": "On truck." },
+  { "id": "EVT-0007", "orderId": "DME-10305", "at": "2026-08-14T14:05:00-06:00", "event": "risk_flagged", "actorId": null, "detail": "ETA slipped past the discharge deadline." },
+  { "id": "EVT-0008", "orderId": "DME-10305", "at": "2026-08-14T14:06:00-06:00", "event": "escalated", "actorId": "USR-001", "detail": "Escalation opened with Sample Vendor 2." },
+
+  { "id": "EVT-0009", "orderId": "DME-10087", "at": "2026-08-12T14:30:00-06:00", "event": "ordered", "actorId": "USR-004", "detail": "Hospital bed for a new admission." },
+  { "id": "EVT-0010", "orderId": "DME-10087", "at": "2026-08-12T16:10:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Scheduled for the morning route." },
+  { "id": "EVT-0011", "orderId": "DME-10087", "at": "2026-08-13T10:30:00-06:00", "event": "in_transit", "actorId": "USR-007", "detail": "On truck." },
+  { "id": "EVT-0012", "orderId": "DME-10087", "at": "2026-08-13T11:52:00-06:00", "event": "delivered", "actorId": "USR-007", "detail": "Proof of delivery: signature and timestamp." },
+  { "id": "EVT-0013", "orderId": "DME-10087", "at": "2026-08-13T11:53:00-06:00", "event": "billing_triggered", "actorId": null, "detail": "X12 837 claim submitted on delivery completion." },
+
+  { "id": "EVT-0014", "orderId": "DME-09911", "at": "2026-08-14T07:05:00-06:00", "event": "pickup_triggered", "actorId": null, "detail": "Automatic from the EMR status change (deceased)." },
+  { "id": "EVT-0015", "orderId": "DME-09911", "at": "2026-08-14T07:06:00-06:00", "event": "vendor_notified", "actorId": null, "detail": "SMS with magic link sent to Sample Vendor 2 dispatch." },
+
+  { "id": "EVT-0016", "orderId": "DME-09803", "at": "2026-08-10T09:00:00-06:00", "event": "pickup_triggered", "actorId": "USR-004", "detail": "Manual phone call after the patient's death." },
+  { "id": "EVT-0017", "orderId": "DME-09803", "at": "2026-08-12T10:00:00-06:00", "event": "risk_flagged", "actorId": null, "detail": "48 hours elapsed with no vendor scheduling." },
+  { "id": "EVT-0018", "orderId": "DME-09803", "at": "2026-08-12T10:05:00-06:00", "event": "escalated", "actorId": "USR-004", "detail": "Escalated to the Sample Vendor 3 account rep." },
+  { "id": "EVT-0019", "orderId": "DME-09803", "at": "2026-08-13T09:00:00-06:00", "event": "sla_breached", "actorId": null, "detail": "72-hour pickup SLA breached." },
+  { "id": "EVT-0020", "orderId": "DME-09803", "at": "2026-08-13T16:20:00-06:00", "event": "family_contact", "actorId": null, "detail": "First family call logged." },
+  { "id": "EVT-0021", "orderId": "DME-09803", "at": "2026-08-14T08:30:00-06:00", "event": "family_contact", "actorId": null, "detail": "Second family call logged." },
+
+  { "id": "EVT-0022", "orderId": "DME-10310", "at": "2026-08-14T11:45:00-06:00", "event": "ordered", "actorId": "USR-002", "detail": "Oxygen concentrator and walker for a morning admission." },
+
+  { "id": "EVT-0023", "orderId": "DME-10298", "at": "2026-08-13T15:20:00-06:00", "event": "ordered", "actorId": "USR-003", "detail": "Powered air mattress, routine." },
+  { "id": "EVT-0024", "orderId": "DME-10298", "at": "2026-08-14T07:40:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Added to today's route." },
+  { "id": "EVT-0025", "orderId": "DME-10298", "at": "2026-08-14T13:10:00-06:00", "event": "in_transit", "actorId": "USR-007", "detail": "On truck, ETA 4:15 PM." },
+
+  { "id": "EVT-0026", "orderId": "DME-10122", "at": "2026-08-11T09:00:00-06:00", "event": "ordered", "actorId": null, "detail": "Auto-generated from the 90-day resupply cadence." },
+  { "id": "EVT-0027", "orderId": "DME-10122", "at": "2026-08-12T14:22:00-06:00", "event": "delivered", "actorId": "USR-008", "detail": "Proof of delivery: photo and timestamp." },
+
+  { "id": "EVT-0028", "orderId": "DME-09950", "at": "2026-08-14T07:05:00-06:00", "event": "pickup_triggered", "actorId": "USR-005", "detail": "Field nurse triggered pickup from the home." },
+  { "id": "EVT-0029", "orderId": "DME-09950", "at": "2026-08-14T09:00:00-06:00", "event": "pickup_scheduled", "actorId": "USR-007", "detail": "Window 1:00-1:30 PM, family notified." },
+  { "id": "EVT-0030", "orderId": "DME-09950", "at": "2026-08-14T13:30:00-06:00", "event": "picked_up", "actorId": "USR-007", "detail": "Proof of pickup: signature and photo." }
+]

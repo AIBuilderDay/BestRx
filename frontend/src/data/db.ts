@@ -1,0 +1,79 @@
+/**
+ * The mock database.
+ *
+ * JSON files in this folder stand in for tables. Import from here, never from the raw .json files,
+ * so that swapping in a real API later touches one module instead of every view.
+ *
+ * Lookups return `undefined` for a missing id rather than throwing — callers must handle it.
+ */
+
+import type {
+  CatalogEntry,
+  EmrEvent,
+  Hospice,
+  InventoryUnit,
+  Order,
+  OrderEvent,
+  Patient,
+  User,
+  Vendor,
+} from '../types/domain';
+
+import equipmentCatalogJson from './equipment_catalog.json';
+import emrEventsJson from './emr_events.json';
+import hospicesJson from './hospices.json';
+import inventoryJson from './inventory.json';
+import orderEventsJson from './order_events.json';
+import ordersJson from './orders.json';
+import patientsJson from './patients.json';
+import usersJson from './users.json';
+import vendorsJson from './vendors.json';
+
+// TypeScript widens JSON string literals to `string`, so the union types in domain.ts need an
+// explicit cast. The JSON is our own fixture data and is validated by the tests in db.test.ts.
+export const equipmentCatalog = equipmentCatalogJson as unknown as CatalogEntry[];
+export const hospices = hospicesJson as unknown as Hospice[];
+export const vendors = vendorsJson as unknown as Vendor[];
+export const users = usersJson as unknown as User[];
+export const patients = patientsJson as unknown as Patient[];
+export const orders = ordersJson as unknown as Order[];
+export const orderEvents = orderEventsJson as unknown as OrderEvent[];
+export const inventory = inventoryJson as unknown as InventoryUnit[];
+export const emrEvents = emrEventsJson as unknown as EmrEvent[];
+
+export const getOrder = (id: string): Order | undefined => orders.find((o) => o.id === id);
+
+export const getPatient = (id: string | null | undefined): Patient | undefined =>
+  id ? patients.find((p) => p.id === id) : undefined;
+
+export const getVendor = (id: string | null | undefined): Vendor | undefined =>
+  id ? vendors.find((v) => v.id === id) : undefined;
+
+export const getHospice = (id: string | null | undefined): Hospice | undefined =>
+  id ? hospices.find((h) => h.id === id) : undefined;
+
+export const getUser = (id: string | null | undefined): User | undefined =>
+  id ? users.find((u) => u.id === id) : undefined;
+
+export const getCatalogEntry = (hcpcs: string): CatalogEntry | undefined =>
+  equipmentCatalog.find((e) => e.hcpcs === hcpcs);
+
+/** Timeline for one order, oldest first. */
+export const getOrderEvents = (orderId: string): OrderEvent[] =>
+  orderEvents
+    .filter((e) => e.orderId === orderId)
+    .slice()
+    .sort((a, b) => a.at.localeCompare(b.at));
+
+export const getOrdersForHospice = (hospiceId: string): Order[] =>
+  orders.filter((o) => o.hospiceId === hospiceId);
+
+export const getInventoryForVendor = (vendorId: string): InventoryUnit[] =>
+  inventory.filter((u) => u.vendorId === vendorId);
+
+/** Every order currently carrying a risk state, worst first. */
+export const getAtRiskOrders = (): Order[] =>
+  orders
+    .filter((o) => o.riskState !== null)
+    .slice()
+    .sort((a, b) => (b.risk?.score ?? 0) - (a.risk?.score ?? 0));
