@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { getHospice } from '../data/db';
 import { useCart } from '../context/CartContext';
 import { TopNav } from '../components/layout/TopNav';
 import { PatientCard } from '../components/patients/PatientCard';
@@ -12,7 +11,6 @@ import {
 import type { User } from '../types/domain';
 
 export default function Patients({ user }: { user: User }) {
-  const hospice = getHospice(user.orgId);
   const { cartCount, setCartOpen } = useCart();
   const [query, setQuery] = useState('');
 
@@ -26,7 +24,6 @@ export default function Patients({ user }: { user: User }) {
   return (
     <div className="min-h-screen bg-bg">
       <TopNav
-        hospiceName={hospice?.name ?? 'Hospice'}
         user={user}
         cartCount={cartCount}
         activeSection="patients"

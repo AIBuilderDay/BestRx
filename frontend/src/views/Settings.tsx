@@ -1,18 +1,15 @@
-import { getHospice } from '../data/db';
 import { useCart } from '../context/CartContext';
 import { useTheme } from '../context/ThemeContext';
 import { TopNav } from '../components/layout/TopNav';
 import type { User } from '../types/domain';
 
 export default function Settings({ user, onSignOut }: { user: User; onSignOut: () => void }) {
-  const hospice = getHospice(user.orgId);
   const { cartCount, setCartOpen } = useCart();
   const { theme, setTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-bg">
       <TopNav
-        hospiceName={hospice?.name ?? 'Hospice'}
         user={user}
         cartCount={cartCount}
         activeSection="settings"

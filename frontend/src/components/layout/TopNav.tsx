@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { can, ROLE_LABELS, type Permission } from '../../lib/auth';
+import { can, type Permission } from '../../lib/auth';
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
 
@@ -13,15 +13,13 @@ const GATED_SECTIONS: { label: string; permission: Permission }[] = [
   { label: 'Vendors', permission: 'vendors:manage' },
 ];
 
-/** Sticky app header: brand, permission-gated section nav, session label, and the cart toggle. */
+/** Sticky app header: brand, permission-gated section nav, and the cart toggle. */
 export function TopNav({
-  hospiceName,
   user,
   cartCount,
   activeSection,
   onOpenCart,
 }: {
-  hospiceName: string;
   user: User;
   cartCount: number;
   activeSection: NavSection;
@@ -66,9 +64,6 @@ export function TopNav({
       </nav>
 
       <div className="flex items-center gap-4.5">
-        <span className="px-2 py-1 text-xs text-[var(--color-ink-3)]">
-          {hospiceName} · {user.name} · {ROLE_LABELS[user.role]}
-        </span>
         <button
           type="button"
           onClick={onOpenCart}

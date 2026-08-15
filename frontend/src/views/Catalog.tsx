@@ -131,7 +131,6 @@ export default function Catalog({ user }: { user: User }) {
   return (
     <div className="min-h-screen bg-bg">
       <TopNav
-        hospiceName={hospice?.name ?? 'Hospice'}
         user={user}
         cartCount={totalUnitsInCart(lines)}
         activeSection="catalog"

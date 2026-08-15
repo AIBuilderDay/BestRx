@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getHospice } from '../data/db';
 import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
@@ -17,7 +16,6 @@ interface SessionNote {
 export default function PatientDetail({ user }: { user: User }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
-  const hospice = getHospice(user.orgId);
   const { cartCount, setCartOpen } = useCart();
 
   const [draft, setDraft] = useState('');
@@ -60,7 +58,6 @@ export default function PatientDetail({ user }: { user: User }) {
 
   const topNav = (
     <TopNav
-      hospiceName={hospice?.name ?? 'Hospice'}
       user={user}
       cartCount={cartCount}
       activeSection="patients"
