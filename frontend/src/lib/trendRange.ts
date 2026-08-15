@@ -1,6 +1,5 @@
 /**
- * The 1wk/1mo/3mo/6mo/1yr range picker shared by every "over time" panel on the cost dashboard —
- * Total Spend (real data) and Cost per patient-day (placeholder, see costTrendMock.ts). Neutral
+ * The 1wk/1mo/3mo/6mo/1yr range picker for the cost dashboard's Total Spend panel. Neutral
  * metadata only: how many points a range has, and whether the dataset actually has history for it.
  */
 

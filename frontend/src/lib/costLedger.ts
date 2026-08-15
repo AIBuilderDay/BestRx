@@ -15,7 +15,6 @@
 
 import {
   getCatalogEntry,
-  getHospice,
   getOffersForItem,
   getOrdersForHospice,
   patients,
@@ -366,19 +365,3 @@ export function priceLadder(line: BasketLine, columns: VendorColumn[]): LadderRo
   });
 }
 
-export interface CostPpd {
-  ppdUsd: number;
-  census: number;
-  days: number;
-}
-
-/** Spend per patient per day — the number the hospice buyer actually judges us on. */
-export function ledgerPpd(hospiceId: string, spendUsd: number, period: CostPeriod): CostPpd {
-  const census = getHospice(hospiceId)?.activeCensus ?? 0;
-  const denominator = census * period.days;
-  return {
-    ppdUsd: denominator === 0 ? 0 : spendUsd / denominator,
-    census,
-    days: period.days,
-  };
-}

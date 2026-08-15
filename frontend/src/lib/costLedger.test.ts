@@ -3,7 +3,6 @@ import {
   basketTotals,
   buildBasket,
   dailySpendTrend,
-  ledgerPpd,
   priceLadder,
   SERVICE_FLOOR_PCT,
   spendTrend,
@@ -176,18 +175,5 @@ describe('priceLadder', () => {
     expect(ladder.find((r) => r.vendor.id === 'VND-003')?.tone).toBe('risk');
     expect(ladder.find((r) => r.vendor.id === 'VND-001')?.tone).toBe('best');
     expect(Math.max(...ladder.map((r) => r.widthPct))).toBe(100);
-  });
-});
-
-describe('ledgerPpd', () => {
-  it('divides spend by census times days', () => {
-    const ppd = ledgerPpd('HSP-001', totals.actualUsd, period);
-    expect(ppd.census).toBe(142);
-    expect(ppd.days).toBe(31);
-    expect(ppd.ppdUsd).toBeCloseTo(15578 / (142 * 31), 4);
-  });
-
-  it('returns zero rather than Infinity for an unknown hospice', () => {
-    expect(ledgerPpd('HSP-999', 1000, period).ppdUsd).toBe(0);
   });
 });

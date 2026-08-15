@@ -1,26 +1,26 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { moneyCents, moneyLabel } from '../../lib/catalog';
+import { moneyLabel } from '../../lib/catalog';
 import { accountBreakdown, productBreakdown } from '../../lib/budgetBreakdown';
+import { summarizeUsage } from '../../lib/ai/usage';
 import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, VendorColumn } from '../../lib/costLedger';
-import { ledgerPpd } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
 import type { TrendRange } from '../../lib/trendRange';
 import { buildProductSavings, countGenuineSavings, totalPotentialSavingsUsd } from '../../lib/vendorSavings';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
-import { MetricTrendPanel, type TrendMetricVM } from './MetricTrendPanel';
 import { ProductSavingsPanel } from './ProductSavingsPanel';
 import { SpendRangePanel } from './SpendRangePanel';
 import { StatTiles, type StatTileVM } from './StatTiles';
+import { costLabel, TokenUsagePanel } from './TokenUsagePanel';
 import { VendorPriceMatrix } from './VendorPriceMatrix';
 
 const DEFAULT_TREND_RANGE: TrendRange = '1m';
 
-/** The four selectable stat tiles. Spend and PPD each open a range-picker panel — spend's is real
- *  data, PPD's is a placeholder (see costTrendMock.ts). */
-type TileKey = 'spend' | 'ppd' | 'delta' | 'budget';
+/** The four selectable stat tiles. Spend opens a real range-picker panel; tokens opens the real
+ *  AI token ledger breakdown. */
+type TileKey = 'spend' | 'tokens' | 'delta' | 'budget';
 
 export function CostLedgerPanel({
   hospiceId,
@@ -47,7 +47,6 @@ export function CostLedgerPanel({
   onCloseRow: () => void;
   onAction: (message: string) => void;
 }) {
-  const ppd = ledgerPpd(hospiceId, totals.actualUsd, period);
   const openLine = lines.find((l) => l.hcpcs === openHcpcs) ?? null;
 
   const [selectedMetric, setSelectedMetric] = useState<TileKey | null>('spend');
@@ -56,6 +55,11 @@ export function CostLedgerPanel({
   const productSavings = useMemo(() => buildProductSavings(lines, columns), [lines, columns]);
   const totalSavingsUsd = useMemo(() => totalPotentialSavingsUsd(productSavings), [productSavings]);
   const savingsProductCount = useMemo(() => countGenuineSavings(productSavings), [productSavings]);
+
+  // Read fresh on every render — cheap localStorage read, and this tile should reflect AI calls
+  // made elsewhere in the app (e.g. catalog search) without requiring a full page reload.
+  const usage = summarizeUsage();
+  const totalTokens = usage.total.inputTokens + usage.total.outputTokens;
 
   const tiles: StatTileVM[] = [
     {
@@ -66,10 +70,13 @@ export function CostLedgerPanel({
       tone: 'plain',
     },
     {
-      key: 'ppd',
-      label: 'Cost per patient-day',
-      value: moneyCents(ppd.ppdUsd),
-      detail: `${ppd.census} patients on service × ${ppd.days} days`,
+      key: 'tokens',
+      label: 'AI Token Usage',
+      value: totalTokens.toLocaleString('en-US'),
+      detail:
+        usage.total.calls > 0
+          ? `${costLabel(usage.total.costUsd)} across ${usage.total.calls} call${usage.total.calls === 1 ? '' : 's'}`
+          : 'No AI calls yet this session',
       tone: 'plain',
     },
     {
@@ -98,14 +105,8 @@ export function CostLedgerPanel({
     },
   ];
 
-  const ppdTrendMetric: TrendMetricVM = {
-    label: 'Cost per patient-day',
-    currentValue: ppd.ppdUsd,
-    formatValue: moneyCents,
-  };
-
   const selectMetric = (key: string) => {
-    if (!['spend', 'ppd', 'delta', 'budget'].includes(key)) return;
+    if (!['spend', 'tokens', 'delta', 'budget'].includes(key)) return;
     setSelectedMetric((current) => (current === key ? null : (key as TileKey)));
   };
 
@@ -133,8 +134,8 @@ export function CostLedgerPanel({
         onRangeChange={setTrendRange}
       />
     );
-  } else if (selectedMetric === 'ppd') {
-    panel = <MetricTrendPanel metric={ppdTrendMetric} range={trendRange} onRangeChange={setTrendRange} />;
+  } else if (selectedMetric === 'tokens') {
+    panel = <TokenUsagePanel summary={usage} />;
   }
 
   return (
