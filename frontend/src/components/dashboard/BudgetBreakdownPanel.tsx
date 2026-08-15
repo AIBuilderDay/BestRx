@@ -49,96 +49,104 @@ export function BudgetBreakdownPanel({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-3">
-          {view === 'product' ? 'Product overage spending' : 'Nurses over spending'}
-        </h3>
-        <div role="tablist" aria-label="Budget utilization breakdown" className="flex gap-1.5">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={view === 'product'}
-            onClick={() => setView('product')}
-            className={`rounded-full border px-3 py-1 text-[12px] transition-colors ${
-              view === 'product'
-                ? 'border-solid-bg bg-solid-bg text-solid-ink'
-                : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
-            }`}
-          >
-            By product
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={view === 'nurse'}
-            onClick={() => setView('nurse')}
-            className={`rounded-full border px-3 py-1 text-[12px] transition-colors ${
-              view === 'nurse'
-                ? 'border-solid-bg bg-solid-bg text-solid-ink'
-                : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
-            }`}
-          >
-            By nurse
-          </button>
-        </div>
-      </div>
-
-      {chartSlices.length > 0 ? (
-        <DonutChart
-          slices={chartSlices}
-          totalLabel={moneyLabel(chartTotal)}
-          centerLabel="Cutback"
-          centerValue={cutbackLabel}
-        />
-      ) : (
-        <div className="mt-3 rounded-card border border-line bg-bg-subtle px-3 py-3 text-[13px] text-ink-2">
-          No nurse overage to chart for this period.
-        </div>
-      )}
-
-      {view === 'nurse' ? (
-        hasOverage ? (
-          <div>
-            <div className="mt-2 overflow-hidden rounded-card border border-line">
-              <table className="w-full border-collapse text-[13px]">
-                <thead>
-                  <tr className="bg-bg-subtle">
-                    <th className="px-3 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">
-                      Account
-                    </th>
-                    <th className={HEAD}>Purchased</th>
-                    <th className={HEAD}>Allotted</th>
-                    <th className={HEAD}>Overage</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {overAccounts.map((account) => (
-                    <tr key={account.user.id} className="border-t border-line">
-                      <td className="px-3 py-2.5">
-                        <div className="text-ink">{account.user.name}</div>
-                        <div className="text-[11px] text-ink-3">
-                          {account.roleLabel} · {account.assignedPatients} patients · {account.utilizationPct}%
-                        </div>
-                      </td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{moneyLabel(account.spentUsd)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">
-                        {account.capUsd === null ? '—' : moneyLabel(account.capUsd)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-risk">
-                        {moneyLabel(account.overageUsd)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {hasOverage ? (
+        <>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <h3 className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-3">
+              {view === 'product' ? 'Product overage spending' : 'Nurses over spending'}
+            </h3>
+            <div role="tablist" aria-label="Budget utilization breakdown" className="flex gap-1.5">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'product'}
+                onClick={() => setView('product')}
+                className={`rounded-full border px-3 py-1 text-[12px] transition-colors ${
+                  view === 'product'
+                    ? 'border-solid-bg bg-solid-bg text-solid-ink'
+                    : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
+                }`}
+              >
+                By product
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === 'nurse'}
+                onClick={() => setView('nurse')}
+                className={`rounded-full border px-3 py-1 text-[12px] transition-colors ${
+                  view === 'nurse'
+                    ? 'border-solid-bg bg-solid-bg text-solid-ink'
+                    : 'border-line-strong bg-surface text-ink-2 hover:border-ink hover:text-ink'
+                }`}
+              >
+                By nurse
+              </button>
             </div>
           </div>
-        ) : (
-          <div className="mt-2 rounded-card border border-line bg-bg-subtle px-3 py-3 text-[13px] text-ink-2">
-            Accounts are inside the allotted budget for this period.
+
+          <div key={view} className="animate-[sheetIn_0.3s_cubic-bezier(0.2,0.7,0.2,1)_both] motion-reduce:animate-none">
+            {chartSlices.length > 0 ? (
+              <DonutChart
+                slices={chartSlices}
+                totalLabel={moneyLabel(chartTotal)}
+                centerLabel="Cutback"
+                centerValue={cutbackLabel}
+              />
+            ) : (
+              <div className="mt-3 rounded-card border border-line bg-bg-subtle px-3 py-3 text-[13px] text-ink-2">
+                No nurse overage to chart for this period.
+              </div>
+            )}
           </div>
-        )
-      ) : null}
+
+          {view === 'nurse' ? (
+            <div>
+              <div className="mt-2 overflow-hidden rounded-card border border-line">
+                <table className="w-full border-collapse text-[13px]">
+                  <thead>
+                    <tr className="bg-bg-subtle">
+                      <th className="px-3 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                        Account
+                      </th>
+                      <th className={HEAD}>Purchased</th>
+                      <th className={HEAD}>Allotted</th>
+                      <th className={HEAD}>Overage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {overAccounts.map((account) => (
+                      <tr key={account.user.id} className="border-t border-line">
+                        <td className="px-3 py-2.5">
+                          <div className="text-ink">{account.user.name}</div>
+                          <div className="text-[11px] text-ink-3">
+                            {account.roleLabel} · {account.assignedPatients} patients · {account.utilizationPct}%
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">{moneyLabel(account.spentUsd)}</td>
+                        <td className="px-3 py-2.5 text-right tabular-nums">
+                          {account.capUsd === null ? '—' : moneyLabel(account.capUsd)}
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-risk">
+                          {moneyLabel(account.overageUsd)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <div className="mt-4 rounded-card border border-good bg-bg-subtle px-4 py-5 text-center">
+          <p className="text-[14px] font-medium text-good">Nice work — this hospice is under budget.</p>
+          <p className="mt-1 text-[12px] text-ink-3">
+            {utilizationPct ?? 0}% of the {moneyLabel(capUsd)} allotted budget used. No cutback needed this
+            period.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

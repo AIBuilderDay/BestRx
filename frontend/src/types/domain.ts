@@ -64,6 +64,8 @@ export interface Hospice {
   market: string;
   emr: 'HCHB' | 'Axxess' | 'WellSky' | 'MatrixCare';
   activeCensus: number;
+  /** Total monthly DME budget the hospice allots across roles/departments. */
+  monthlyBudgetUsd: number;
   logoPath: string;
 }
 
@@ -277,12 +279,13 @@ export interface Budget {
   period: string;
   /**
    * The cap for the period. For role budgets this is derived, not guessed:
-   * ppdUsd x assignedPatients x days, following mockups/cost-ledger.html.
+   * pctOfBudget x hospice.monthlyBudgetUsd — the role/department's flat allotted share.
    */
   limitUsd: number;
   spentUsd: number;
   setById: string | null;
-  derivedFrom?: { ppdUsd: number; assignedPatients: number; days: number };
+  /** Fraction (0-1) of the hospice's monthlyBudgetUsd allotted to this role. */
+  derivedFrom?: { pctOfBudget: number };
 }
 
 export type AiUsageFeature =

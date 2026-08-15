@@ -145,7 +145,7 @@ describe('mock database integrity', () => {
     }
   });
 
-  it('derives every role budget cap from PPD x patients x days', () => {
+  it('derives every role budget cap from its share of the hospice budget', () => {
     for (const budget of budgets.filter((b) => b.derivedFrom)) {
       expect(budgetCapUsd(budget), budget.id).toBeCloseTo(budget.limitUsd, 2);
       expect(budgetUtilizationPct(budget), budget.id).toBeLessThanOrEqual(100);

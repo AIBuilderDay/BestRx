@@ -26,7 +26,7 @@ export function Sparkline({ values, label }: { values: number[]; label: string }
   if (!geometry.usable) {
     return (
       <span
-        className="inline-flex min-w-[128px] items-center justify-end gap-2 text-ink-3"
+        className="inline-flex min-w-[128px] items-center justify-center gap-2 text-ink-3"
         title={`${label}: not enough movement to chart`}
       >
         <span>—</span>

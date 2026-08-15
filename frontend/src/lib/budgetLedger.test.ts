@@ -3,11 +3,13 @@ import {
   accountTotals,
   buildAccountRows,
   canViewBudgetAccount,
+  hospiceBudgetUsage,
   NO_OVERRIDES,
   parseRateInput,
   roleRates,
-  setAccountOverride,
-  setRoleOverride,
+  setAccountAllottedOverride,
+  setRolePctOverride,
+  setTotalBudgetOverride,
   sortAccountRows,
 } from './budgetLedger';
 import { getPeriod } from './costPeriod';
@@ -16,6 +18,9 @@ const period = getPeriod('aug-2026');
 const rows = buildAccountRows('HSP-001', period, NO_OVERRIDES);
 const rowFor = (id: string) => rows.find((r) => r.user.id === id)!;
 
+// HSP-001: monthlyBudgetUsd $40,000. admissions_nurse 30% ($12,000, 1 account), case_manager 20%
+// ($8,000, 2 accounts -> $4,000 each), director_of_nursing 50% ($20,000, 1 account).
+
 describe('buildAccountRows', () => {
   it('lists every hospice account, including those carrying no patients', () => {
     expect(rows.map((r) => r.user.id).sort()).toEqual([
@@ -23,45 +28,36 @@ describe('buildAccountRows', () => {
     ]);
   });
 
-  it('derives a cap from PPD x counted caseload x days', () => {
-    const dana = rowFor('USR-001');
+  it('derives a cap from the role\'s share of the hospice budget, split evenly across its accounts', () => {
+    const dana = rowFor('USR-001'); // case_manager, one of two accounts in the role
     expect(dana.assignedPatients).toBe(13);
-    expect(dana.ppdUsd).toBe(8);
-    expect(dana.capUsd).toBeCloseTo(8 * 13 * 31, 2);
+    expect(dana.capUsd).toBeCloseTo(4000, 2);
     expect(dana.spentUsd).toBeCloseTo(6530, 2);
     expect(dana.status).toBe('over');
   });
 
   it('flags an account that has blown through its cap', () => {
-    const bea = rowFor('USR-010');
-    expect(bea.capUsd).toBeCloseTo(8 * 12 * 31, 2);
-    expect(bea.utilizationPct).toBe(298);
-    expect(bea.status).toBe('over');
+    const bea = rowFor('USR-010'); // admissions_nurse, sole account in the role
+    expect(bea.capUsd).toBeCloseTo(12000, 2);
+    expect(bea.spentUsd).toBeCloseTo(8855.5, 2);
+    expect(bea.status).toBe('under');
   });
 
-  it('never reports a utilization for a zero cap, and says why', () => {
-    const marcus = rowFor('USR-002');
+  it('still allots an account its role-derived share even with no caseload — patients no longer drive the cap', () => {
+    const marcus = rowFor('USR-002'); // case_manager, the other of two accounts in the role
     expect(marcus.assignedPatients).toBe(0);
-    expect(marcus.capUsd).toBe(0);
+    expect(marcus.capUsd).toBeCloseTo(4000, 2);
     expect(marcus.spentUsd).toBeCloseTo(192.5, 2);
-    expect(marcus.utilizationPct).toBeNull();
-    expect(marcus.status).toBe('no_caseload');
-    expect(marcus.note).toContain('no patients assigned');
-    expect(marcus.countsTowardTotals).toBe(false);
+    expect(marcus.status).toBe('under');
+    expect(marcus.countsTowardTotals).toBe(true);
   });
 
   it('leaves a role with no budget row uncapped rather than guessing zero', () => {
-    const grant = rowFor('USR-013');
-    expect(grant.ppdUsd).toBeNull();
+    const grant = rowFor('USR-013'); // hospice_admin — no budget row in the dataset
     expect(grant.capUsd).toBeNull();
     expect(grant.utilizationPct).toBeNull();
     expect(grant.status).toBe('no_rate');
     expect(grant.note).toContain('No role budget configured');
-  });
-
-  it('counts the caseload itself rather than trusting budgets.derivedFrom', () => {
-    // BUD-002 claims 24 assigned patients for case_manager; only 13 are actually assigned.
-    expect(rowFor('USR-001').assignedPatients).toBe(13);
   });
 
   it('shows the owner every hospice account below owner, excluding owner accounts', () => {
@@ -85,48 +81,76 @@ describe('buildAccountRows', () => {
 describe('accountTotals', () => {
   it('sums only rows with a real cap, and names the exclusions', () => {
     const totals = accountTotals(rows);
-    expect(totals.capUsd).toBeCloseTo(6200, 2);
+    expect(totals.capUsd).toBeCloseTo(4000 + 12000 + 4000 + 20000, 2);
     expect(totals.spentUsd).toBeCloseTo(15578, 2);
-    expect(totals.utilizationPct).toBe(251);
-    expect(totals.overageUsd).toBeCloseTo(9378, 2);
-    expect(totals.excludedUserIds.sort()).toEqual(['USR-002', 'USR-012', 'USR-013']);
-    expect(totals.excludedReason).toContain('3 accounts excluded');
+    expect(totals.excludedUserIds).toEqual(['USR-013']);
+    expect(totals.excludedReason).toContain('1 account excluded');
   });
 });
 
 describe('overrides', () => {
-  it('applies an account override over the role default', () => {
-    const overrides = setAccountOverride(NO_OVERRIDES, 'USR-001', 12, 8);
+  it('applies an account override over the role-derived default', () => {
+    const overrides = setAccountAllottedOverride(NO_OVERRIDES, 'USR-001', 5000, 4000);
     const dana = buildAccountRows('HSP-001', period, overrides).find((r) => r.user.id === 'USR-001')!;
-    expect(dana.ppdUsd).toBe(12);
-    expect(dana.ppdSource).toBe('account-override');
-    expect(dana.capUsd).toBeCloseTo(12 * 13 * 31, 2);
+    expect(dana.capUsd).toBe(5000);
+    expect(dana.budgetSource).toBe('account-override');
   });
 
-  it('clears an account override set back to the role default', () => {
-    const applied = setAccountOverride(NO_OVERRIDES, 'USR-001', 12, 8);
-    const cleared = setAccountOverride(applied, 'USR-001', 8, 8);
-    expect(cleared.accounts['USR-001']).toBeUndefined();
+  it('clears an account override set back to the role-derived default', () => {
+    const applied = setAccountAllottedOverride(NO_OVERRIDES, 'USR-001', 5000, 4000);
+    const cleared = setAccountAllottedOverride(applied, 'USR-001', 4000, 4000);
+    expect(cleared.accountUsd['USR-001']).toBeUndefined();
   });
 
   it('never mutates the overrides handed to it', () => {
     const before = JSON.stringify(NO_OVERRIDES);
-    setRoleOverride(NO_OVERRIDES, 'case_manager', 11);
-    setAccountOverride(NO_OVERRIDES, 'USR-001', 12, 8);
+    setRolePctOverride(NO_OVERRIDES, 'case_manager', 0.25);
+    setAccountAllottedOverride(NO_OVERRIDES, 'USR-001', 5000, 4000);
     expect(JSON.stringify(NO_OVERRIDES)).toBe(before);
   });
 
   it('lets a role override move every account in that role', () => {
-    const overrides = setRoleOverride(NO_OVERRIDES, 'case_manager', 10);
+    const overrides = setRolePctOverride(NO_OVERRIDES, 'case_manager', 0.25); // $10,000 dept / 2
     const updated = buildAccountRows('HSP-001', period, overrides);
-    expect(updated.find((r) => r.user.id === 'USR-001')?.ppdUsd).toBe(10);
-    expect(updated.find((r) => r.user.id === 'USR-001')?.ppdSource).toBe('role-override');
-    expect(updated.find((r) => r.user.id === 'USR-010')?.ppdUsd).toBe(8);
+    expect(updated.find((r) => r.user.id === 'USR-001')?.capUsd).toBeCloseTo(5000, 2);
+    expect(updated.find((r) => r.user.id === 'USR-001')?.budgetSource).toBe('role-override');
+    expect(updated.find((r) => r.user.id === 'USR-010')?.capUsd).toBeCloseTo(12000, 2); // untouched
+  });
+});
+
+describe('hospiceBudgetUsage', () => {
+  it('measures total spend against the whole hospice budget, not the sum of department budgets', () => {
+    const usage = hospiceBudgetUsage('HSP-001', rows, NO_OVERRIDES);
+    expect(usage.monthlyBudgetUsd).toBe(40000);
+    expect(usage.monthlyBudgetOverridden).toBe(false);
+    expect(usage.spentUsd).toBeCloseTo(15578, 2);
+    expect(usage.utilizationPct).toBe(39);
+    expect(usage.overageUsd).toBe(0);
+  });
+
+  it('reports over-100% usage and the overage dollars once total spend clears the total budget', () => {
+    const overrides = setTotalBudgetOverride(NO_OVERRIDES, 10000, 40000);
+    const usage = hospiceBudgetUsage('HSP-001', rows, overrides);
+    expect(usage.monthlyBudgetOverridden).toBe(true);
+    expect(usage.utilizationPct).toBe(156); // round(15578 / 10000 * 100)
+    expect(usage.overageUsd).toBeCloseTo(5578, 2);
+  });
+
+  it('clears the override when set back to the hospice default', () => {
+    const applied = setTotalBudgetOverride(NO_OVERRIDES, 10000, 40000);
+    const cleared = setTotalBudgetOverride(applied, 40000, 40000);
+    expect(cleared.totalBudgetUsd).toBeNull();
+  });
+
+  it('never reports a utilization when there is no budget to measure against', () => {
+    const overrides = setTotalBudgetOverride(NO_OVERRIDES, 0, 40000);
+    const usage = hospiceBudgetUsage('HSP-001', rows, overrides);
+    expect(usage.utilizationPct).toBeNull();
   });
 });
 
 describe('roleRates', () => {
-  it('reports each role once, with counted patients and no rate invented for the owner', () => {
+  it('reports each role once, with the department budget derived from its share', () => {
     const cards = roleRates('HSP-001', NO_OVERRIDES);
     expect(cards.map((c) => c.role).sort()).toEqual([
       'admissions_nurse', 'case_manager', 'director_of_nursing', 'hospice_admin',
@@ -134,7 +158,10 @@ describe('roleRates', () => {
     const caseManager = cards.find((c) => c.role === 'case_manager')!;
     expect(caseManager.accountCount).toBe(2);
     expect(caseManager.assignedPatients).toBe(13);
-    expect(cards.find((c) => c.role === 'hospice_admin')?.defaultPpdUsd).toBeNull();
+    expect(caseManager.defaultPctOfBudget).toBeCloseTo(0.2, 6);
+    expect(caseManager.departmentBudgetUsd).toBeCloseTo(8000, 2);
+    expect(cards.find((c) => c.role === 'hospice_admin')?.defaultPctOfBudget).toBeNull();
+    expect(cards.find((c) => c.role === 'hospice_admin')?.departmentBudgetUsd).toBeNull();
   });
 
   it('uses the same role visibility as the account table', () => {

@@ -103,33 +103,36 @@ vendor is deliberately the worst performer; that tension is the point of the scr
 
 **`budgets`** carries both kinds from the whiteboard: a monthly cap per role, and a cap per one-time
 patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patient id when `scope` is
-`patient_purchase`. Role caps are **derived, not guessed** — `derivedFrom` holds the
-`ppdUsd x assignedPatients x days` that produced `limitUsd`, so a cap recomputes when census moves.
-`budgetCapUsd()` and `budgetUtilizationPct()` in `db.ts` do that math; use them rather than reading
-`limitUsd` directly.
+`patient_purchase`. Role caps are **derived, not guessed** — `derivedFrom.pctOfBudget` is the
+fraction of `hospices[].monthlyBudgetUsd` allotted to that role, so a cap recomputes when the
+hospice's total budget changes. `budgetCapUsd()` and `budgetUtilizationPct()` in `db.ts` do that
+math; use them rather than reading `limitUsd` directly. `lib/budgetLedger.ts` then splits a role's
+department budget evenly across its accounts (each account can override its own flat allotment,
+session-only) — `patients[].caseManagerId` caseload is shown for context on that screen but no
+longer drives any cap.
 
 ## Deriving PPD
 
 PPD (per patient day) is the number the hospice buyer manages against, so cost views express spend
-that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator,
-`orders[].equipment` joined to `vendor_offers[].priceUsd` for the numerator, and
-`budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
-[PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
+that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator, and
+`orders[].equipment` joined to `vendor_offers[].priceUsd` for the numerator. This is independent of
+role budget caps (see "Known inconsistencies" below), which are a flat dollar allotment, not a PPD
+rate. See [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
 
 ## Known inconsistencies
 
 Real gaps in the sample data. Handle them explicitly rather than papering over them — the cost
 dashboard labels each one on screen.
 
-- **`budgets[].derivedFrom.assignedPatients` disagrees with the caseload.** The role rows claim
-  48 / 24 / 70 assigned patients; counting `patients[].caseManagerId` gives 12 / 13 / 0. Use the
-  budget row for `ppdUsd` only and count the caseload yourself — that is the figure a director of
-  nursing can verify. `lib/budgetLedger.ts` does this.
-- **Two different patient denominators.** PPD uses `hospices[].activeCensus` (142 for HSP-001);
-  budget caps use the 25 patients actually assigned to a case manager. Both are correct for their
-  purpose, so name which one a figure uses wherever it is shown.
-- **No `hospice_admin` budget row.** The owner has no role cap, so no cap can be derived for that
-  account. Render it as "no cap set", never as `$0`.
+- **Budget caps no longer read patient counts at all.** An account's allotted budget is a flat
+  dollar split of its role's department budget, independent of caseload. `assignedPatients` still
+  displays on the budget screen (from `patients[].caseManagerId`) for context, but it's informational
+  only — an account with zero patients still gets its role's default share.
+- **PPD keeps its own denominator, separate from budget caps.** The PPD cost metric shown elsewhere
+  in the app uses `hospices[].activeCensus` (142 for HSP-001) — unrelated to and unaffected by the
+  budget-cap split above.
+- **No `hospice_admin` budget row.** The owner has no role cap, so no department budget can be
+  derived for that account. Render it as "no cap set", never as `$0`.
 - **Orders span Aug 1–22, 2026 only.** There is no history for a multi-month trend. `lib/costPeriod.ts`
   exposes one period and buckets it weekly; adding history is a data change, not a code change.
 - **Service areas are narrow.** VND-001 covers 4 of HSP-001's 10 patient ZIPs, VND-002 covers 1,

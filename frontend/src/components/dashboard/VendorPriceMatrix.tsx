@@ -42,7 +42,9 @@ export function VendorPriceMatrix({
             <th className="px-4 py-2.5 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">Equipment</th>
             <th className={HEAD}>Units</th>
             <th className={HEAD}>Paid</th>
-            <th className={HEAD}>Spending trend</th>
+            <th className="px-4 py-2.5 text-center text-[11px] uppercase tracking-[0.06em] text-ink-3">
+              Order trend
+            </th>
           </tr>
         </thead>
 

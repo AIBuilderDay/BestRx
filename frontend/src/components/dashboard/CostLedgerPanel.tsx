@@ -32,7 +32,6 @@ export function CostLedgerPanel({
   openHcpcs,
   onOpenRow,
   onCloseRow,
-  onAction,
 }: {
   hospiceId: string;
   period: CostPeriod;
@@ -44,7 +43,6 @@ export function CostLedgerPanel({
   openHcpcs: string | null;
   onOpenRow: (hcpcs: string) => void;
   onCloseRow: () => void;
-  onAction: (message: string) => void;
 }) {
   const openLine = lines.find((l) => l.hcpcs === openHcpcs) ?? null;
 
@@ -65,8 +63,6 @@ export function CostLedgerPanel({
     [hospiceId, period, lines, spendRange],
   );
   const spendRangeLabel = getRangeMeta(spendRange).label;
-  const budgetOverPct =
-    budgetTotals.utilizationPct === null ? null : Math.max(0, budgetTotals.utilizationPct - 100);
 
   const tiles: StatTileVM[] = [
     {
@@ -103,10 +99,7 @@ export function CostLedgerPanel({
     {
       key: 'budget',
       label: 'Budget utilization',
-      value:
-        budgetTotals.utilizationPct === null
-          ? '—'
-          : `${budgetOverPct}%`,
+      value: budgetTotals.utilizationPct === null ? '—' : `${budgetTotals.utilizationPct}%`,
       detail:
         budgetTotals.utilizationPct === null
           ? 'No DME budget cap to measure'
@@ -169,7 +162,11 @@ export function CostLedgerPanel({
     <div className="mt-5">
       <StatTiles tiles={tiles} selectedKey={selectedMetric} onSelect={selectMetric} />
 
-      {panel}
+      {selectedMetric !== null && panel !== null ? (
+        <div key={selectedMetric} className="animate-[sheetIn_0.3s_cubic-bezier(0.2,0.7,0.2,1)_both] motion-reduce:animate-none">
+          {panel}
+        </div>
+      ) : null}
 
       <div className="mt-4">
         <LedgerControls period={period} />
@@ -186,7 +183,7 @@ export function CostLedgerPanel({
       </div>
 
       {openLine ? (
-        <CodeDrawer line={openLine} columns={columns} onClose={onCloseRow} onAction={onAction} />
+        <CodeDrawer hospiceId={hospiceId} period={period} line={openLine} onClose={onCloseRow} />
       ) : null}
 
       <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">

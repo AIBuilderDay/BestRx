@@ -67,13 +67,15 @@ export function SpendRangePanel({
         </div>
       </div>
 
-      {buckets ? (
-        <SpendRangeChart buckets={buckets} hoverIndex={hoverIndex} onHoverIndex={setHoverIndex} />
-      ) : (
-        <p className="mt-6 py-8 text-center text-[13px] text-ink-3">
-          * No real order history behind this range yet.
-        </p>
-      )}
+      <div key={range} className="animate-[sheetIn_0.3s_cubic-bezier(0.2,0.7,0.2,1)_both] motion-reduce:animate-none">
+        {buckets ? (
+          <SpendRangeChart buckets={buckets} hoverIndex={hoverIndex} onHoverIndex={setHoverIndex} />
+        ) : (
+          <p className="mt-6 py-8 text-center text-[13px] text-ink-3">
+            * No real order history behind this range yet.
+          </p>
+        )}
+      </div>
     </section>
   );
 }

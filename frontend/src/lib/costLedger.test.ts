@@ -4,6 +4,7 @@ import {
   buildBasket,
   dailySpendTrend,
   ledgerPpd,
+  orderHistoryForCode,
   priceLadder,
   SERVICE_FLOOR_PCT,
   spendSummaryForRange,
@@ -196,6 +197,26 @@ describe('priceLadder', () => {
     expect(ladder.find((r) => r.vendor.id === 'VND-003')?.tone).toBe('risk');
     expect(ladder.find((r) => r.vendor.id === 'VND-001')?.tone).toBe('best');
     expect(Math.max(...ladder.map((r) => r.widthPct))).toBe(100);
+  });
+});
+
+describe('orderHistoryForCode', () => {
+  it('lists every order this period that included the code, oldest first', () => {
+    const line = lines.find((l) => l.hcpcs === 'E0250')!;
+    const history = orderHistoryForCode('HSP-001', period, 'E0250');
+
+    expect(history.reduce((sum, entry) => sum + entry.qty, 0)).toBe(line.units);
+    expect(history.reduce((sum, entry) => sum + entry.extendedUsd, 0)).toBeCloseTo(line.actualUsd, 2);
+    for (const entry of history) {
+      expect(entry.orderedByName).not.toBe('');
+      expect(entry.patientName).not.toBe('');
+    }
+    const dates = history.map((entry) => entry.orderedAt);
+    expect(dates).toEqual([...dates].sort());
+  });
+
+  it('returns nothing for a code never ordered this period', () => {
+    expect(orderHistoryForCode('HSP-001', period, 'E9999')).toEqual([]);
   });
 });
 

@@ -3,7 +3,7 @@ import type { BasketLine } from '../../lib/costLedger';
 import { Sparkline } from '../ui/Sparkline';
 
 const CELL = 'px-4 py-2.5 text-right tabular-nums';
-const TREND_CELL = 'px-4 py-2.5 text-right';
+const TREND_CELL = 'px-4 py-2.5 text-center';
 
 const cumulativeSpend = (values: number[]): number[] => {
   let running = 0;

@@ -5,6 +5,7 @@
     "market": "Salt Lake City, UT",
     "emr": "HCHB",
     "activeCensus": 142,
+    "monthlyBudgetUsd": 40000.0,
     "logoPath": "/images/brand/hospice-a.svg"
   },
   {
@@ -13,6 +14,7 @@
     "market": "Provo, UT",
     "emr": "Axxess",
     "activeCensus": 87,
+    "monthlyBudgetUsd": 20000.0,
     "logoPath": "/images/brand/hospice-b.svg"
   },
   {
@@ -21,6 +23,7 @@
     "market": "Ogden, UT",
     "emr": "MatrixCare",
     "activeCensus": 64,
+    "monthlyBudgetUsd": 12000.0,
     "logoPath": "/images/brand/hospice-c.svg"
   }
 ]

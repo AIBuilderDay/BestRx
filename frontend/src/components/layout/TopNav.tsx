@@ -6,8 +6,6 @@ import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
 import { ProfileMenu } from "./ProfileMenu";
 
-// "dashboard" isn't one of this bar's own links — it's reached from the profile menu — but views
-// still pass it as activeSection so linkClass() has a real, never-matching value instead of a lie.
 export type NavSection = "catalog" | "patients" | "dashboard";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
@@ -58,6 +56,15 @@ export function TopNav({
         </div>
 
         <nav className="flex shrink-0 gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
+          {can(user, "reporting") ? (
+            <Link
+              to="/dashboard"
+              aria-current={activeSection === "dashboard" ? "page" : undefined}
+              className={linkClass("dashboard")}
+            >
+              Dashboard
+            </Link>
+          ) : null}
           <Link
             to="/catalog"
             state={RESET_CATALOG_FILTERS_STATE}

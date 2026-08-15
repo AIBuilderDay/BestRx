@@ -18,10 +18,13 @@ import {
   getHospice,
   getOffersForItem,
   getOrdersForHospice,
+  getPatient,
+  getUser,
+  getVendor,
   patients,
   vendors,
 } from '../data/db';
-import { CATEGORY_LABELS } from './catalog';
+import { CATEGORY_LABELS, patientFullName } from './catalog';
 import { bucketIndexFor, periodContains, type CostPeriod } from './costPeriod';
 import type { TrendRange } from './trendRange';
 import type { EquipmentItem, Order, Vendor, VendorOffer } from '../types/domain';
@@ -190,6 +193,49 @@ export function orderItemExtendedUsd(order: Order, item: EquipmentItem, period: 
 
 export function orderExtendedUsd(order: Order, period: CostPeriod): number {
   return round2(order.equipment.reduce((total, item) => total + orderItemExtendedUsd(order, item, period), 0));
+}
+
+export interface CodeOrderHistoryEntry {
+  orderId: string;
+  orderedAt: string;
+  qty: number;
+  unitUsd: number | null;
+  extendedUsd: number;
+  vendorName: string;
+  orderedByName: string;
+  patientName: string;
+}
+
+/** Every order this period that included this HCPCS code, oldest first — the "who bought how many,
+ *  when, at what price" behind one basket line. */
+export function orderHistoryForCode(
+  hospiceId: string,
+  period: CostPeriod,
+  hcpcs: string,
+): CodeOrderHistoryEntry[] {
+  const entries: CodeOrderHistoryEntry[] = [];
+
+  for (const order of getOrdersForHospice(hospiceId)) {
+    if (!order.orderedAt || !periodContains(period, order.orderedAt)) continue;
+    const item = order.equipment.find((e) => e.hcpcs === hcpcs);
+    if (!item) continue;
+
+    const offer = order.vendorId ? cheapestOfferFor(order.vendorId, hcpcs) : null;
+    const patient = getPatient(order.patientId);
+
+    entries.push({
+      orderId: order.id,
+      orderedAt: order.orderedAt,
+      qty: item.qty,
+      unitUsd: offer?.priceUsd ?? null,
+      extendedUsd: orderItemExtendedUsd(order, item, period),
+      vendorName: getVendor(order.vendorId)?.displayName ?? 'Vendor not yet assigned',
+      orderedByName: getUser(order.orderedById)?.name ?? 'Unknown',
+      patientName: patient ? patientFullName(patient) : 'Unknown patient',
+    });
+  }
+
+  return entries.sort((a, b) => a.orderedAt.localeCompare(b.orderedAt));
 }
 
 export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[] {
