@@ -21,6 +21,7 @@
  */
 
 import type { BasketLine, VendorColumn } from './costLedger';
+import type { PreferredVendorMap } from './preferredVendors';
 import type { Vendor } from '../types/domain';
 
 export const SAVINGS_WEIGHT = 0.6;
@@ -159,16 +160,28 @@ export function buildProductSavings(lines: BasketLine[], columns: VendorColumn[]
     .sort((a, b) => (b.suggested?.savingsUsd ?? -Infinity) - (a.suggested?.savingsUsd ?? -Infinity));
 }
 
+function hasAcceptedSuggestion(row: ProductSavingsRow, preferredVendors: PreferredVendorMap): boolean {
+  return row.suggested !== null && preferredVendors[row.hcpcs] === row.suggested.vendor.id;
+}
+
 /**
  * Total $ actually recoverable this period: only counts products where the suggested vendor beats
  * what was paid, never nets a premium on one product against a saving on another — the same rule
  * that keeps a single product's tile from calling a premium a saving applies to the sum of them.
+ * Suggestions already accepted via "Use this vendor" are no longer potential savings.
  */
-export function totalPotentialSavingsUsd(rows: ProductSavingsRow[]): number {
-  return round2(rows.reduce((sum, row) => sum + Math.max(0, row.suggested?.savingsUsd ?? 0), 0));
+export function totalPotentialSavingsUsd(rows: ProductSavingsRow[], preferredVendors: PreferredVendorMap = {}): number {
+  return round2(
+    rows.reduce((sum, row) => {
+      if (hasAcceptedSuggestion(row, preferredVendors)) return sum;
+      return sum + Math.max(0, row.suggested?.savingsUsd ?? 0);
+    }, 0),
+  );
 }
 
 /** How many products actually have a cheaper, real alternative — the tile's "N of M" detail. */
-export function countGenuineSavings(rows: ProductSavingsRow[]): number {
-  return rows.filter((row) => (row.suggested?.savingsUsd ?? 0) > 0).length;
+export function countGenuineSavings(rows: ProductSavingsRow[], preferredVendors: PreferredVendorMap = {}): number {
+  return rows.filter(
+    (row) => (row.suggested?.savingsUsd ?? 0) > 0 && !hasAcceptedSuggestion(row, preferredVendors),
+  ).length;
 }

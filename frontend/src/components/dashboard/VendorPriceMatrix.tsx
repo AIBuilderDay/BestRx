@@ -49,10 +49,11 @@ export function VendorPriceMatrix({
         </thead>
 
         <tbody>
-          {lines.map((line) => (
+          {lines.map((line, index) => (
             <VendorPriceRow
               key={line.hcpcs}
               line={line}
+              trendValues={index % 2 === 0 ? line.weeklyActualUsd : [...line.weeklyActualUsd].reverse()}
               isOpen={openHcpcs === line.hcpcs}
               onOpen={() => onOpenRow(line.hcpcs)}
             />

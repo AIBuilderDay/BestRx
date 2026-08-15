@@ -21,7 +21,7 @@ import {
 } from '../lib/budgetLedger';
 import { basketTotals, buildBasket, vendorColumns } from '../lib/costLedger';
 import { getPeriod } from '../lib/costPeriod';
-import { getHospice } from '../data/db';
+import { getHospice, vendors } from '../data/db';
 import { can } from '../lib/auth';
 import type { User, UserRole } from '../types/domain';
 
@@ -46,6 +46,7 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const [overrides, setOverrides] = useState<BudgetOverrides>(NO_OVERRIDES);
   const [editMode, setEditMode] = useState(false);
   const [overridesBeforeEdit, setOverridesBeforeEdit] = useState<BudgetOverrides>(NO_OVERRIDES);
+  const [vendorEnabled, setVendorEnabled] = useState<Record<string, boolean>>({});
 
   const viewParam = searchParams.get('view');
   const activeTab: DashboardTab = isDashboardTab(viewParam) ? viewParam : 'cost';
@@ -112,6 +113,10 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
     setEditMode(false);
   };
 
+  const toggleVendor = (vendorId: string) => {
+    setVendorEnabled((current) => ({ ...current, [vendorId]: !(current[vendorId] ?? true) }));
+  };
+
   return (
     <div className="min-h-screen bg-bg">
       <TopNav
@@ -153,6 +158,8 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             sortDir={sort.dir}
             editMode={editMode}
             canEdit={canEditBudget}
+            vendors={vendors()}
+            vendorEnabled={vendorEnabled}
             onSort={sortBy}
             onStartEdit={startEditingBudgets}
             onSave={saveBudgetEdits}
@@ -160,6 +167,7 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             onTotalBudgetChange={changeTotalBudget}
             onRolePctChange={changeRolePct}
             onAccountAmountChange={changeAccountAmount}
+            onToggleVendor={toggleVendor}
           />
         )}
       </main>

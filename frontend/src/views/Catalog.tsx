@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getPatient, patients, vendors } from '../data/db';
 import { can, isFamilyMember } from '../lib/auth';
+import { readPreferredVendors } from '../lib/preferredVendors';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
 import {
@@ -68,6 +69,8 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const [mode, setMode] = useState<PricingMode>('rent');
   /** Per-card overrides of the page mode, keyed by offer id. Cleared whenever the page mode moves. */
   const [unitOverrides, setUnitOverrides] = useState<Record<string, PriceUnit>>({});
+  /** Vendor picked via "Use this vendor" on the cost dashboard's Potential Savings card, by HCPCS. */
+  const [preferredVendors] = useState(() => readPreferredVendors());
   const catalogItems = useMemo(() => buildCatalogItems(sessionReviews, mode), [sessionReviews, mode]);
   const priceMax = useMemo(() => priceCeiling(catalogItems), [catalogItems]);
 
@@ -366,6 +369,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                         }
                         onOrderNow={() => openCartSheet(item.offer.id)}
                         aiReason={aiReasons[item.offer.id]}
+                        isPreferred={preferredVendors[item.offer.hcpcs] === item.vendor.id}
                       />
                     </div>
                   ))}

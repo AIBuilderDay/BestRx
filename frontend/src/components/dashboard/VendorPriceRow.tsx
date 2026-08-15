@@ -5,21 +5,24 @@ import { Sparkline } from '../ui/Sparkline';
 const CELL = 'px-4 py-2.5 text-right tabular-nums';
 const TREND_CELL = 'px-4 py-2.5 text-center';
 
-const cumulativeSpend = (values: number[]): number[] => {
-  let running = 0;
-  return [0, ...values.map((value) => {
-    running += value;
-    return running;
-  })];
+const trendCellClass = (values: number[]): string => {
+  const first = values[0] ?? 0;
+  const last = values[values.length - 1] ?? 0;
+
+  if (last > first) return 'bg-good-bg text-good group-hover:bg-good-bg';
+  if (last < first) return 'bg-risk-bg text-risk group-hover:bg-risk-bg';
+  return 'group-hover:bg-hover';
 };
 
 /** One HCPCS code: what the hospice actually paid this period. */
 export function VendorPriceRow({
   line,
+  trendValues,
   isOpen,
   onOpen,
 }: {
   line: BasketLine;
+  trendValues: number[];
   isOpen: boolean;
   onOpen: () => void;
 }) {
@@ -27,7 +30,7 @@ export function VendorPriceRow({
     <tr
       tabIndex={0}
       aria-expanded={isOpen}
-  onClick={onOpen}
+      onClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -45,8 +48,8 @@ export function VendorPriceRow({
       </td>
       <td className={`${CELL} group-hover:bg-hover`}>{line.units}</td>
       <td className={`${CELL} group-hover:bg-hover`}>{moneyLabel(line.actualUsd)}</td>
-      <td className={`${TREND_CELL} group-hover:bg-hover`}>
-        <Sparkline values={cumulativeSpend(line.weeklyActualUsd)} label={`${line.hcpcs} cumulative spend trend`} />
+      <td className={`${TREND_CELL} ${trendCellClass(trendValues)}`}>
+        <Sparkline values={trendValues} label={`${line.hcpcs} weekly order trend`} />
       </td>
     </tr>
   );

@@ -34,7 +34,15 @@ const lossPenaltyLabel = (penalty: number): string =>
   penalty > 0 ? `, ${penalty} point loss penalty` : '';
 
 /** One ordered product: the AI-suggested alternative vendor, its rating, unit price, and savings vs. what was paid. */
-export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
+export function ProductSavingsRow({
+  row,
+  isPreferred,
+  onUseVendor,
+}: {
+  row: ProductSavingsRowData;
+  isPreferred: boolean;
+  onUseVendor: (hcpcs: string, vendorId: string) => void;
+}) {
   const suggested = row.suggested;
   const saves = suggested !== null && suggested.savingsUsd > 0;
 
@@ -51,7 +59,7 @@ export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
       </td>
 
       {suggested === null ? (
-        <td className="px-3 py-2.5 text-[12px] text-ink-3" colSpan={5}>
+        <td className="px-3 py-2.5 text-[12px] text-ink-3" colSpan={6}>
           No other vendor prices this product.
         </td>
       ) : (
@@ -76,7 +84,7 @@ export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
             <span className="ml-1 text-[11px] text-ink-3">({suggested.ratingCount})</span>
           </td>
           <td className={CELL}>{moneyCents(suggested.unitUsd)}</td>
-          <td className={`${CELL} font-semibold ${saves ? 'text-good' : 'text-ink'}`}>
+          <td className={`${CELL} font-semibold ${saves ? 'bg-good-bg text-good' : 'text-ink'}`}>
             {saves
               ? moneyLabel(suggested.savingsUsd)
               : `-${moneyLabel(Math.abs(suggested.savingsUsd))}`}
@@ -86,14 +94,11 @@ export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
               className="group relative inline-flex align-middle outline-none"
               tabIndex={0}
               aria-label={`Value score ${suggested.valueScore}. Savings ${suggested.valueCriteria.savingsScore} of 5, ${formatSavingsDelta(suggested.savingsUsd)}${lossPenaltyLabel(suggested.valueCriteria.lossPenalty)}. Vendor rating ${suggested.valueCriteria.ratingScore} of 5. Local service ${suggested.valueCriteria.localServiceScore} of 5, ${serviceAreaSummary(suggested)}.`}
-              title={`Savings: ${suggested.valueCriteria.savingsScore}/5 - ${formatSavingsDelta(suggested.savingsUsd)}${lossPenaltyLabel(suggested.valueCriteria.lossPenalty)}
-Vendor rating: ${suggested.valueCriteria.ratingScore}/5
-Local service: ${suggested.valueCriteria.localServiceScore}/5 - ${serviceAreaSummary(suggested)}`}
             >
               <span className={`${SCORE_BADGE} ${valueScoreColor(suggested.valueScore)}`}>
                 {suggested.valueScore}
               </span>
-              <span className="pointer-events-none absolute bottom-full right-0 z-30 mb-2 hidden w-72 rounded-control border border-line-strong bg-solid-bg p-3 text-left text-[12px] leading-snug text-solid-ink shadow-lg group-hover:block group-focus:block">
+              <span className="pointer-events-none absolute right-0 top-full z-50 mt-2 hidden w-72 rounded-control border border-line-strong bg-solid-bg p-3 text-left text-[12px] leading-snug text-solid-ink shadow-lg group-hover:block group-focus:block">
                 <span className="block text-[11px] font-semibold uppercase tracking-[0.06em] opacity-70">
                   Value score criteria
                 </span>
@@ -112,6 +117,20 @@ Local service: ${suggested.valueCriteria.localServiceScore}/5 - ${serviceAreaSum
                 </span>
               </span>
             </span>
+          </td>
+          <td className="px-3 py-2.5 text-right">
+            <button
+              type="button"
+              aria-pressed={isPreferred}
+              onClick={() => onUseVendor(row.hcpcs, suggested.vendor.id)}
+              className={
+                isPreferred
+                  ? 'rounded-control border border-good bg-good-bg px-2.5 py-1 text-[11px] font-medium text-good transition-colors hover:border-ink hover:text-ink'
+                  : 'rounded-control border border-line-strong px-2.5 py-1 text-[11px] text-ink-2 transition-colors hover:border-ink hover:text-ink'
+              }
+            >
+              {isPreferred ? '✓ Preferred' : 'Use this vendor'}
+            </button>
           </td>
         </>
       )}

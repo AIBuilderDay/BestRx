@@ -28,11 +28,11 @@ describe('buildProductSavings (real HSP-001 data)', () => {
     expect(new Set(rows.map((r) => r.hcpcs)).size).toBe(10);
   });
 
-  it('recommends the pricier, higher-quality vendor when the price gap is large', () => {
-    // E0250: Vendor 1 costs $831 more but is the only non-contracted vendor reaching the patients.
+  it('recommends the best-value vendor when savings, rating, and service fit are weighed', () => {
+    // E0250: the current fixture picks the strongest value option, not merely the incumbent.
     const row = rowFor('E0250');
-    expect(row.suggested?.vendor.id).toBe('VND-001');
-    expect(row.suggested?.savingsUsd).toBeCloseTo(-831, 0);
+    expect(row.suggested?.vendor.id).toBe('VND-007');
+    expect(row.suggested?.savingsUsd).toBeCloseTo(1129, 0);
   });
 
   it('never suggests VND-003 for HSP-001 — it reaches none of its patient locations', () => {
@@ -65,7 +65,7 @@ describe('buildProductSavings (real HSP-001 data)', () => {
     expect(suggested.servedLocations).toEqual(['Salt Lake City, UT']);
     expect(suggested.unservedLocations).toEqual([]);
     expect(suggested.valueCriteria).toMatchObject({
-      savingsScore: 1,
+      savingsScore: 5,
       ratingScore: suggested.rating,
       localServiceScore: 5,
       lossPenalty: expect.any(Number),
@@ -97,23 +97,69 @@ describe('buildProductSavings (real HSP-001 data)', () => {
 
 describe('totalPotentialSavingsUsd / countGenuineSavings', () => {
   it('sums only the real savings, never netting a premium against them', () => {
-    // With VND-003 excluded (reaches none of HSP-001's locations), VND-001 is the only
-    // non-contracted option left on every code, and every one is a premium over VND-002.
-    expect(totalPotentialSavingsUsd(rows)).toBe(0);
-    expect(countGenuineSavings(rows)).toBe(0);
+    expect(totalPotentialSavingsUsd(rows)).toBe(2319);
+    expect(countGenuineSavings(rows)).toBe(10);
   });
 
   it('returns zero for an empty set rather than throwing', () => {
     expect(totalPotentialSavingsUsd([])).toBe(0);
     expect(countGenuineSavings([])).toBe(0);
   });
+
+  it('subtracts savings once the suggested vendor is selected', () => {
+    const acceptedVendor = fakeVendor({ id: 'VND-ACCEPTED' });
+    const openVendor = fakeVendor({ id: 'VND-OPEN' });
+    const acceptedRow: ProductSavingsRow = {
+      hcpcs: 'X1111',
+      name: 'Accepted Product',
+      categoryLabel: 'Test',
+      units: 1,
+      kind: 'purchase',
+      paidUsd: 100,
+      paidUnitUsd: 100,
+      suggested: {
+        vendor: acceptedVendor,
+        unitUsd: 70,
+        extendedUsd: 70,
+        savingsUsd: 30,
+        qualified: true,
+        onTimePct: 90,
+        onTimePickupPct: 90,
+        rating: 4,
+        ratingCount: 100,
+        servedLocations: ['Faketown, UT'],
+        unservedLocations: [],
+        valueScore: 80,
+        valueCriteria: { savingsScore: 3, ratingScore: 4, localServiceScore: 5, lossPenalty: 0 },
+      },
+    };
+    const openRow: ProductSavingsRow = {
+      ...acceptedRow,
+      hcpcs: 'X2222',
+      name: 'Open Product',
+      suggested: acceptedRow.suggested ? { ...acceptedRow.suggested, vendor: openVendor, savingsUsd: 20 } : null,
+    };
+
+    const rowsWithAccepted = [acceptedRow, openRow];
+    const preferredVendors = { X1111: acceptedVendor.id };
+
+    expect(totalPotentialSavingsUsd(rowsWithAccepted, preferredVendors)).toBe(20);
+    expect(countGenuineSavings(rowsWithAccepted, preferredVendors)).toBe(1);
+  });
 });
 
 describe('productVendorOptions', () => {
-  it('excludes the contracted vendor, and VND-003 (unreachable), from the option list', () => {
+  it('excludes the contracted vendor and unreachable vendors from the option list', () => {
     const line = lines.find((l) => l.hcpcs === 'E0250')!;
     const options = productVendorOptions(line, columns);
-    expect(options.map((o) => o.vendor.id)).toEqual(['VND-001']);
+    expect(options.map((o) => o.vendor.id)).toEqual([
+      'VND-007',
+      'VND-009',
+      'VND-008',
+      'VND-006',
+      'VND-005',
+      'VND-001',
+    ]);
   });
 
 });

@@ -37,7 +37,7 @@
     },
     "logoPath": null,
     "overallRating": 4.6,
-    "overallRatingCount": 173,
+    "overallRatingCount": 252,
     "realVendorId": "RVND-UT-001",
     "sourceUrl": "https://www.alpinehomemedical.com/our-locations/salt-lake-city-ut/",
     "sourceRetrieved": "2026-08-15",
@@ -90,7 +90,7 @@
     },
     "logoPath": null,
     "overallRating": 3.9,
-    "overallRatingCount": 172,
+    "overallRatingCount": 249,
     "realVendorId": "RVND-UT-002",
     "sourceUrl": "https://affinityhomemedical.com/",
     "sourceRetrieved": "2026-08-15",
@@ -142,8 +142,8 @@
       "podCapturePct": 85
     },
     "logoPath": null,
-    "overallRating": 3,
-    "overallRatingCount": 63,
+    "overallRating": 3.1,
+    "overallRatingCount": 143,
     "realVendorId": "RVND-UT-006",
     "sourceUrl": "https://iocdme.com/",
     "sourceRetrieved": "2026-08-15",
@@ -156,6 +156,303 @@
         "overallRatingCount"
       ],
       "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about IOC Home Medical. Identity and contact details are scraped from https://iocdme.com/."
+    },
+    "contracted": false
+  },
+  {
+    "id": "VND-005",
+    "name": "Wasatch Medical Supply",
+    "displayName": "Wasatch Medical Supply",
+    "market": "West Jordan, UT",
+    "serviceAreaZips": [
+      "84084",
+      "84102",
+      "84103",
+      "84105",
+      "84106",
+      "84107",
+      "84111",
+      "84115",
+      "84117",
+      "84121",
+      "84124"
+    ],
+    "hours": "Mon-Sat 9:00-17:30; Sun closed",
+    "contact": {
+      "dispatchPhone": "801-566-5844",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "fleet": {
+      "trucks": 4,
+      "routesToday": 3,
+      "capacityUsedPct": 78
+    },
+    "sla": {
+      "statDeliveryHours": 6,
+      "routineDeliveryHours": 24,
+      "pickupHours": 48
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 89,
+      "onTimePickupPct": 84,
+      "avgDeliveryHours": 7.2,
+      "podCapturePct": 96
+    },
+    "logoPath": null,
+    "overallRating": 4.3,
+    "overallRatingCount": 167,
+    "realVendorId": "RVND-UT-004",
+    "sourceUrl": "https://wasatchmedicalsupply.com/",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount",
+        "serviceAreaZips"
+      ],
+      "note": "Operational telemetry, ratings, and the Salt Lake Valley ZIPs on this row are simulated for the demo. Wasatch Medical Supply is a real West Jordan DME retailer, but the site does not publish truck counts, on-time percentages, or a ZIP-level service map, so those figures are not claims about the company. Identity and contact details are scraped from https://wasatchmedicalsupply.com/."
+    },
+    "contracted": false
+  },
+  {
+    "id": "VND-006",
+    "name": "Rotech Healthcare Inc.",
+    "displayName": "Rotech Healthcare",
+    "market": "Salt Lake City, UT",
+    "serviceAreaZips": [
+      "84102",
+      "84103",
+      "84105",
+      "84106",
+      "84107",
+      "84111",
+      "84115",
+      "84117",
+      "84121",
+      "84124"
+    ],
+    "hours": "Mon-Fri 8:00-18:00; Sat 9:00-13:00; Sun closed",
+    "contact": {
+      "dispatchPhone": "801-555-0188",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "fleet": {
+      "trucks": 12,
+      "routesToday": 8,
+      "capacityUsedPct": 74
+    },
+    "sla": {
+      "statDeliveryHours": 4,
+      "routineDeliveryHours": 24,
+      "pickupHours": 48
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 87,
+      "onTimePickupPct": 82,
+      "avgDeliveryHours": 6.8,
+      "podCapturePct": 95
+    },
+    "logoPath": null,
+    "overallRating": 4.0,
+    "overallRatingCount": 312,
+    "realVendorId": "RVND-US-003",
+    "sourceUrl": "https://www.rotech.com/",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount",
+        "serviceAreaZips",
+        "contact.dispatchPhone",
+        "market"
+      ],
+      "note": "Operational telemetry, ratings, and the local Salt Lake City service-area ZIPs on this row are simulated for the demo. Rotech is a real national respiratory provider, but it does not publish branch-level truck counts, on-time percentages, or a Utah ZIP map on its site, so those figures are not claims about the company. Identity comes from https://www.rotech.com/; the dispatch phone and local market label are assumed for the demo."
+    },
+    "contracted": false
+  },
+  {
+    "id": "VND-007",
+    "name": "Medway Medical",
+    "displayName": "Medway Medical",
+    "market": "Salt Lake City, UT",
+    "serviceAreaZips": [
+      "84102",
+      "84103",
+      "84104",
+      "84105",
+      "84106",
+      "84107",
+      "84111",
+      "84115",
+      "84117",
+      "84121",
+      "84124"
+    ],
+    "hours": "Mon-Fri 9:00-17:00; Sat-Sun closed",
+    "contact": {
+      "dispatchPhone": "801-566-0567",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "fleet": {
+      "trucks": 3,
+      "routesToday": 2,
+      "capacityUsedPct": 85
+    },
+    "sla": {
+      "statDeliveryHours": 5,
+      "routineDeliveryHours": 24,
+      "pickupHours": 48
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 82,
+      "onTimePickupPct": 78,
+      "avgDeliveryHours": 8.5,
+      "podCapturePct": 93
+    },
+    "logoPath": null,
+    "overallRating": 3.8,
+    "overallRatingCount": 94,
+    "realVendorId": "RVND-UT-003",
+    "sourceUrl": "https://www.yelp.com/biz/medway-medical-salt-lake-city",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount",
+        "serviceAreaZips"
+      ],
+      "note": "Operational telemetry, ratings, and the Salt Lake metro ZIPs on this row are simulated for the demo. Medway Medical is a real Salt Lake City DME supplier, but no public source publishes truck counts, on-time percentages, or a ZIP-level service map, so those figures are not claims about the company. Identity and contact details are scraped from https://www.yelp.com/biz/medway-medical-salt-lake-city."
+    },
+    "contracted": false
+  },
+  {
+    "id": "VND-008",
+    "name": "DME Express LLC",
+    "displayName": "DME Express",
+    "market": "Salt Lake City, UT",
+    "serviceAreaZips": [
+      "84102",
+      "84103",
+      "84105",
+      "84106",
+      "84107",
+      "84111",
+      "84115",
+      "84117",
+      "84121",
+      "84124"
+    ],
+    "hours": "Mon-Fri 7:00-19:00; Sat 8:00-14:00; Sun closed",
+    "contact": {
+      "dispatchPhone": "888-355-3208",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "fleet": {
+      "trucks": 10,
+      "routesToday": 6,
+      "capacityUsedPct": 70
+    },
+    "sla": {
+      "statDeliveryHours": 4,
+      "routineDeliveryHours": 24,
+      "pickupHours": 48
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 92,
+      "onTimePickupPct": 88,
+      "avgDeliveryHours": 5.5,
+      "podCapturePct": 98
+    },
+    "logoPath": null,
+    "overallRating": 4.4,
+    "overallRatingCount": 205,
+    "realVendorId": "RVND-US-005",
+    "sourceUrl": "https://dmeexpress.com/about/",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount",
+        "serviceAreaZips",
+        "market"
+      ],
+      "note": "Operational telemetry, ratings, and the local Salt Lake City service-area ZIPs on this row are simulated for the demo. DME Express is a real hospice-focused national supplier, but it does not publish branch-level truck counts, on-time percentages, or a Utah ZIP map on its site, so those figures are not claims about the company. Identity comes from https://dmeexpress.com/about/; the local market label is assumed for the demo."
+    },
+    "contracted": false
+  },
+  {
+    "id": "VND-009",
+    "name": "Lincare Holdings Inc.",
+    "displayName": "Lincare",
+    "market": "Salt Lake City, UT",
+    "serviceAreaZips": [
+      "84102",
+      "84103",
+      "84105",
+      "84106",
+      "84107",
+      "84111",
+      "84115",
+      "84117",
+      "84121",
+      "84124"
+    ],
+    "hours": "Mon-Fri 8:00-17:00; Sat-Sun closed",
+    "contact": {
+      "dispatchPhone": "801-555-0199",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "fleet": {
+      "trucks": 14,
+      "routesToday": 9,
+      "capacityUsedPct": 76
+    },
+    "sla": {
+      "statDeliveryHours": 5,
+      "routineDeliveryHours": 24,
+      "pickupHours": 48
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 86,
+      "onTimePickupPct": 81,
+      "avgDeliveryHours": 7.0,
+      "podCapturePct": 94
+    },
+    "logoPath": null,
+    "overallRating": 3.9,
+    "overallRatingCount": 278,
+    "realVendorId": "RVND-US-004",
+    "sourceUrl": "https://en.wikipedia.org/wiki/Lincare_Holdings",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount",
+        "serviceAreaZips",
+        "contact.dispatchPhone",
+        "market"
+      ],
+      "note": "Operational telemetry, ratings, and the local Salt Lake City service-area ZIPs on this row are simulated for the demo. Lincare is a real national respiratory provider, but it does not publish branch-level truck counts, on-time percentages, or a Utah ZIP map on its site, so those figures are not claims about the company. Identity comes from https://en.wikipedia.org/wiki/Lincare_Holdings; the dispatch phone and local market label are assumed for the demo."
     },
     "contracted": false
   }
