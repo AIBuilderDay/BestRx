@@ -14,9 +14,14 @@ services:
       - NODE_ENV=development
     command: node_modules/.bin/vite --host 0.0.0.0 --port 5173
 
-  # ── Future backend ──────────────────────────────────────────────────────────
-  # Python FastAPI, cloned in from our fast template when we need one. Until then the frontend
-  # reads JSON fixtures from frontend/src/data/. Deployment target is Cloudflare Workers.
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  # FastAPI. Lives in ./backend and deploys to Lambda via ./infra.
+  #
+  # Uncommented it is optional: with no VITE_API_BASE_URL set, the frontend reads the JSON fixtures
+  # in frontend/src/data/ and behaves exactly as it did before a backend existed.
+  #
+  # With no AWS environment configured the API serves those same fixtures and keeps writes in
+  # memory, so this needs no credentials to run.
   #
   # backend:
   #   build:
@@ -26,10 +31,8 @@ services:
   #     - "8000:8000"
   #   volumes:
   #     - ./backend:/app
-  #   env_file:
-  #     - ./backend/.env
   #   command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
   #
-  # And uncomment this on the frontend service so it can reach the API:
-  #   depends_on:
-  #     - backend
+  # And set this on the frontend service so it calls the API instead of the fixtures:
+  #   environment:
+  #     - VITE_API_BASE_URL=http://localhost:8000

@@ -7,6 +7,11 @@ vars:
   FRONTEND_DIR: ./frontend
   FRONTEND_SERVICE: frontend
   FRONTEND_URL: http://localhost:5173
+  BACKEND_DIR: ./backend
+  INFRA_DIR: ./infra
+  AWS_REGION: us-east-2
+  AWS_PROFILE: default
+  PREFIX: bestrx
 
 tasks:
   default:
@@ -72,11 +77,82 @@ tasks:
       - pnpm install
 
   test:
-    desc: "Typecheck and run unit tests"
+    desc: "Typecheck and run unit tests (frontend and backend)"
+    cmds:
+      - task: test:frontend
+      - task: test:backend
+
+  test:frontend:
+    desc: "Typecheck and run frontend unit tests"
     dir: "{{.FRONTEND_DIR}}"
     cmds:
       - pnpm exec tsc --noEmit
       - pnpm exec vitest run
+
+  test:backend:
+    desc: "Run backend unit tests"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv run --extra dev --extra push pytest -q
+
+  # ── Backend and infrastructure ───────────────────────────────────────────────
+
+  backend:install:
+    desc: "Create the backend virtualenv and install dependencies"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv venv --python 3.12
+      - uv pip install -e ".[dev,push]"
+
+  backend:dev:
+    desc: "Run the API locally on :8000, serving JSON fixtures (no AWS needed)"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  infra:build:
+    desc: "Build the three Lambda deployment packages"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - ./scripts/build.sh
+
+  infra:plan:
+    desc: "Show what Terraform would change (creates nothing)"
+    dir: "{{.INFRA_DIR}}"
+    cmds:
+      - terraform init -input=false
+      - terraform plan
+
+  infra:apply:
+    desc: "Build the Lambdas and apply the Terraform stack"
+    cmds:
+      - task: infra:build
+      - terraform -chdir={{.INFRA_DIR}} init -input=false
+      - terraform -chdir={{.INFRA_DIR}} apply
+
+  infra:seed:
+    desc: "Load the JSON fixtures into DynamoDB (idempotent — rerun to reset a demo)"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv run python scripts/seed.py --prefix {{.PREFIX}} --region {{.AWS_REGION}} --profile {{.AWS_PROFILE}}
+
+  infra:vapid:
+    desc: "Generate the VAPID keypair into Secrets Manager (run once, after the first apply)"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv run python scripts/generate_vapid.py --secret-id {{.PREFIX}}/vapid --region {{.AWS_REGION}} --profile {{.AWS_PROFILE}}
+
+  infra:env:
+    desc: "Write frontend/.env pointing at the deployed stack"
+    cmds:
+      - terraform -chdir={{.INFRA_DIR}} output -raw frontend_env > {{.FRONTEND_DIR}}/.env
+      - echo "Wrote {{.FRONTEND_DIR}}/.env"
+
+  infra:destroy:
+    desc: "Tear down the whole stack, including the tables and their data"
+    dir: "{{.INFRA_DIR}}"
+    cmds:
+      - terraform destroy
 
   build:
     desc: "Production build (what a Cloudflare Pages deploy would run)"

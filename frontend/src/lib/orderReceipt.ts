@@ -38,7 +38,12 @@ function formatDate(iso: string | undefined): string {
   });
 }
 
-function findOfferPrice(vendorId: string, hcpcs: string): { amount: number; unit: '/mo' | 'one-time' } | null {
+// vendorId is nullable: an order can be placed before a vendor is assigned.
+function findOfferPrice(
+  vendorId: string | null,
+  hcpcs: string,
+): { amount: number; unit: '/mo' | 'one-time' } | null {
+  if (!vendorId) return null;
   const offer = vendorOffers.find((o) => o.vendorId === vendorId && o.hcpcs === hcpcs);
   if (!offer) return null;
   const price = offerPrice(offer);

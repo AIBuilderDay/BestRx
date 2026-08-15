@@ -13,6 +13,10 @@ usable.
 
 - **Import from [`data/db.ts`](../frontend/src/data/db.ts), never from a raw `.json` file.** One
   module owns loading and lookups, so swapping in a real API later touches one file.
+- **Views that need live or writable data go through [`lib/api.ts`](../frontend/src/lib/api.ts).**
+  It calls the deployed backend when `VITE_API_BASE_URL` is set and falls back to `db.ts` when it is
+  not, so the app still works with no backend running. See
+  [Where the data actually lives](#where-the-data-actually-lives).
 - **Lookups return `undefined`, not a throw.** Every caller handles the missing case and renders
   something sane. A broken foreign key must never blank the screen.
 - **Types live in [`types/domain.ts`](../frontend/src/types/domain.ts)** and mirror the tables
@@ -104,6 +108,30 @@ that way. The pieces are all in the data: `hospices[].activeCensus` for the deno
 `orders[].equipment` joined to `vendor_offers[].priceUsd` for the numerator, and
 `budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
 [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
+
+## Where the data actually lives
+
+The JSON files are still the source of truth. What changes is who reads them.
+
+| | No backend configured | Backend deployed |
+|---|---|---|
+| Reference tables (patients, vendors, offers, catalog, reviews) | `db.ts` reads the JSON | the API reads the same JSON, bundled into the Lambda |
+| `orders`, `order_events` | `db.ts` reads the JSON | DynamoDB, seeded from the JSON |
+| Writes (create order, change status) | rejected — no backend to write to | DynamoDB, plus an SQS message for push |
+
+Only the two written tables move to DynamoDB. Everything else is read-only, so copying it into a
+database would add seeding work and buy nothing.
+
+`backend/scripts/build.sh` copies `frontend/src/data/*.json` into `backend/data/` at build time, and
+`backend/data/` is gitignored — there is only ever one copy of a table under version control.
+
+Two fields exist in DynamoDB that are not in the JSON: `order_events` rows carry a monotonic `seq`
+and a constant `stream` partition, which is what lets the SSE Lambda page forward and a reconnecting
+browser resume exactly where it left off. `backend/scripts/seed.py` assigns them in timeline order.
+
+See [infra/README.md](../infra/README.md) for the deployment, and
+[docs/superpowers/specs/2026-08-14-order-status-notifications-design.md](superpowers/specs/2026-08-14-order-status-notifications-design.md)
+for why it is shaped this way.
 
 ## Adding data
 
