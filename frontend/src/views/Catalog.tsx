@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { equipmentCatalog, getHospice, patients, vendors } from '../data/db';
 import {
   buildCartGroups,
@@ -35,6 +36,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 const PRICE_MAX = priceCeiling(equipmentCatalog);
 
 export default function Catalog({ user }: { user: User }) {
+  const navigate = useNavigate();
   const hospice = getHospice(user.orgId);
   const assignablePatients = useMemo(
     () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
@@ -233,6 +235,10 @@ export default function Catalog({ user }: { user: User }) {
         onQtyChange={(hcpcs, patientId, qty) => setLines((prev) => setCartLineQty(prev, hcpcs, patientId, qty))}
         onRemove={(hcpcs, patientId) => setLines((prev) => setCartLineQty(prev, hcpcs, patientId, 0))}
         onClose={() => setCartOpen(false)}
+        onViewCart={() => {
+          setCartOpen(false);
+          navigate('/cart');
+        }}
         onPlaceOrder={placeOrder}
       />
 
