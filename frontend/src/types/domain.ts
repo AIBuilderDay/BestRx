@@ -290,3 +290,12 @@ export interface EmrEvent {
   payload: Record<string, unknown>;
   note?: string;
 }
+
+/** Care-team note pinned to one patient chart. */
+export interface PatientNote {
+  id: string;
+  patientId: string;
+  authorId: string;
+  body: string;
+  createdAt: string;
+}

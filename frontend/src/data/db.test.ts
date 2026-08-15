@@ -14,6 +14,7 @@ import {
   hospices,
   orders,
   patients,
+  patientNotes,
   productReviews,
   users,
   vendorOffers,
@@ -103,6 +104,14 @@ describe('mock database integrity', () => {
     expect(summary?.count).toBe(getReviewsForOffer('OFR-001').length);
     expect(summary?.average).toBeGreaterThanOrEqual(1);
     expect(summary?.average).toBeLessThanOrEqual(5);
+  });
+
+  it('stores patient notes linked to patients and authors', () => {
+    for (const note of patientNotes) {
+      expect(getPatient(note.patientId), note.id).toBeDefined();
+      expect(users.some((u) => u.id === note.authorId), note.id).toBe(true);
+      expect(note.body.trim().length, note.id).toBeGreaterThan(0);
+    }
   });
 
   it('stores vendor overall ratings for scorecards, matching review aggregates', () => {

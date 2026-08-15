@@ -1,25 +1,21 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
+import { PatientNotesSection } from '../components/patients/PatientNotesSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
 import { useCart } from '../context/CartContext';
+import { patientNotes } from '../data/db';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
 import type { PatientEquipmentVM } from '../lib/patients';
-import type { User } from '../types/domain';
-
-interface SessionNote {
-  meta: string;
-  text: string;
-}
+import type { PatientNote, User } from '../types/domain';
 
 export default function PatientDetail({ user }: { user: User }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { cartCount, setCartOpen } = useCart();
 
-  const [draft, setDraft] = useState('');
-  const [addedNotes, setAddedNotes] = useState<SessionNote[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<PatientNote[]>([]);
 
   const inCaseload = patientId ? isInCaseload(patientId, user.id, user.orgId) : false;
   const vm = useMemo(
@@ -28,16 +24,6 @@ export default function PatientDetail({ user }: { user: User }) {
   );
 
   const [imgBroken, setImgBroken] = useState(false);
-
-  const handleAddNote = () => {
-    const text = draft.trim();
-    if (!text) return;
-    setAddedNotes((prev) => [
-      { meta: `Just now · ${user.name}`, text },
-      ...prev,
-    ]);
-    setDraft('');
-  };
 
   const handleCallVendor = (item: PatientEquipmentVM) => {
     const digits = item.phone.replace(/\D/g, '');
@@ -129,37 +115,13 @@ export default function PatientDetail({ user }: { user: User }) {
           <div className="flex min-w-0 flex-col gap-5">
             <ProductsOrderedSection equipment={equipment} onCallVendor={handleCallVendor} />
 
-            <section className="overflow-hidden rounded-[10px] border border-line bg-surface">
-              <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
-                <h2 className="text-[13px] font-semibold tracking-tight">Notes</h2>
-              </div>
-              <div className="p-4">
-                <textarea
-                  placeholder="Add a note for this patient — visible to the care team."
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  rows={3}
-                  className="w-full resize-y rounded-lg border border-line bg-bg-subtle px-2.5 py-2.5 text-ink outline-none focus:border-line-strong"
-                />
-                <div className="mt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleAddNote}
-                    className="cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-1.5 text-[13px] font-medium text-solid-ink transition-opacity hover:opacity-85"
-                  >
-                    Add note
-                  </button>
-                </div>
-                <div className="mt-1.5 flex flex-col">
-                  {addedNotes.map((n, i) => (
-                    <div key={`added-${i}`} className="border-t border-line py-3 first:border-t-0">
-                      <div className="text-xs tabular-nums text-ink-3">{n.meta}</div>
-                      <div className="mt-0.5 text-[13px] text-pretty">{n.text}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
+            <PatientNotesSection
+              patientId={patient.id}
+              user={user}
+              storedNotes={patientNotes}
+              sessionNotes={sessionNotes}
+              onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
+            />
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">

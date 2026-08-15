@@ -35,6 +35,7 @@ usable.
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
 | `vendor_offers.json` | 16 | `id` (OFR-) | `vendorId`, `hcpcs` |
 | `product_reviews.json` | 405 | `id` (REV-) | `offerId`, `reviewerId` |
+| `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 
 ```
@@ -47,6 +48,7 @@ emr_events ──> patients        inbound signals from the EMR via BetterRX eRx
 users      ──> hospices|vendors  admissions nurses, case managers, field nurses, DON, admin, dispatchers
 vendor_offers ──> vendors, equipment_catalog   the storefront: price, ETA, rating per vendor per item
 product_reviews ──> vendor_offers, users        individual nurse star ratings per vendor SKU
+patient_notes   ──> patients, users             care-team sticky notes on a patient chart
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
