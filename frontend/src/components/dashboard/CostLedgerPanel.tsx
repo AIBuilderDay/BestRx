@@ -1,7 +1,8 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { AiUsageSummary, AiUsageTotals } from '../../types/ai';
 import { moneyLabel } from '../../lib/catalog';
 import { accountOverageBreakdown, overBudgetProductBreakdown } from '../../lib/budgetBreakdown';
-import { summarizeUsage } from '../../lib/ai/usage';
+import { fetchAiUsage } from '../../lib/ai/client';
 import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, VendorColumn } from '../../lib/costLedger';
 import { spendSummaryForRange } from '../../lib/costLedger';
@@ -22,6 +23,12 @@ const DEFAULT_TREND_RANGE: TrendRange = '1m';
 /** The four selectable stat tiles. Spend opens a real range-picker panel; tokens opens the real
  *  AI token ledger breakdown. */
 type TileKey = 'spend' | 'tokens' | 'delta' | 'budget';
+
+const NO_TOTALS: AiUsageTotals = { calls: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 };
+const EMPTY_USAGE: AiUsageSummary = {
+  byFeature: { rerank: NO_TOTALS, agent_order: NO_TOTALS },
+  total: NO_TOTALS,
+};
 
 export function CostLedgerPanel({
   hospiceId,
@@ -60,9 +67,22 @@ export function CostLedgerPanel({
   );
   const spendRangeLabel = getRangeMeta(spendRange).label;
 
-  // Read fresh on every render — cheap localStorage read, and this tile should reflect AI calls
-  // made elsewhere in the app (e.g. catalog search) without requiring a full page reload.
-  const usage = summarizeUsage();
+  // The token ledger lives on the API now, so this is a fetch rather than a synchronous read.
+  // Until it resolves — or if it fails — the tile shows zeros rather than blocking the dashboard.
+  const [usage, setUsage] = useState<AiUsageSummary>(EMPTY_USAGE);
+  useEffect(() => {
+    let cancelled = false;
+    fetchAiUsage()
+      .then(({ summary }) => {
+        if (!cancelled) setUsage(summary);
+      })
+      .catch(() => {
+        // A missing usage ledger is not worth failing the cost dashboard over.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const totalTokens = usage.total.inputTokens + usage.total.outputTokens;
 
   const tiles: StatTileVM[] = [
