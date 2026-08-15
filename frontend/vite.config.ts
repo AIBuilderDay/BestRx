@@ -18,7 +18,10 @@ export default defineConfig(({ mode }) => {
       // Docker bind mounts don't emit inotify events reliably on macOS.
       watch: { usePolling: true },
       proxy: {
-        '/api/anthropic': {
+        // Narrow on purpose: only the Messages endpoint is forwarded, so this can't be
+        // used as a general Anthropic proxy. Compose publishes the port on loopback only,
+        // and Vite's default dev CORS policy already rejects non-localhost origins.
+        '/api/anthropic/v1/messages': {
           target: 'https://api.anthropic.com',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api\/anthropic/, ''),
