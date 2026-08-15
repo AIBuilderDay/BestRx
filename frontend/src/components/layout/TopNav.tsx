@@ -4,15 +4,17 @@ import { RESET_CATALOG_FILTERS_STATE } from '../../lib/catalog';
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
 
-export type NavSection = 'catalog' | 'patients' | 'settings';
+export type NavSection = 'catalog' | 'orders' | 'patients' | 'settings';
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permission: Permission }[] = [
-  { label: 'Orders', permission: 'storefront:purchase' },
   { label: 'Pickups', permission: 'pickup:trigger' },
   { label: 'Costs', permission: 'reporting' },
   { label: 'Vendors', permission: 'vendors:manage' },
 ];
+
+const canViewOrders = (user: User): boolean =>
+  can(user, 'orders:all') || can(user, 'orders:own-patients') || can(user, 'orders:own');
 
 /** Sticky app header: brand, permission-gated section nav, and the cart toggle. */
 export function TopNav({
@@ -38,14 +40,25 @@ export function TopNav({
       </div>
 
       <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
-        <Link
-          to="/catalog"
-          state={RESET_CATALOG_FILTERS_STATE}
-          aria-current={activeSection === 'catalog' ? 'page' : undefined}
-          className={linkClass('catalog')}
-        >
-          Catalog
-        </Link>
+        {can(user, 'storefront:purchase') ? (
+          <Link
+            to="/catalog"
+            state={RESET_CATALOG_FILTERS_STATE}
+            aria-current={activeSection === 'catalog' ? 'page' : undefined}
+            className={linkClass('catalog')}
+          >
+            Catalog
+          </Link>
+        ) : null}
+        {canViewOrders(user) ? (
+          <Link
+            to="/orders"
+            aria-current={activeSection === 'orders' ? 'page' : undefined}
+            className={linkClass('orders')}
+          >
+            Orders
+          </Link>
+        ) : null}
         {can(user, 'orders:own-patients') ? (
           <Link
             to="/patients"

@@ -168,6 +168,20 @@
     "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
   },
   {
+    "id": "OFR-017",
+    "vendorId": "VND-002",
+    "hcpcs": "E1130",
+    "productName": "Standard Wheelchair",
+    "description": "Fixed full-length arms, swing-away footrests",
+    "category": "mobility",
+    "priceUsd": 66,
+    "unit": "month",
+    "inStock": true,
+    "deliveryEtaHours": 10,
+    "deliveryLeadDays": 1,
+    "imagePath": "/images/equipment/e1130-wheelchair-vnd-002.svg"
+  },
+  {
     "id": "OFR-013",
     "vendorId": "VND-003",
     "hcpcs": "E0250",

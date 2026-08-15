@@ -9,6 +9,7 @@ import Catalog from './views/Catalog';
 import Login from './views/Login';
 import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
+import Orders from './views/Orders';
 import Settings from './views/Settings';
 
 /**
@@ -45,6 +46,7 @@ export default function App() {
               path="/patients/:patientId"
               element={user ? <PatientDetail user={user} /> : toLogin}
             />
+            <Route path="/orders" element={user ? <Orders user={user} /> : toLogin} />
             <Route path="/settings" element={user ? <Settings user={user} onSignOut={signOut} /> : toLogin} />
             <Route path="*" element={<Navigate to="/catalog" replace />} />
           </Routes>
