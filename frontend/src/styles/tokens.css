@@ -37,6 +37,14 @@
   --risk: #b42318;
   --risk-bg: #fef3f2;
 
+  /* Value-score badges use vivid fills so yellow/green/red read unambiguously in the ledger. */
+  --score-good: #15803d;
+  --score-good-ink: #ffffff;
+  --score-warn: #ffd400;
+  --score-warn-ink: #3d2f00;
+  --score-risk: #dc2626;
+  --score-risk-ink: #ffffff;
+
   /* Chart series ramp — grayscale, the default for a single-hue trend or the row-level price
      ladder. Categorical charts distinguishing several unrelated things (e.g. the budget donut's
      per-product / per-nurse split) use --chart-1..4 below instead. */
@@ -161,6 +169,12 @@
   --color-warn-bg: var(--warn-bg);
   --color-risk: var(--risk);
   --color-risk-bg: var(--risk-bg);
+  --color-score-good: var(--score-good);
+  --color-score-good-ink: var(--score-good-ink);
+  --color-score-warn: var(--score-warn);
+  --color-score-warn-ink: var(--score-warn-ink);
+  --color-score-risk: var(--score-risk);
+  --color-score-risk-ink: var(--score-risk-ink);
   --color-s1: var(--s1);
   --color-s2: var(--s2);
   --color-s3: var(--s3);

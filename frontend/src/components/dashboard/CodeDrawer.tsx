@@ -1,40 +1,23 @@
 import { useEffect } from 'react';
-import { moneyCents, moneyLabel } from '../../lib/catalog';
-import type { BasketLine, VendorColumn } from '../../lib/costLedger';
-import { priceLadder } from '../../lib/costLedger';
+import { moneyLabel } from '../../lib/catalog';
+import type { BasketLine } from '../../lib/costLedger';
+import { orderHistoryForCode } from '../../lib/costLedger';
+import type { CostPeriod } from '../../lib/costPeriod';
 
-const TONE_BAR: Record<string, string> = {
-  contracted: 'bg-ink',
-  best: 'bg-good',
-  alt: 'bg-s3',
-  risk: 'ladder-bar-risk',
-};
+const formatOrderDate = (iso: string): string =>
+  new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-const TONE_PILL: Record<string, string> = {
-  contracted: 'border-line-strong bg-surface text-ink-2',
-  best: 'border-good bg-good-bg text-good',
-  alt: 'border-line bg-bg-subtle text-ink-3',
-  risk: 'border-warn bg-warn-bg text-warn',
-};
-
-const TONE_LABEL: Record<string, string> = {
-  contracted: 'contracted',
-  best: 'best qualified',
-  alt: 'alternative',
-  risk: 'below service floor',
-};
-
-/** Why one code is priced the way it is, and what switching it would actually trade. */
+/** Every order behind one basket line: who bought how many, when, and at what price. */
 export function CodeDrawer({
+  hospiceId,
+  period,
   line,
-  columns,
   onClose,
-  onAction,
 }: {
+  hospiceId: string;
+  period: CostPeriod;
   line: BasketLine;
-  columns: VendorColumn[];
   onClose: () => void;
-  onAction: (message: string) => void;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -44,86 +27,78 @@ export function CodeDrawer({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const rows = priceLadder(line, columns);
-  const best = columns.find((c) => c.vendor.id === line.bestQualifiedVendorId);
-  const delta = line.qualifiedDeltaUsd;
-
-  const why =
-    delta === null || best === undefined
-      ? 'No qualified alternative sells this code, so there is nothing to compare against.'
-      : delta > 0
-        ? `${line.units} units this period, ${moneyLabel(line.actualUsd)} as bought. Moving this code to ${best.vendor.displayName} saves ${moneyLabel(delta)} and lifts on-time delivery to ${best.onTimePct}%.`
-        : `${line.units} units this period, ${moneyLabel(line.actualUsd)} as bought. ${best.vendor.displayName} is the only vendor clearing the service floor and costs ${moneyLabel(Math.abs(delta))} more — that is the price of ${best.onTimePct}% on-time delivery, not a saving.`;
+  const history = orderHistoryForCode(hospiceId, period, line.hcpcs);
 
   return (
-    <div className="mt-3 rounded-panel border border-ink bg-surface p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-[15px] text-ink">
-            {line.hcpcs} · {line.name}
-          </h3>
-          <p className="mt-1 max-w-[70ch] text-[13px] text-ink-2">{why}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close details"
-          className="rounded-control border border-line-strong px-2 py-1 text-[13px] text-ink-2 hover:border-ink hover:text-ink"
-        >
-          ✕
-        </button>
-      </div>
-
-      <ul className="mt-4 space-y-2">
-        {rows.map((row) => (
-          <li
-            key={row.vendor.id}
-            className="grid grid-cols-[minmax(150px,auto)_1fr_96px] items-center gap-3"
+    <div className="fixed inset-0 z-[75] grid place-items-center bg-black/20 p-6" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="code-drawer-title"
+        className="max-h-[85vh] w-full max-w-[640px] overflow-y-auto rounded-panel border border-ink bg-surface p-5 animate-[sheetIn_0.25s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 id="code-drawer-title" className="text-[15px] text-ink">
+              {line.hcpcs} · {line.name}
+            </h3>
+            <p className="mt-1 text-[13px] text-ink-2">
+              Order history · {line.units} unit{line.units === 1 ? '' : 's'} this period
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close details"
+            className="rounded-control border border-line-strong px-2 py-1 text-[13px] text-ink-2 hover:border-ink hover:text-ink"
           >
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[13px] text-ink">{row.vendor.displayName}</span>
-              <span
-                className={`rounded-full border px-1.5 py-0.5 text-[10px] ${TONE_PILL[row.tone]}`}
-              >
-                {TONE_LABEL[row.tone]}
-              </span>
-            </div>
-            <div className="h-1.5 overflow-hidden rounded-[3px] bg-track">
-              <div className={`h-full ${TONE_BAR[row.tone]}`} style={{ width: `${row.widthPct}%` }} />
-            </div>
-            <div className="text-right text-[13px] tabular-nums">
-              <div>{row.extendedUsd === null ? '—' : moneyLabel(row.extendedUsd)}</div>
-              <div className="text-[11px] text-ink-3">
-                {row.unitUsd === null ? '—' : moneyCents(row.unitUsd)} · {row.onTimePct}/
-                {row.onTimePickupPct}%
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            ✕
+          </button>
+        </div>
 
-      <p className="mt-3 text-[12px] text-ink-3">
-        Right column: extended cost, then unit price and on-time delivery / on-time pickup over the
-        trailing 30 days.
-      </p>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() =>
-            onAction('Nothing was changed — vendor switching is not wired up in this demo.')
-          }
-          className="rounded-control border border-ink bg-solid-bg px-3 py-1.5 text-[13px] text-solid-ink"
-        >
-          Model this switch
-        </button>
-        <button
-          type="button"
-          onClick={() => onAction('Nothing was sent — vendor messaging is not wired up in this demo.')}
-          className="rounded-control border border-line-strong bg-surface px-3 py-1.5 text-[13px] text-ink-2 hover:border-ink hover:text-ink"
-        >
-          Request re-quote
-        </button>
+        {history.length === 0 ? (
+          <p className="mt-4 text-[13px] text-ink-3">No individual orders on file for this period.</p>
+        ) : (
+          <div className="mt-4 overflow-hidden rounded-card border border-line">
+            <table className="w-full border-collapse text-[13px]">
+              <thead>
+                <tr className="bg-bg-subtle">
+                  <th className="px-3 py-2 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                    Date
+                  </th>
+                  <th className="px-3 py-2 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                    Patient
+                  </th>
+                  <th className="px-3 py-2 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                    Ordered by
+                  </th>
+                  <th className="px-3 py-2 text-left text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                    Vendor
+                  </th>
+                  <th className="px-3 py-2 text-right text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                    Qty
+                  </th>
+                  <th className="px-3 py-2 text-right text-[11px] uppercase tracking-[0.06em] text-ink-3">
+                    Paid
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((entry) => (
+                  <tr key={entry.orderId} className="border-t border-line">
+                    <td className="px-3 py-2 tabular-nums text-ink-2">{formatOrderDate(entry.orderedAt)}</td>
+                    <td className="px-3 py-2 text-ink">{entry.patientName}</td>
+                    <td className="px-3 py-2 text-ink-2">{entry.orderedByName}</td>
+                    <td className="px-3 py-2 text-ink-2">{entry.vendorName}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{entry.qty}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{moneyLabel(entry.extendedUsd)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

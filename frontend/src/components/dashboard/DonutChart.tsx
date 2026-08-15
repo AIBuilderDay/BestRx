@@ -23,7 +23,17 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * Built from `stroke-dasharray` arcs on a shared circle rather than pie wedges, which keeps every
  * segment a simple 2px-gapped stroke instead of hand-rolled arc paths.
  */
-export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; totalLabel: string }) {
+export function DonutChart({
+  slices,
+  totalLabel,
+  centerLabel = 'Total',
+  centerValue = totalLabel,
+}: {
+  slices: BreakdownSlice[];
+  totalLabel: string;
+  centerLabel?: string;
+  centerValue?: string;
+}) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const total = slices.reduce((sum, s) => sum + s.valueUsd, 0);
 
@@ -96,8 +106,8 @@ export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; t
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           {hoverIndex === null ? (
             <>
-              <div className="text-[11px] uppercase tracking-[0.06em] text-ink-3">Total</div>
-              <div className="text-[17px] font-semibold tabular-nums text-ink">{totalLabel}</div>
+              <div className="text-[11px] uppercase tracking-[0.06em] text-ink-3">{centerLabel}</div>
+              <div className="text-[17px] font-semibold tabular-nums text-ink">{centerValue}</div>
             </>
           ) : (
             <>

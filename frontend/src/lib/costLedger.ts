@@ -15,15 +15,19 @@
 
 import {
   getCatalogEntry,
+  getHospice,
   getOffersForItem,
   getOrdersForHospice,
+  getPatient,
+  getUser,
+  getVendor,
   patients,
   vendors,
 } from '../data/db';
-import { CATEGORY_LABELS, offerPrice } from './catalog';
+import { CATEGORY_LABELS, offerPrice, patientFullName } from './catalog';
 import { bucketIndexFor, periodContains, type CostPeriod } from './costPeriod';
 import type { TrendRange } from './trendRange';
-import type { Order, Vendor, VendorOffer } from '../types/domain';
+import type { EquipmentItem, Order, Vendor, VendorOffer } from '../types/domain';
 
 /** On-time delivery floor a vendor must clear before its price counts as a real alternative. */
 export const SERVICE_FLOOR_PCT = 85;
@@ -38,6 +42,10 @@ export interface VendorColumn {
   zipCoveragePct: number;
   servedZipCount: number;
   patientZipCount: number;
+  /** "City, ST" labels among this hospice's patient locations the vendor's service area reaches. */
+  servedLocations: string[];
+  /** "City, ST" labels the vendor's service area does NOT reach — never a real option there. */
+  unservedLocations: string[];
 }
 
 export interface VendorUnitPrice {
@@ -84,6 +92,13 @@ export interface TrendBucket {
   partial: boolean;
 }
 
+export interface SpendRangeSummary {
+  /** Sum of the real spend buckets for the selected range. */
+  actualUsd: number;
+  bucketCount: number;
+  partial: boolean;
+}
+
 export interface LadderRow {
   vendor: Vendor;
   tone: 'contracted' | 'best' | 'alt' | 'risk';
@@ -124,9 +139,16 @@ function codeUnitKind(hcpcs: string): BasketLine['kind'] {
 
 export function vendorColumns(hospiceId: string): VendorColumn[] {
   const patientZips = hospicePatientZips(hospiceId);
+  const patientLocations = hospicePatientLocations(hospiceId);
   return [...vendors()]
     .map((vendor) => {
       const served = [...patientZips].filter((zip) => vendor.serviceAreaZips.includes(zip));
+      const servedLocations: string[] = [];
+      const unservedLocations: string[] = [];
+      for (const [label, zips] of patientLocations) {
+        const reaches = zips.some((zip) => vendor.serviceAreaZips.includes(zip));
+        (reaches ? servedLocations : unservedLocations).push(label);
+      }
       return {
         vendor,
         contracted: vendor.contracted === true,
@@ -137,6 +159,8 @@ export function vendorColumns(hospiceId: string): VendorColumn[] {
           patientZips.size === 0 ? 0 : Math.round((served.length / patientZips.size) * 100),
         servedZipCount: served.length,
         patientZipCount: patientZips.size,
+        servedLocations,
+        unservedLocations,
       };
     })
     .sort((a, b) => Number(b.contracted) - Number(a.contracted) || a.vendor.name.localeCompare(b.vendor.name));
@@ -146,16 +170,75 @@ function hospicePatientZips(hospiceId: string): Set<string> {
   return new Set(patients().filter((p) => p.hospiceId === hospiceId).map((p) => p.address.zip));
 }
 
-/** Prices one order's equipment at the vendor that actually delivered it. */
-export function orderExtendedUsd(order: Order, period: CostPeriod): number {
-  if (!order.vendorId) return 0;
-  let total = 0;
-  for (const item of order.equipment) {
-    const offer = cheapestOfferFor(order.vendorId, item.hcpcs);
-    if (offer === null) continue;
-    total += item.qty * offerPriceUsd(offer) * monthsFor(offer, period);
+/** This hospice's distinct patient locations ("City, ST" -> the ZIPs on file for it), alphabetical. */
+function hospicePatientLocations(hospiceId: string): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const p of patients()) {
+    if (p.hospiceId !== hospiceId) continue;
+    const label = `${p.address.city}, ${p.address.state}`;
+    const zips = map.get(label);
+    if (zips) {
+      if (!zips.includes(p.address.zip)) zips.push(p.address.zip);
+    } else {
+      map.set(label, [p.address.zip]);
+    }
   }
-  return round2(total);
+  return new Map([...map].sort(([a], [b]) => a.localeCompare(b)));
+}
+
+/** Prices one order's equipment at the vendor that actually delivered it. */
+export function orderItemExtendedUsd(order: Order, item: EquipmentItem, period: CostPeriod): number {
+  if (!order.vendorId) return 0;
+  const offer = cheapestOfferFor(order.vendorId, item.hcpcs);
+  if (offer === null) return 0;
+  return round2(item.qty * offerPriceUsd(offer) * monthsFor(offer, period));
+}
+
+export function orderExtendedUsd(order: Order, period: CostPeriod): number {
+  return round2(order.equipment.reduce((total, item) => total + orderItemExtendedUsd(order, item, period), 0));
+}
+
+export interface CodeOrderHistoryEntry {
+  orderId: string;
+  orderedAt: string;
+  qty: number;
+  unitUsd: number | null;
+  extendedUsd: number;
+  vendorName: string;
+  orderedByName: string;
+  patientName: string;
+}
+
+/** Every order this period that included this HCPCS code, oldest first — the "who bought how many,
+ *  when, at what price" behind one basket line. */
+export function orderHistoryForCode(
+  hospiceId: string,
+  period: CostPeriod,
+  hcpcs: string,
+): CodeOrderHistoryEntry[] {
+  const entries: CodeOrderHistoryEntry[] = [];
+
+  for (const order of getOrdersForHospice(hospiceId)) {
+    if (!order.orderedAt || !periodContains(period, order.orderedAt)) continue;
+    const item = order.equipment.find((e) => e.hcpcs === hcpcs);
+    if (!item) continue;
+
+    const offer = order.vendorId ? cheapestOfferFor(order.vendorId, hcpcs) : null;
+    const patient = getPatient(order.patientId);
+
+    entries.push({
+      orderId: order.id,
+      orderedAt: order.orderedAt,
+      qty: item.qty,
+      unitUsd: offer ? offerPriceUsd(offer) : null,
+      extendedUsd: orderItemExtendedUsd(order, item, period),
+      vendorName: getVendor(order.vendorId)?.displayName ?? 'Vendor not yet assigned',
+      orderedByName: getUser(order.orderedById)?.name ?? 'Unknown',
+      patientName: patient ? patientFullName(patient) : 'Unknown patient',
+    });
+  }
+
+  return entries.sort((a, b) => a.orderedAt.localeCompare(b.orderedAt));
 }
 
 export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[] {
@@ -337,6 +420,22 @@ function newestOrderDate(hospiceId: string): string | null {
   return dates.length === 0 ? null : dates.reduce((a, b) => (a > b ? a : b));
 }
 
+/** Total Spend tile summary for the selected range. Null means the range has no real history. */
+export function spendSummaryForRange(
+  hospiceId: string,
+  period: CostPeriod,
+  lines: BasketLine[],
+  range: TrendRange,
+): SpendRangeSummary | null {
+  const buckets = spendTrendForRange(hospiceId, period, lines, range);
+  if (buckets === null) return null;
+  return {
+    actualUsd: round2(buckets.reduce((sum, bucket) => sum + bucket.actualUsd, 0)),
+    bucketCount: buckets.length,
+    partial: buckets.some((bucket) => bucket.partial),
+  };
+}
+
 /** Vendors ranked cheapest first for one code, for the row drawer. */
 export function priceLadder(line: BasketLine, columns: VendorColumn[]): LadderRow[] {
   const priced = columns
@@ -366,5 +465,22 @@ export function priceLadder(line: BasketLine, columns: VendorColumn[]): LadderRo
       widthPct: max === 0 || extendedUsd === null ? 0 : Math.round((extendedUsd / max) * 100),
     };
   });
+}
+
+export interface CostPpd {
+  ppdUsd: number;
+  census: number;
+  days: number;
+}
+
+/** Spend per patient per day — the number the hospice buyer actually judges us on. */
+export function ledgerPpd(hospiceId: string, spendUsd: number, period: CostPeriod): CostPpd {
+  const census = getHospice(hospiceId)?.activeCensus ?? 0;
+  const denominator = census * period.days;
+  return {
+    ppdUsd: denominator === 0 ? 0 : spendUsd / denominator,
+    census,
+    days: period.days,
+  };
 }
 

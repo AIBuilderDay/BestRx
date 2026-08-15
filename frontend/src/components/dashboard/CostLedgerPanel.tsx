@@ -1,11 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { moneyLabel } from '../../lib/catalog';
-import { accountBreakdown, productBreakdown } from '../../lib/budgetBreakdown';
+import { accountOverageBreakdown, overBudgetProductBreakdown } from '../../lib/budgetBreakdown';
 import { summarizeUsage } from '../../lib/ai/usage';
 import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, VendorColumn } from '../../lib/costLedger';
+import { spendSummaryForRange } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
-import type { TrendRange } from '../../lib/trendRange';
+import { getRangeMeta, type TrendRange } from '../../lib/trendRange';
 import { buildProductSavings, countGenuineSavings, totalPotentialSavingsUsd } from '../../lib/vendorSavings';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
@@ -33,7 +34,6 @@ export function CostLedgerPanel({
   openHcpcs,
   onOpenRow,
   onCloseRow,
-  onAction,
 }: {
   hospiceId: string;
   period: CostPeriod;
@@ -45,16 +45,20 @@ export function CostLedgerPanel({
   openHcpcs: string | null;
   onOpenRow: (hcpcs: string) => void;
   onCloseRow: () => void;
-  onAction: (message: string) => void;
 }) {
   const openLine = lines.find((l) => l.hcpcs === openHcpcs) ?? null;
 
   const [selectedMetric, setSelectedMetric] = useState<TileKey | null>('spend');
-  const [trendRange, setTrendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
+  const [spendRange, setSpendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
 
   const productSavings = useMemo(() => buildProductSavings(lines, columns), [lines, columns]);
   const totalSavingsUsd = useMemo(() => totalPotentialSavingsUsd(productSavings), [productSavings]);
   const savingsProductCount = useMemo(() => countGenuineSavings(productSavings), [productSavings]);
+  const spendRangeSummary = useMemo(
+    () => spendSummaryForRange(hospiceId, period, lines, spendRange),
+    [hospiceId, period, lines, spendRange],
+  );
+  const spendRangeLabel = getRangeMeta(spendRange).label;
 
   // Read fresh on every render — cheap localStorage read, and this tile should reflect AI calls
   // made elsewhere in the app (e.g. catalog search) without requiring a full page reload.
@@ -65,8 +69,11 @@ export function CostLedgerPanel({
     {
       key: 'spend',
       label: 'Total Spend',
-      value: moneyLabel(totals.actualUsd),
-      detail: `${moneyLabel(totals.rentalMonthlyUsd)}/mo rental + ${moneyLabel(totals.purchaseUsd)} one-time`,
+      value: spendRangeSummary === null ? 'No data' : moneyLabel(spendRangeSummary.actualUsd),
+      detail:
+        spendRangeSummary === null
+          ? `${spendRangeLabel} spend unavailable`
+          : `${spendRangeLabel} total${spendRangeSummary.partial ? ' · partial' : ''}`,
       tone: 'plain',
     },
     {
@@ -97,10 +104,13 @@ export function CostLedgerPanel({
       key: 'budget',
       label: 'Budget utilization',
       value: budgetTotals.utilizationPct === null ? '—' : `${budgetTotals.utilizationPct}%`,
-      detail: `of ${moneyLabel(budgetTotals.capUsd)} across ${
-        budgetTotals.assignedPatients
-      } assigned patients`,
-      tone: (budgetTotals.utilizationPct ?? 0) > 100 ? 'alert' : 'plain',
+      detail:
+        budgetTotals.utilizationPct === null
+          ? 'No DME budget cap to measure'
+          : budgetTotals.overageUsd > 0
+            ? `${budgetTotals.utilizationPct}% used · ${moneyLabel(budgetTotals.overageUsd)} cutback`
+            : `${budgetTotals.utilizationPct}% used · no cutback needed`,
+      tone: budgetTotals.overageUsd > 0 ? 'alert' : 'plain',
       chartable: budgetTotals.utilizationPct !== null,
     },
   ];
@@ -110,16 +120,22 @@ export function CostLedgerPanel({
     setSelectedMetric((current) => (current === key ? null : (key as TileKey)));
   };
 
-  const productSlices = useMemo(() => productBreakdown(lines), [lines]);
-  const accountSlices = useMemo(() => accountBreakdown(accountRows), [accountRows]);
+  const productSlices = useMemo(
+    () => overBudgetProductBreakdown(hospiceId, period, accountRows),
+    [hospiceId, period, accountRows],
+  );
+  const accountOverageSlices = useMemo(() => accountOverageBreakdown(accountRows), [accountRows]);
 
   let panel: ReactNode = null;
   if (selectedMetric === 'budget') {
     panel = (
       <BudgetBreakdownPanel
         productSlices={productSlices}
-        accountSlices={accountSlices}
-        totalUsd={totals.actualUsd}
+        accountOverageSlices={accountOverageSlices}
+        accountRows={accountRows}
+        overageUsd={budgetTotals.overageUsd}
+        capUsd={budgetTotals.capUsd}
+        utilizationPct={budgetTotals.utilizationPct}
       />
     );
   } else if (selectedMetric === 'delta') {
@@ -130,8 +146,8 @@ export function CostLedgerPanel({
         hospiceId={hospiceId}
         period={period}
         lines={lines}
-        range={trendRange}
-        onRangeChange={setTrendRange}
+        range={spendRange}
+        onRangeChange={setSpendRange}
       />
     );
   } else if (selectedMetric === 'tokens') {
@@ -142,7 +158,11 @@ export function CostLedgerPanel({
     <div className="mt-5">
       <StatTiles tiles={tiles} selectedKey={selectedMetric} onSelect={selectMetric} />
 
-      {panel}
+      {selectedMetric !== null && panel !== null ? (
+        <div key={selectedMetric} className="animate-[sheetIn_0.3s_cubic-bezier(0.2,0.7,0.2,1)_both] motion-reduce:animate-none">
+          {panel}
+        </div>
+      ) : null}
 
       <div className="mt-4">
         <LedgerControls period={period} />
@@ -152,7 +172,6 @@ export function CostLedgerPanel({
         <VendorPriceMatrix
           lines={lines}
           totals={totals}
-          columns={columns}
           openHcpcs={openHcpcs}
           onOpenRow={onOpenRow}
           periodLabel={period.label}
@@ -160,7 +179,7 @@ export function CostLedgerPanel({
       </div>
 
       {openLine ? (
-        <CodeDrawer line={openLine} columns={columns} onClose={onCloseRow} onAction={onAction} />
+        <CodeDrawer hospiceId={hospiceId} period={period} line={openLine} onClose={onCloseRow} />
       ) : null}
 
       <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">

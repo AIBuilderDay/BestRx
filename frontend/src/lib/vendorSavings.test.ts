@@ -4,10 +4,12 @@ import { getPeriod } from './costPeriod';
 import {
   buildProductSavings,
   countGenuineSavings,
-  DELIVERY_WEIGHT,
-  PRICE_WEIGHT,
+  LOCAL_SERVICE_WEIGHT,
+  LOSS_FREE_PREMIUM_USD,
+  MAX_LOSS_VALUE_PENALTY,
   productVendorOptions,
-  REVIEW_WEIGHT,
+  RATING_WEIGHT,
+  SAVINGS_WEIGHT,
   totalPotentialSavingsUsd,
   type ProductSavingsRow,
 } from './vendorSavings';
@@ -27,19 +29,18 @@ describe('buildProductSavings (real HSP-001 data)', () => {
   });
 
   it('recommends the pricier, higher-quality vendor when the price gap is large', () => {
-    // E0250: Vendor 1 costs $831 more but wins on reviews+delivery; Vendor 3 saves $548 but loses.
+    // E0250: Vendor 1 costs $831 more but is the only non-contracted vendor reaching the patients.
     const row = rowFor('E0250');
     expect(row.suggested?.vendor.id).toBe('VND-001');
     expect(row.suggested?.savingsUsd).toBeCloseTo(-831, 0);
   });
 
-  it('flips to the cheaper vendor when the price gap is small enough to overcome the quality gap', () => {
-    // E0601 (CPAP) and E0431 (portable oxygen) are the two codes where Vendor 3's price edge beats
-    // Vendor 1's review/delivery edge under price 40% / reviews 30% / delivery 30%.
-    expect(rowFor('E0601').suggested?.vendor.id).toBe('VND-003');
-    expect(rowFor('E0601').suggested?.savingsUsd).toBeCloseTo(42, 0);
-    expect(rowFor('E0431').suggested?.vendor.id).toBe('VND-003');
-    expect(rowFor('E0431').suggested?.savingsUsd).toBeCloseTo(18, 0);
+  it('never suggests VND-003 for HSP-001 — it reaches none of its patient locations', () => {
+    // VND-003's service area is Ogden-area ZIPs; every HSP-001 patient is in Salt Lake City.
+    // It would win E0601/E0431 on price alone, but an unreachable vendor isn't a real option.
+    for (const row of rows) {
+      expect(row.suggested?.vendor.id, row.hcpcs).not.toBe('VND-003');
+    }
   });
 
   it('reports the real per-unit prices, matching what a nurse can act on directly', () => {
@@ -55,10 +56,20 @@ describe('buildProductSavings (real HSP-001 data)', () => {
     }
   });
 
-  it('carries ZIP coverage on every option for display, without it moving the ranking', () => {
+  it('carries value criteria for the hover breakdown', () => {
+    // HSP-001's only patient location is Salt Lake City, UT, and VND-001 reaches it.
     const row = rowFor('E0250');
-    expect(row.suggested?.zipCoveragePct).toBeGreaterThanOrEqual(0);
-    expect(row.suggested?.patientZipCount).toBe(10);
+    const suggested = row.suggested;
+    expect(suggested).not.toBeNull();
+    if (suggested === null) throw new Error('Expected a suggested vendor');
+    expect(suggested.servedLocations).toEqual(['Salt Lake City, UT']);
+    expect(suggested.unservedLocations).toEqual([]);
+    expect(suggested.valueCriteria).toMatchObject({
+      savingsScore: 1,
+      ratingScore: suggested.rating,
+      localServiceScore: 5,
+      lossPenalty: expect.any(Number),
+    });
   });
 
   it('every value score lands in 0-100', () => {
@@ -69,8 +80,10 @@ describe('buildProductSavings (real HSP-001 data)', () => {
     }
   });
 
-  it('weighs price, reviews, and delivery only, summing to 100%', () => {
-    expect(PRICE_WEIGHT + REVIEW_WEIGHT + DELIVERY_WEIGHT).toBeCloseTo(1, 6);
+  it('weighs savings, vendor rating, and local service fit, summing to 100%', () => {
+    expect(SAVINGS_WEIGHT + RATING_WEIGHT + LOCAL_SERVICE_WEIGHT).toBeCloseTo(1, 6);
+    expect(SAVINGS_WEIGHT).toBeGreaterThan(RATING_WEIGHT);
+    expect(RATING_WEIGHT).toBeGreaterThan(LOCAL_SERVICE_WEIGHT);
   });
 
   it('sorts biggest opportunity first', () => {
@@ -84,10 +97,10 @@ describe('buildProductSavings (real HSP-001 data)', () => {
 
 describe('totalPotentialSavingsUsd / countGenuineSavings', () => {
   it('sums only the real savings, never netting a premium against them', () => {
-    // Only E0601 (+42) and E0431 (+18) genuinely save money; the other 8 rows are premiums and
-    // must not drag the total below their sum.
-    expect(totalPotentialSavingsUsd(rows)).toBeCloseTo(60, 0);
-    expect(countGenuineSavings(rows)).toBe(2);
+    // With VND-003 excluded (reaches none of HSP-001's locations), VND-001 is the only
+    // non-contracted option left on every code, and every one is a premium over VND-002.
+    expect(totalPotentialSavingsUsd(rows)).toBe(0);
+    expect(countGenuineSavings(rows)).toBe(0);
   });
 
   it('returns zero for an empty set rather than throwing', () => {
@@ -97,18 +110,12 @@ describe('totalPotentialSavingsUsd / countGenuineSavings', () => {
 });
 
 describe('productVendorOptions', () => {
-  it('excludes the contracted vendor from the option list entirely', () => {
+  it('excludes the contracted vendor, and VND-003 (unreachable), from the option list', () => {
     const line = lines.find((l) => l.hcpcs === 'E0250')!;
     const options = productVendorOptions(line, columns);
-    expect(options.every((o) => o.vendor.id !== 'VND-002')).toBe(true);
-    expect(options).toHaveLength(2);
+    expect(options.map((o) => o.vendor.id)).toEqual(['VND-001']);
   });
 
-  it('ranks options best-value first', () => {
-    const line = lines.find((l) => l.hcpcs === 'E0250')!;
-    const options = productVendorOptions(line, columns);
-    expect(options[0].valueScore).toBeGreaterThanOrEqual(options[1].valueScore);
-  });
 });
 
 // Synthetic fixtures isolate the scoring formula from what the real dataset happens to contain.
@@ -139,9 +146,11 @@ function fakeColumn(overrides: Partial<VendorColumn> = {}): VendorColumn {
     qualified: true,
     onTimePct: 90,
     onTimePickupPct: 90,
-    zipCoveragePct: 0,
-    servedZipCount: 0,
+    zipCoveragePct: 100,
+    servedZipCount: 10,
     patientZipCount: 10,
+    servedLocations: ['Faketown, UT'],
+    unservedLocations: [],
     ...overrides,
   };
 }
@@ -166,18 +175,31 @@ function fakeLine(overrides: Partial<BasketLine> = {}): BasketLine {
 }
 
 describe('productVendorOptions (synthetic edge cases)', () => {
-  it('a zero-coverage vendor can still win the per-product recommendation', () => {
-    // Unlike the whole-basket ranking, coverage doesn't gate this score at all.
+  it('excludes a vendor that reaches none of the hospice\'s patient locations, however it would score', () => {
     const col = fakeColumn({
       vendor: fakeVendor({ id: 'VND-NOCOVER', overallRating: 5 }),
       onTimePct: 100,
-      zipCoveragePct: 0,
-      servedZipCount: 0,
+      servedLocations: [],
+      unservedLocations: ['Faketown, UT'],
     });
     const line = fakeLine({ actualUsd: 1000, prices: [{ vendorId: 'VND-NOCOVER', unitUsd: 80, extendedUsd: 800 }] });
-    const [option] = productVendorOptions(line, [col]);
-    expect(option.zipCoveragePct).toBe(0);
-    expect(option.valueScore).toBeGreaterThan(80);
+    expect(productVendorOptions(line, [col])).toHaveLength(0);
+  });
+
+  it('ranks reachable options best-value first', () => {
+    const cols = [
+      fakeColumn({ vendor: fakeVendor({ id: 'VND-A', overallRating: 2 }), onTimePct: 60 }),
+      fakeColumn({ vendor: fakeVendor({ id: 'VND-B', overallRating: 5 }), onTimePct: 100 }),
+    ];
+    const line = fakeLine({
+      actualUsd: 1000,
+      prices: [
+        { vendorId: 'VND-A', unitUsd: 80, extendedUsd: 800 },
+        { vendorId: 'VND-B', unitUsd: 80, extendedUsd: 800 },
+      ],
+    });
+    const options = productVendorOptions(line, cols);
+    expect(options.map((o) => o.vendor.id)).toEqual(['VND-B', 'VND-A']);
   });
 
   it('excludes a vendor with no offer on this code instead of a broken entry', () => {
@@ -191,6 +213,46 @@ describe('productVendorOptions (synthetic edge cases)', () => {
     const line = fakeLine({ actualUsd: 0, prices: [{ vendorId: 'VND-ZERO', unitUsd: 0, extendedUsd: 0 }] });
     const [option] = productVendorOptions(line, [col]);
     expect(Number.isFinite(option.valueScore)).toBe(true);
+  });
+
+  it('calibrates $100 savings with a 4.5+ vendor rating to roughly 80 value', () => {
+    const col = fakeColumn({ vendor: fakeVendor({ id: 'VND-CALIBRATED', overallRating: 4.6 }) });
+    const line = fakeLine({
+      actualUsd: 1000,
+      prices: [{ vendorId: 'VND-CALIBRATED', unitUsd: 90, extendedUsd: 900 }],
+    });
+    const [option] = productVendorOptions(line, [col]);
+    expect(option.valueCriteria).toMatchObject({
+      savingsScore: 3.5,
+      ratingScore: 4.6,
+      localServiceScore: 5,
+      lossPenalty: 0,
+    });
+    expect(option.valueScore).toBe(80);
+  });
+
+  it('keeps a tiny premium near 50 but penalizes a large premium toward 20', () => {
+    const col = fakeColumn({ vendor: fakeVendor({ id: 'VND-PREMIUM', overallRating: 4.6 }) });
+
+    const tinyPremiumLine = fakeLine({
+      actualUsd: 1000,
+      prices: [{ vendorId: 'VND-PREMIUM', unitUsd: 100.5, extendedUsd: 1005 }],
+    });
+    const [tinyPremium] = productVendorOptions(tinyPremiumLine, [col]);
+    expect(tinyPremium.valueCriteria.lossPenalty).toBe(0);
+    expect(tinyPremium.valueScore).toBe(50);
+
+    const largePremiumLine = fakeLine({
+      actualUsd: 1000,
+      prices: [{ vendorId: 'VND-PREMIUM', unitUsd: 200, extendedUsd: 2000 }],
+    });
+    const [largePremium] = productVendorOptions(largePremiumLine, [col]);
+    expect(largePremium.valueCriteria.lossPenalty).toBe(MAX_LOSS_VALUE_PENALTY);
+    expect(largePremium.valueScore).toBe(20);
+  });
+
+  it('does not penalize premiums within the small-loss tolerance', () => {
+    expect(LOSS_FREE_PREMIUM_USD).toBe(5);
   });
 
   it('clamps a wildly cheaper or pricier vendor at the 0-100 score bounds', () => {

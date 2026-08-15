@@ -4,38 +4,25 @@ import { TopNav } from '../components/layout/TopNav';
 import { BudgetPanel } from '../components/dashboard/BudgetPanel';
 import { CostLedgerPanel } from '../components/dashboard/CostLedgerPanel';
 import { DashboardTabs, type DashboardTab } from '../components/dashboard/DashboardTabs';
-import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
-import { getHospice } from '../data/db';
 import {
   accountTotals,
   buildAccountRows,
-  effectivePpdFor,
+  effectiveAllottedUsd,
+  hospiceBudgetUsage,
   NO_OVERRIDES,
   roleRates,
-  setAccountOverride,
-  setRoleOverride,
+  setAccountAllottedOverride,
+  setRolePctOverride,
+  setTotalBudgetOverride,
   sortAccountRows,
   type AccountSortKey,
-  type PpdOverrides,
+  type BudgetOverrides,
 } from '../lib/budgetLedger';
 import { basketTotals, buildBasket, vendorColumns } from '../lib/costLedger';
 import { getPeriod } from '../lib/costPeriod';
+import { getHospice } from '../data/db';
 import type { User, UserRole } from '../types/domain';
-
-const TAB_COPY: Record<DashboardTab, { crumb: string; title: string; blurb: string }> = {
-  cost: {
-    crumb: 'Cost of care',
-    title: 'DME cost ledger',
-    blurb: 'Every code you bought, priced against every vendor that could have supplied it.',
-  },
-  budgets: {
-    crumb: 'Budget configuration',
-    title: 'Budget configuration',
-    blurb:
-      "Each account's DME ceiling is derived from the patients they carry — not a flat number someone guessed.",
-  },
-};
 
 const isDashboardTab = (value: string | null): value is DashboardTab =>
   value === 'cost' || value === 'budgets';
@@ -45,8 +32,9 @@ const isDashboardTab = (value: string | null): value is DashboardTab =>
  * nursing. The active view lives in the query string so the browser back button steps between the
  * two panels the way it steps between routes.
  *
- * PPD overrides are owned here rather than in BudgetPanel: editing a rate moves the account caps,
- * which move the budget-utilization tile on the cost panel. Split ownership would leave it stale.
+ * Budget overrides are owned here rather than in BudgetPanel: editing a role's share or an
+ * account's amount moves the account caps, which move the budget-utilization tile on the cost
+ * panel. Split ownership would leave it stale.
  */
 export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
@@ -54,49 +42,73 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
 
   const [openHcpcs, setOpenHcpcs] = useState<string | null>(null);
   const [sort, setSort] = useState<{ key: AccountSortKey; dir: 1 | -1 }>({ key: 'name', dir: 1 });
-  const [overrides, setOverrides] = useState<PpdOverrides>(NO_OVERRIDES);
-  const [toast, setToast] = useState('');
+  const [overrides, setOverrides] = useState<BudgetOverrides>(NO_OVERRIDES);
+  const [editMode, setEditMode] = useState(false);
+  const [overridesBeforeEdit, setOverridesBeforeEdit] = useState<BudgetOverrides>(NO_OVERRIDES);
 
   const viewParam = searchParams.get('view');
   const activeTab: DashboardTab = isDashboardTab(viewParam) ? viewParam : 'cost';
   const hospiceId = user.orgId;
   const period = getPeriod('aug-2026');
-  const hospice = getHospice(hospiceId);
-  const copy = TAB_COPY[activeTab];
+  const hospiceDefaultBudgetUsd = getHospice(hospiceId)?.monthlyBudgetUsd ?? 0;
 
   const columns = useMemo(() => vendorColumns(hospiceId), [hospiceId]);
   const lines = useMemo(() => buildBasket(hospiceId, period), [hospiceId, period]);
   const totals = useMemo(() => basketTotals(lines, columns), [lines, columns]);
 
   const accountRows = useMemo(
-    () => buildAccountRows(hospiceId, period, overrides),
-    [hospiceId, period, overrides],
+    () => buildAccountRows(hospiceId, period, overrides, user.role),
+    [hospiceId, period, overrides, user.role],
   );
   const sortedRows = useMemo(
     () => sortAccountRows(accountRows, sort.key, sort.dir),
     [accountRows, sort],
   );
   const budgetTotals = useMemo(() => accountTotals(accountRows), [accountRows]);
-  const roleCards = useMemo(() => roleRates(hospiceId, overrides), [hospiceId, overrides]);
+  const budgetUsage = useMemo(
+    () => hospiceBudgetUsage(hospiceId, accountRows, overrides),
+    [hospiceId, accountRows, overrides],
+  );
+  const roleCards = useMemo(
+    () => roleRates(hospiceId, overrides, user.role),
+    [hospiceId, overrides, user.role],
+  );
 
   const selectTab = (tab: DashboardTab) => setSearchParams({ view: tab });
 
-  const changeRoleRate = (role: UserRole, next: number | null) => {
-    setOverrides((current) => setRoleOverride(current, role, next));
+  const changeTotalBudget = (next: number | null) => {
+    setOverrides((current) => setTotalBudgetOverride(current, next, hospiceDefaultBudgetUsd));
   };
 
-  const changeAccountRate = (userId: string, next: number | null) => {
+  const changeRolePct = (role: UserRole, next: number | null) => {
+    setOverrides((current) => setRolePctOverride(current, role, next));
+  };
+
+  const changeAccountAmount = (userId: string, next: number | null) => {
     const account = accountRows.find((r) => r.user.id === userId);
     if (!account) return;
-    const roleDefault = effectivePpdFor(hospiceId, account.user, {
-      roles: overrides.roles,
-      accounts: {},
-    }).ppdUsd;
-    setOverrides((current) => setAccountOverride(current, userId, next, roleDefault));
+    const roleDefault = effectiveAllottedUsd(hospiceId, account.user, {
+      totalBudgetUsd: overrides.totalBudgetUsd,
+      rolePct: overrides.rolePct,
+      accountUsd: {},
+    }).capUsd;
+    setOverrides((current) => setAccountAllottedOverride(current, userId, next, roleDefault));
   };
 
   const sortBy = (key: AccountSortKey) =>
     setSort((current) => (current.key === key ? { key, dir: current.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
+
+  const startEditingBudgets = () => {
+    setOverridesBeforeEdit(overrides);
+    setEditMode(true);
+  };
+
+  const saveBudgetEdits = () => setEditMode(false);
+
+  const cancelBudgetEdits = () => {
+    setOverrides(overridesBeforeEdit);
+    setEditMode(false);
+  };
 
   return (
     <div className="min-h-screen bg-bg">
@@ -109,25 +121,8 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
-        <div className="text-[12px] text-ink-3">
-          {hospice?.name ?? 'Hospice'} / {copy.crumb}
-        </div>
-
-        <div className="mt-2 mb-5 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-normal tracking-tight">{copy.title}</h1>
-            <p className="mt-1 max-w-[62ch] text-[13px] text-ink-2">{copy.blurb}</p>
-          </div>
-          {hospice ? (
-            <div className="text-right text-[12px] text-ink-3">
-              <div>
-                {hospice.name} · {hospice.emr}
-              </div>
-              <div>
-                {hospice.activeCensus} patients on service · {period.label}
-              </div>
-            </div>
-          ) : null}
+        <div className="mb-5">
+          <h1 className="text-3xl font-normal tracking-tight">Dashboard</h1>
         </div>
 
         <DashboardTabs activeTab={activeTab} onSelectTab={selectTab} />
@@ -144,24 +139,27 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             openHcpcs={openHcpcs}
             onOpenRow={(hcpcs) => setOpenHcpcs((current) => (current === hcpcs ? null : hcpcs))}
             onCloseRow={() => setOpenHcpcs(null)}
-            onAction={setToast}
           />
         ) : (
           <BudgetPanel
             period={period}
+            usage={budgetUsage}
             roleCards={roleCards}
             rows={sortedRows}
             totals={budgetTotals}
             sortKey={sort.key}
             sortDir={sort.dir}
+            editMode={editMode}
             onSort={sortBy}
-            onRoleRateChange={changeRoleRate}
-            onAccountRateChange={changeAccountRate}
+            onStartEdit={startEditingBudgets}
+            onSave={saveBudgetEdits}
+            onCancel={cancelBudgetEdits}
+            onTotalBudgetChange={changeTotalBudget}
+            onRolePctChange={changeRolePct}
+            onAccountAmountChange={changeAccountAmount}
           />
         )}
       </main>
-
-      <Toast message={toast} />
     </div>
   );
 }

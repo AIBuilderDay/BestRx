@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { NO_OVERRIDES, buildAccountRows } from './budgetLedger';
 import { buildBasket } from './costLedger';
 import { getPeriod } from './costPeriod';
-import { accountBreakdown, productBreakdown } from './budgetBreakdown';
+import {
+  accountBreakdown,
+  accountOverageBreakdown,
+  overBudgetProductBreakdown,
+  productBreakdown,
+} from './budgetBreakdown';
 
 const period = getPeriod('aug-2026');
 const lines = buildBasket('HSP-001', period);
@@ -55,5 +60,38 @@ describe('accountBreakdown', () => {
   it('sums exactly to total spend, since no account is folded into Other', () => {
     const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
     expect(sum).toBeCloseTo(15580, 0);
+  });
+});
+
+describe('accountOverageBreakdown', () => {
+  const slices = accountOverageBreakdown(rows);
+
+  it('charts only account overage dollars', () => {
+    // Dana is the only account over its allotted budget this period (cap $4,000, spent $6,530).
+    // This is NOT the same figure as accountTotals().overageUsd, which nets against the whole
+    // hospice's headroom (Bea and the director are well under theirs) rather than summing each
+    // account's own overage in isolation.
+    const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
+    expect(sum).toBeCloseTo(2530, 0);
+    expect(sum).toBeLessThan(rows.reduce((total, row) => total + row.spentUsd, 0));
+  });
+});
+
+describe('overBudgetProductBreakdown', () => {
+  const slices = overBudgetProductBreakdown('HSP-001', period, rows);
+
+  it('charts products bought after accounts cross their allotted budgets', () => {
+    // Same $2,530 as accountOverageBreakdown (Dana's overage) — see the note there on why this
+    // isn't accountTotals().overageUsd.
+    const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
+    expect(sum).toBeCloseTo(2530, 0);
+    expect(sum).toBeLessThan(lines.reduce((total, line) => total + line.actualUsd, 0));
+  });
+
+  it('returns no products when the accounts never hit their limits', () => {
+    const protectedRows = rows.map((row) =>
+      row.capUsd === null ? row : { ...row, capUsd: row.spentUsd + 100, overageUsd: 0 },
+    );
+    expect(overBudgetProductBreakdown('HSP-001', period, protectedRows)).toEqual([]);
   });
 });

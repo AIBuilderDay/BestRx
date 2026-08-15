@@ -7,6 +7,10 @@
     "jsx": "react-jsx",
     "types": ["vite/client"],
 
+    /* `@` -> src. Mirrors resolve.alias in vite.config.ts. */
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+
     /* TypeScript only. Do not turn allowJs on. */
     "allowJs": false,
     "checkJs": false,

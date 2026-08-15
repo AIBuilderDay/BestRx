@@ -7,16 +7,15 @@ import type {
 } from '../../lib/budgetLedger';
 import { pillClasses, type PillTone } from '../../lib/patients';
 import { TableWrap } from '../ui/TableWrap';
-import { PpdRateInput } from './PpdRateInput';
+import { BudgetFieldInput } from './BudgetFieldInput';
 import { UtilizationMeter } from './UtilizationMeter';
 
 const COLUMNS: { key: AccountSortKey; label: string; numeric: boolean }[] = [
   { key: 'name', label: 'Account', numeric: false },
   { key: 'role', label: 'Role', numeric: false },
   { key: 'patients', label: 'Patients', numeric: true },
-  { key: 'ppd', label: 'PPD rate', numeric: true },
-  { key: 'cap', label: 'Period cap', numeric: true },
-  { key: 'spent', label: 'Spent', numeric: true },
+  { key: 'cap', label: 'Allotted budget', numeric: true },
+  { key: 'spent', label: 'Purchased', numeric: true },
   { key: 'utilization', label: 'Utilization', numeric: true },
   { key: 'status', label: 'Status', numeric: false },
 ];
@@ -25,7 +24,7 @@ const STATUS: Record<AccountBudgetStatus, { label: string; tone: PillTone }> = {
   over: { label: '▲ Over cap', tone: 'alert' },
   near: { label: '▲ Near cap', tone: 'alert' },
   under: { label: '✓ Under', tone: 'good' },
-  no_caseload: { label: 'No caseload', tone: 'muted' },
+  no_budget: { label: 'No budget', tone: 'muted' },
   no_rate: { label: 'No role budget', tone: 'muted' },
 };
 
@@ -34,23 +33,28 @@ export function AccountsBudgetTable({
   totals,
   sortKey,
   sortDir,
+  editMode,
   onSort,
-  onRateChange,
+  onAmountChange,
 }: {
   rows: AccountBudgetRow[];
   totals: AccountTotals;
   sortKey: AccountSortKey;
   sortDir: 1 | -1;
+  editMode: boolean;
   onSort: (key: AccountSortKey) => void;
-  onRateChange: (userId: string, next: number | null) => void;
+  onAmountChange: (userId: string, next: number | null) => void;
 }) {
   return (
     <>
       <TableWrap>
-        <table className="w-full min-w-[860px] border-collapse text-[13px]">
+        <table className="w-full min-w-[780px] border-collapse text-[13px]">
           <caption className="sr-only">
-            DME budget by account. Caps are derived from PPD rate, counted caseload, and days in the
-            period. Edit a rate to recompute that account's cap for this session.
+            DME budget by account. Allotted budgets default to an even split of the role's
+            department budget.
+            {editMode
+              ? " Edit an amount to recompute that account's cap."
+              : ' Click Edit to adjust budgets.'}
           </caption>
           <thead>
             <tr>
@@ -92,7 +96,7 @@ export function AccountsBudgetTable({
                   <td className="px-3 py-2.5">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="text-ink">{row.user.name}</span>
-                      {row.ppdSource === 'account-override' ? (
+                      {row.budgetSource === 'account-override' ? (
                         <span
                           title="Session override — not saved. Refreshing restores the role default."
                           className="rounded-full border border-line bg-bg-subtle px-1.5 py-0.5 text-[10px] text-ink-3"
@@ -106,18 +110,17 @@ export function AccountsBudgetTable({
                   <td className="px-3 py-2.5 text-ink-2">{row.roleLabel}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{row.assignedPatients}</td>
                   <td className="px-3 py-2.5 text-right">
-                    {row.ppdUsd === null ? (
+                    {row.capUsd === null ? (
                       <span className="text-ink-3">—</span>
                     ) : (
-                      <PpdRateInput
-                        value={row.ppdUsd}
-                        ariaLabel={`PPD rate for ${row.user.name}`}
-                        onCommit={(next) => onRateChange(row.user.id, next)}
+                      <BudgetFieldInput
+                        value={row.capUsd}
+                        unit="usd"
+                        ariaLabel={`Allotted budget for ${row.user.name}`}
+                        onCommit={(next) => onAmountChange(row.user.id, next)}
+                        readOnly={!editMode}
                       />
                     )}
-                  </td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">
-                    {row.capUsd === null ? <span className="text-ink-3">—</span> : moneyLabel(row.capUsd)}
                   </td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{moneyCents(row.spentUsd)}</td>
                   <td className="px-3 py-2.5">
@@ -139,7 +142,6 @@ export function AccountsBudgetTable({
                 All accounts
               </td>
               <td className="px-3 py-2.5 text-right tabular-nums">{totals.assignedPatients}</td>
-              <td className="px-3 py-2.5 text-right text-ink-3">—</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{moneyLabel(totals.capUsd)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums">{moneyCents(totals.spentUsd)}</td>
               <td className="px-3 py-2.5">
@@ -152,8 +154,10 @@ export function AccountsBudgetTable({
       </TableWrap>
 
       <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">
-        Caps cover the patients currently assigned to an account. Rate edits apply to this session
-        only — nothing is saved, and refreshing restores the role default.
+        Caps default to an even split of each role's department budget across its accounts.
+        {editMode
+          ? ' Edits apply once you save, and Cancel discards them.'
+          : ' Nothing here is saved to the server — Save keeps changes for this browser session only.'}
         {totals.excludedReason ? ` ${totals.excludedReason}` : ''}
       </p>
     </>

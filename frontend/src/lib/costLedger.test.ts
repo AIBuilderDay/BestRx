@@ -3,8 +3,11 @@ import {
   basketTotals,
   buildBasket,
   dailySpendTrend,
+  ledgerPpd,
+  orderHistoryForCode,
   priceLadder,
   SERVICE_FLOOR_PCT,
+  spendSummaryForRange,
   spendTrend,
   spendTrendForRange,
   vendorColumns,
@@ -164,6 +167,25 @@ describe('spendTrendForRange', () => {
   });
 });
 
+describe('spendSummaryForRange', () => {
+  it('sums the selected real range instead of always returning the month total', () => {
+    expect(spendSummaryForRange('HSP-001', period, lines, '1w')).toMatchObject({
+      actualUsd: 3839.5,
+      bucketCount: 7,
+      partial: false,
+    });
+    expect(spendSummaryForRange('HSP-001', period, lines, '1m')).toMatchObject({
+      actualUsd: totals.actualUsd,
+      bucketCount: 4,
+      partial: true,
+    });
+  });
+
+  it('keeps unsupported ranges distinct from real zero spend', () => {
+    expect(spendSummaryForRange('HSP-001', period, lines, '3m')).toBeNull();
+  });
+});
+
 describe('priceLadder', () => {
   it('ranks vendors cheapest first and tones them by contract and service', () => {
     const line = lines.find((l) => l.hcpcs === 'E0250')!;
@@ -175,5 +197,38 @@ describe('priceLadder', () => {
     expect(ladder.find((r) => r.vendor.id === 'VND-003')?.tone).toBe('risk');
     expect(ladder.find((r) => r.vendor.id === 'VND-001')?.tone).toBe('best');
     expect(Math.max(...ladder.map((r) => r.widthPct))).toBe(100);
+  });
+});
+
+describe('orderHistoryForCode', () => {
+  it('lists every order this period that included the code, oldest first', () => {
+    const line = lines.find((l) => l.hcpcs === 'E0250')!;
+    const history = orderHistoryForCode('HSP-001', period, 'E0250');
+
+    expect(history.reduce((sum, entry) => sum + entry.qty, 0)).toBe(line.units);
+    expect(history.reduce((sum, entry) => sum + entry.extendedUsd, 0)).toBeCloseTo(line.actualUsd, 2);
+    for (const entry of history) {
+      expect(entry.orderedByName).not.toBe('');
+      expect(entry.patientName).not.toBe('');
+    }
+    const dates = history.map((entry) => entry.orderedAt);
+    expect(dates).toEqual([...dates].sort());
+  });
+
+  it('returns nothing for a code never ordered this period', () => {
+    expect(orderHistoryForCode('HSP-001', period, 'E9999')).toEqual([]);
+  });
+});
+
+describe('ledgerPpd', () => {
+  it('divides spend by census times days', () => {
+    const ppd = ledgerPpd('HSP-001', totals.actualUsd, period);
+    expect(ppd.census).toBe(142);
+    expect(ppd.days).toBe(31);
+    expect(ppd.ppdUsd).toBeCloseTo(15580 / (142 * 31), 4);
+  });
+
+  it('returns zero rather than Infinity for an unknown hospice', () => {
+    expect(ledgerPpd('HSP-999', 1000, period).ppdUsd).toBe(0);
   });
 });

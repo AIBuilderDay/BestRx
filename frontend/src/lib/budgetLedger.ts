@@ -1,39 +1,43 @@
 /**
  * Budget configuration derivations: what each account is allowed to spend, and what it spent.
  *
- * A cap is never a flat number someone guessed — it is `PPD allowance x assigned patients x days`.
- * The PPD allowance comes from the role's budget row; the patient count is counted from the
- * caseload rather than read from `budgets.derivedFrom.assignedPatients`, because those two
- * disagree in the dataset (the budget rows claim 48/24/70 against real caseloads of 12/13/0) and
- * the caseload is the figure a director of nursing can actually verify.
+ * A department's budget is a flat share of the hospice's total: `role.pctOfBudget x
+ * hospice.monthlyBudgetUsd`. Each account in that role gets an even split of the department budget
+ * by default — patient caseload is shown for context but no longer drives the cap.
  *
- * Rate edits are session-only. Every setter here is pure and returns a new overrides object —
+ * Overrides are session-only. Every setter here is pure and returns a new overrides object —
  * nothing is written back to the JSON tables, and the UI marks overridden values as unsaved.
  */
 
-import { budgetCapUsd, getBudgetsForHospice, patients, users } from '../data/db';
+import { getBudgetsForHospice, getHospice, patients, users } from '../data/db';
 import { ROLE_LABELS } from './auth';
 import { orderExtendedUsd } from './costLedger';
 import { getOrdersForHospice } from '../data/db';
 import { periodContains, type CostPeriod } from './costPeriod';
 import type { User, UserRole } from '../types/domain';
 
-export interface PpdOverrides {
-  roles: Partial<Record<UserRole, number>>;
-  accounts: Record<string, number>;
+export interface BudgetOverrides {
+  /** Session override of the hospice's total monthly budget, in dollars. Null = use the on-file default. */
+  totalBudgetUsd: number | null;
+  /** Session override of a role's share of the hospice budget, as a 0-1 fraction. */
+  rolePct: Partial<Record<UserRole, number>>;
+  /** Session override of one account's flat allotted budget, in dollars. */
+  accountUsd: Record<string, number>;
 }
 
-export const NO_OVERRIDES: PpdOverrides = { roles: {}, accounts: {} };
+export const NO_OVERRIDES: BudgetOverrides = { totalBudgetUsd: null, rolePct: {}, accountUsd: {} };
 
-export type PpdSource = 'role-default' | 'role-override' | 'account-override' | 'none';
-export type AccountBudgetStatus = 'no_rate' | 'no_caseload' | 'over' | 'near' | 'under';
+export type BudgetSource = 'role-default' | 'role-override' | 'account-override' | 'none';
+export type AccountBudgetStatus = 'no_rate' | 'no_budget' | 'over' | 'near' | 'under';
 
 export interface RoleRateVM {
   role: UserRole;
   label: string;
   /** Null for roles with no budget row — hospice_admin has none in the dataset. */
-  defaultPpdUsd: number | null;
-  effectivePpdUsd: number | null;
+  defaultPctOfBudget: number | null;
+  effectivePctOfBudget: number | null;
+  /** effectivePctOfBudget x hospice.monthlyBudgetUsd — this role's flat department budget. */
+  departmentBudgetUsd: number | null;
   overridden: boolean;
   accountCount: number;
   assignedPatients: number;
@@ -44,10 +48,10 @@ export interface AccountBudgetRow {
   user: User;
   roleLabel: string;
   assignedPatients: number;
-  ppdUsd: number | null;
-  ppdSource: PpdSource;
   capUsd: number | null;
+  budgetSource: BudgetSource;
   spentUsd: number;
+  overageUsd: number;
   orderCount: number;
   /** Null when there is no cap to measure against — never Infinity. */
   utilizationPct: number | null;
@@ -56,11 +60,21 @@ export interface AccountBudgetRow {
   countsTowardTotals: boolean;
 }
 
+export interface HospiceBudgetUsage {
+  monthlyBudgetUsd: number;
+  monthlyBudgetOverridden: boolean;
+  spentUsd: number;
+  /** Null when there's no budget to measure against. Can exceed 100 — the caller decides how to show that. */
+  utilizationPct: number | null;
+  overageUsd: number;
+}
+
 export interface AccountTotals {
   assignedPatients: number;
   capUsd: number;
   spentUsd: number;
   utilizationPct: number | null;
+  overageUsd: number;
   excludedUserIds: string[];
   excludedReason: string | null;
 }
@@ -69,13 +83,17 @@ export type AccountSortKey =
   | 'name'
   | 'role'
   | 'patients'
-  | 'ppd'
   | 'cap'
   | 'spent'
   | 'utilization'
   | 'status';
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
+
+const BUDGET_VISIBLE_ROLES: Partial<Record<UserRole, UserRole[]>> = {
+  hospice_admin: ['director_of_nursing', 'case_manager', 'field_nurse', 'admissions_nurse'],
+  director_of_nursing: ['case_manager', 'field_nurse', 'admissions_nurse'],
+};
 
 /** Accepts partial input like "8." while typing; rejects anything not a finite, non-negative number. */
 export function parseRateInput(raw: string): number | null {
@@ -85,11 +103,11 @@ export function parseRateInput(raw: string): number | null {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-function roleDefaultPpd(hospiceId: string, role: UserRole): number | null {
+function roleDefaultPctOfBudget(hospiceId: string, role: UserRole): number | null {
   const budget = getBudgetsForHospice(hospiceId).find(
     (b) => b.scope === 'role' && b.scopeRef === role,
   );
-  return budget?.derivedFrom?.ppdUsd ?? null;
+  return budget?.derivedFrom?.pctOfBudget ?? null;
 }
 
 function hospiceStaff(hospiceId: string): User[] {
@@ -98,73 +116,87 @@ function hospiceStaff(hospiceId: string): User[] {
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/** Every staff member in this role at the hospice — unfiltered by viewer, so a department budget
+ *  splits the same way no matter who is looking at it. */
+function roleAccountCount(hospiceId: string, role: UserRole): number {
+  return hospiceStaff(hospiceId).filter((u) => u.role === role).length;
+}
+
+function budgetVisibleRolesFor(viewerRole: UserRole): Set<UserRole> {
+  return new Set(BUDGET_VISIBLE_ROLES[viewerRole] ?? []);
+}
+
+export function canViewBudgetAccount(viewerRole: UserRole, accountRole: UserRole): boolean {
+  return budgetVisibleRolesFor(viewerRole).has(accountRole);
+}
+
+function visibleHospiceStaff(hospiceId: string, viewerRole: UserRole): User[] {
+  return hospiceStaff(hospiceId).filter((u) => canViewBudgetAccount(viewerRole, u.role));
+}
+
 const caseloadSize = (hospiceId: string, userId: string): number =>
   patients().filter((p) => p.hospiceId === hospiceId && p.caseManagerId === userId).length;
 
-export function effectivePpdFor(
+/** The hospice's total monthly budget for this session: the override if set, else the on-file default. */
+export function effectiveMonthlyBudgetUsd(hospiceId: string, overrides: BudgetOverrides): number {
+  return overrides.totalBudgetUsd ?? getHospice(hospiceId)?.monthlyBudgetUsd ?? 0;
+}
+
+function departmentBudgetUsdFor(monthlyBudgetUsd: number, pctOfBudget: number): number {
+  return round2(monthlyBudgetUsd * pctOfBudget);
+}
+
+/** This account's own flat allotted budget: an override if set, else an even split of its role's
+ *  department budget across every account in that role. */
+export function effectiveAllottedUsd(
   hospiceId: string,
   user: User,
-  overrides: PpdOverrides,
-): { ppdUsd: number | null; source: PpdSource } {
-  const accountOverride = overrides.accounts[user.id];
-  if (accountOverride !== undefined) return { ppdUsd: accountOverride, source: 'account-override' };
+  overrides: BudgetOverrides,
+): { capUsd: number | null; source: BudgetSource } {
+  const accountOverride = overrides.accountUsd[user.id];
+  if (accountOverride !== undefined) return { capUsd: accountOverride, source: 'account-override' };
 
-  const roleOverride = overrides.roles[user.role];
-  if (roleOverride !== undefined) return { ppdUsd: roleOverride, source: 'role-override' };
+  const roleOverride = overrides.rolePct[user.role];
+  const defaultPct = roleDefaultPctOfBudget(hospiceId, user.role);
+  const pctOfBudget = roleOverride ?? defaultPct;
+  if (pctOfBudget === null || pctOfBudget === undefined) return { capUsd: null, source: 'none' };
 
-  const roleDefault = roleDefaultPpd(hospiceId, user.role);
-  return roleDefault === null
-    ? { ppdUsd: null, source: 'none' }
-    : { ppdUsd: roleDefault, source: 'role-default' };
+  const departmentBudgetUsd = departmentBudgetUsdFor(effectiveMonthlyBudgetUsd(hospiceId, overrides), pctOfBudget);
+  const accountCount = roleAccountCount(hospiceId, user.role);
+  const capUsd = accountCount === 0 ? 0 : round2(departmentBudgetUsd / accountCount);
+  return { capUsd, source: roleOverride !== undefined ? 'role-override' : 'role-default' };
 }
 
 export function buildAccountRows(
   hospiceId: string,
   period: CostPeriod,
-  overrides: PpdOverrides,
+  overrides: BudgetOverrides,
+  viewerRole?: UserRole,
 ): AccountBudgetRow[] {
   const periodOrders = getOrdersForHospice(hospiceId).filter((o) =>
     periodContains(period, o.orderedAt),
   );
+  const staff = viewerRole === undefined ? hospiceStaff(hospiceId) : visibleHospiceStaff(hospiceId, viewerRole);
 
-  return hospiceStaff(hospiceId).map((user) => {
+  return staff.map((user) => {
     const assignedPatients = caseloadSize(hospiceId, user.id);
-    const { ppdUsd, source } = effectivePpdFor(hospiceId, user, overrides);
+    const { capUsd, source } = effectiveAllottedUsd(hospiceId, user, overrides);
 
     const placed = periodOrders.filter((o) => o.orderedById === user.id);
     const spentUsd = round2(placed.reduce((sum, o) => sum + orderExtendedUsd(o, period), 0));
 
-    const capUsd =
-      ppdUsd === null
-        ? null
-        : round2(
-            budgetCapUsd({
-              id: `derived-${user.id}`,
-              hospiceId,
-              scope: 'role',
-              scopeRef: user.role,
-              period: period.key,
-              limitUsd: 0,
-              spentUsd,
-              setById: null,
-              derivedFrom: { ppdUsd, assignedPatients, days: period.days },
-            }),
-          );
-
     const utilizationPct =
       capUsd === null || capUsd === 0 ? null : Math.round((spentUsd / capUsd) * 100);
+    const overageUsd = capUsd === null ? 0 : round2(Math.max(0, spentUsd - capUsd));
 
     let status: AccountBudgetStatus;
     let note: string | null = null;
-    if (ppdUsd === null) {
+    if (capUsd === null) {
       status = 'no_rate';
       note = `No role budget configured for ${ROLE_LABELS[user.role]}.`;
-    } else if (assignedPatients === 0) {
-      status = 'no_caseload';
-      note =
-        spentUsd > 0
-          ? 'Spent against a $0 cap — no patients assigned.'
-          : 'No patients assigned, so no cap is derived.';
+    } else if (capUsd === 0) {
+      status = 'no_budget';
+      note = spentUsd > 0 ? 'Spent against a $0 allotment.' : 'No budget allotted to this account.';
     } else if ((utilizationPct ?? 0) >= 100) {
       status = 'over';
     } else if ((utilizationPct ?? 0) >= 90) {
@@ -177,10 +209,10 @@ export function buildAccountRows(
       user,
       roleLabel: ROLE_LABELS[user.role],
       assignedPatients,
-      ppdUsd,
-      ppdSource: source,
       capUsd,
+      budgetSource: source,
       spentUsd,
+      overageUsd,
       orderCount: placed.length,
       utilizationPct,
       status,
@@ -190,27 +222,53 @@ export function buildAccountRows(
   });
 }
 
-export function roleRates(hospiceId: string, overrides: PpdOverrides): RoleRateVM[] {
-  const staff = hospiceStaff(hospiceId);
+export function roleRates(
+  hospiceId: string,
+  overrides: BudgetOverrides,
+  viewerRole?: UserRole,
+): RoleRateVM[] {
+  const staff = viewerRole === undefined ? hospiceStaff(hospiceId) : visibleHospiceStaff(hospiceId, viewerRole);
   const roles = [...new Set(staff.map((u) => u.role))];
 
   return roles
     .map((role) => {
       const inRole = staff.filter((u) => u.role === role);
-      const defaultPpdUsd = roleDefaultPpd(hospiceId, role);
-      const roleOverride = overrides.roles[role];
+      const defaultPctOfBudget = roleDefaultPctOfBudget(hospiceId, role);
+      const roleOverride = overrides.rolePct[role];
+      const effectivePctOfBudget = roleOverride ?? defaultPctOfBudget;
+      const monthlyBudgetUsd = effectiveMonthlyBudgetUsd(hospiceId, overrides);
       return {
         role,
         label: ROLE_LABELS[role],
-        defaultPpdUsd,
-        effectivePpdUsd: roleOverride ?? defaultPpdUsd,
+        defaultPctOfBudget,
+        effectivePctOfBudget,
+        departmentBudgetUsd:
+          effectivePctOfBudget === null ? null : departmentBudgetUsdFor(monthlyBudgetUsd, effectivePctOfBudget),
         overridden: roleOverride !== undefined,
-        accountCount: inRole.length,
+        accountCount: roleAccountCount(hospiceId, role),
         assignedPatients: inRole.reduce((sum, u) => sum + caseloadSize(hospiceId, u.id), 0),
-        accountOverrideCount: inRole.filter((u) => overrides.accounts[u.id] !== undefined).length,
+        accountOverrideCount: inRole.filter((u) => overrides.accountUsd[u.id] !== undefined).length,
       };
     })
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** Total spend across visible accounts against the hospice's whole monthly budget — not the sum of
+ *  role department budgets, which can be less than the total if roles don't allot the full 100%. */
+export function hospiceBudgetUsage(
+  hospiceId: string,
+  rows: AccountBudgetRow[],
+  overrides: BudgetOverrides,
+): HospiceBudgetUsage {
+  const monthlyBudgetUsd = effectiveMonthlyBudgetUsd(hospiceId, overrides);
+  const spentUsd = round2(rows.reduce((sum, r) => sum + r.spentUsd, 0));
+  return {
+    monthlyBudgetUsd,
+    monthlyBudgetOverridden: overrides.totalBudgetUsd !== null,
+    spentUsd,
+    utilizationPct: monthlyBudgetUsd === 0 ? null : Math.round((spentUsd / monthlyBudgetUsd) * 100),
+    overageUsd: round2(Math.max(0, spentUsd - monthlyBudgetUsd)),
+  };
 }
 
 export function accountTotals(rows: AccountBudgetRow[]): AccountTotals {
@@ -223,6 +281,7 @@ export function accountTotals(rows: AccountBudgetRow[]): AccountTotals {
     assignedPatients: rows.reduce((sum, r) => sum + r.assignedPatients, 0),
     capUsd,
     spentUsd,
+    overageUsd: round2(Math.max(0, spentUsd - capUsd)),
     utilizationPct: capUsd === 0 ? null : Math.round((spentUsd / capUsd) * 100),
     excludedUserIds: excluded.map((r) => r.user.id),
     excludedReason:
@@ -236,7 +295,7 @@ const STATUS_RANK: Record<AccountBudgetStatus, number> = {
   over: 0,
   near: 1,
   under: 2,
-  no_caseload: 3,
+  no_budget: 3,
   no_rate: 4,
 };
 
@@ -250,8 +309,6 @@ export function sortAccountRows(
     switch (key) {
       case 'patients':
         return row.assignedPatients;
-      case 'ppd':
-        return row.ppdUsd;
       case 'cap':
         return row.capUsd;
       case 'spent':
@@ -278,26 +335,39 @@ export function sortAccountRows(
   });
 }
 
-export function setRoleOverride(
-  overrides: PpdOverrides,
-  role: UserRole,
+/** Setting the total back to the hospice's on-file default clears the override rather than pinning it. */
+export function setTotalBudgetOverride(
+  overrides: BudgetOverrides,
   value: number | null,
-): PpdOverrides {
-  const roles = { ...overrides.roles };
-  if (value === null) delete roles[role];
-  else roles[role] = value;
-  return { roles, accounts: { ...overrides.accounts } };
+  hospiceDefaultUsd: number,
+): BudgetOverrides {
+  return {
+    totalBudgetUsd: value === null || value === hospiceDefaultUsd ? null : value,
+    rolePct: { ...overrides.rolePct },
+    accountUsd: { ...overrides.accountUsd },
+  };
 }
 
-/** Setting an account back to its role default clears the override rather than pinning it. */
-export function setAccountOverride(
-  overrides: PpdOverrides,
+export function setRolePctOverride(
+  overrides: BudgetOverrides,
+  role: UserRole,
+  value: number | null,
+): BudgetOverrides {
+  const rolePct = { ...overrides.rolePct };
+  if (value === null) delete rolePct[role];
+  else rolePct[role] = value;
+  return { totalBudgetUsd: overrides.totalBudgetUsd, rolePct, accountUsd: { ...overrides.accountUsd } };
+}
+
+/** Setting an account back to its role-derived default clears the override rather than pinning it. */
+export function setAccountAllottedOverride(
+  overrides: BudgetOverrides,
   userId: string,
   value: number | null,
-  roleDefault: number | null,
-): PpdOverrides {
-  const accounts = { ...overrides.accounts };
-  if (value === null || value === roleDefault) delete accounts[userId];
-  else accounts[userId] = value;
-  return { roles: { ...overrides.roles }, accounts };
+  roleDefaultUsd: number | null,
+): BudgetOverrides {
+  const accountUsd = { ...overrides.accountUsd };
+  if (value === null || value === roleDefaultUsd) delete accountUsd[userId];
+  else accountUsd[userId] = value;
+  return { totalBudgetUsd: overrides.totalBudgetUsd, rolePct: { ...overrides.rolePct }, accountUsd };
 }

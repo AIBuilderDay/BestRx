@@ -16,6 +16,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tailwindcss()],
+    resolve: {
+      // `@` -> src. Mirrors the paths entry in tsconfig.json.
+      alias: { '@': fromRoot('src') },
+    },
     server: {
       host: '0.0.0.0',
       port: 5173,

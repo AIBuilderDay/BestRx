@@ -8,8 +8,6 @@ import { Tooltip } from "../ui/Tooltip";
 import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
-// "dashboard" isn't one of this bar's own links — it's reached from the profile menu — but views
-// still pass it as activeSection so linkClass() has a real, never-matching value instead of a lie.
 export type NavSection = "catalog" | "orders" | "patients" | "assignments" | "dashboard";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
@@ -208,6 +206,9 @@ export function TopNav({
   // One source of truth for the section links, rendered by both the desktop bar and the
   // mobile menu so the two can't drift. Gated ("Coming soon") entries carry no route.
   const navItems: { to?: string; label: string; section?: NavSection; state?: unknown }[] = [
+    ...(can(user, "reporting")
+      ? [{ to: "/dashboard", label: "Dashboard", section: "dashboard" as NavSection }]
+      : []),
     { to: "/catalog", label: "Catalog", section: "catalog", state: RESET_CATALOG_FILTERS_STATE },
     ...(isFamilyMember(user)
       ? [{ to: "/family", label: "My family member", section: "patients" as NavSection }]

@@ -86,9 +86,9 @@ describe('sparklineGeometry', () => {
     expect(flat.d).not.toMatch(/NaN/);
   });
 
-  it('needs at least two non-zero buckets to count as readable', () => {
-    expect(sparklineGeometry([0, 0, 3, 0], 76, 22, 3).usable).toBe(false);
-    expect(sparklineGeometry([1, 0, 3, 0], 76, 22, 3).usable).toBe(true);
+  it('treats a cumulative jump as readable movement', () => {
+    expect(sparklineGeometry([0, 0, 0, 3], 76, 22, 3).usable).toBe(true);
+    expect(sparklineGeometry([0, 0, 0, 0], 76, 22, 3).usable).toBe(false);
   });
 
   it('reports direction from first to last', () => {
