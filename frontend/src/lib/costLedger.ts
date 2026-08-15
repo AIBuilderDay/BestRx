@@ -61,7 +61,9 @@ export interface BasketLine {
   /**
    * actualUsd - bestQualifiedUsd. Measured against what was actually paid, because "switch to this
    * vendor" is a move from today's position, not from the contracted rate. Negative means
-   * qualifying costs more — a premium, never to be rendered as a saving.
+   * qualifying costs more — a premium, never to be rendered as a saving. Used by the per-code row
+   * drawer; the basket-level "Potential Savings" card uses lib/vendorSavings.ts instead, which
+   * weighs price against reviews, delivery, and service-area coverage rather than a single delta.
    */
   qualifiedDeltaUsd: number | null;
   weeklyUnits: number[];
@@ -73,16 +75,11 @@ export interface BasketTotals {
   rentalMonthlyUsd: number;
   purchaseUsd: number;
   perVendorUsd: Record<string, number | null>;
-  contractedUsd: number | null;
-  bestQualifiedUsd: number | null;
-  qualifiedDeltaUsd: number | null;
 }
 
 export interface TrendBucket {
   label: string;
   actualUsd: number;
-  contractedUsd: number;
-  qualifiedUsd: number;
   /** True once the bucket runs past the newest order on file. */
   partial: boolean;
 }
@@ -247,19 +244,8 @@ export function basketTotals(lines: BasketLine[], columns: VendorColumn[]): Bask
     perVendorUsd[column.vendor.id] = complete ? round2(total) : null;
   }
 
-  const contractedId = columns.find((c) => c.contracted)?.vendor.id;
-  const contractedUsd = contractedId ? perVendorUsd[contractedId] ?? null : null;
-  const qualifiedTotals = columns
-    .filter((c) => c.qualified && !c.contracted)
-    .map((c) => perVendorUsd[c.vendor.id])
-    .filter((v): v is number => v !== null)
-    .sort((a, b) => a - b);
-  const bestQualifiedUsd = qualifiedTotals[0] ?? null;
-
-  const actualUsd = round2(lines.reduce((sum, l) => sum + l.actualUsd, 0));
-
   return {
-    actualUsd,
+    actualUsd: round2(lines.reduce((sum, l) => sum + l.actualUsd, 0)),
     rentalMonthlyUsd: round2(
       lines.filter((l) => l.kind === 'rental').reduce((sum, l) => sum + l.actualUsd, 0),
     ),
@@ -267,40 +253,25 @@ export function basketTotals(lines: BasketLine[], columns: VendorColumn[]): Bask
       lines.filter((l) => l.kind === 'purchase').reduce((sum, l) => sum + l.actualUsd, 0),
     ),
     perVendorUsd,
-    contractedUsd,
-    bestQualifiedUsd,
-    qualifiedDeltaUsd: bestQualifiedUsd === null ? null : round2(actualUsd - bestQualifiedUsd),
   };
 }
 
+/** Real spend per period bucket — no vendor comparison; see lib/vendorSavings.ts for that. */
 export function spendTrend(
   lines: BasketLine[],
   period: CostPeriod,
-  columns: VendorColumn[],
   hospiceId: string,
 ): TrendBucket[] {
-  const contractedId = columns.find((c) => c.contracted)?.vendor.id;
-  const qualifiedId = columns.find((c) => c.qualified && !c.contracted)?.vendor.id;
   const lastOrderDate = newestOrderDate(hospiceId);
 
   return period.buckets.map((bucket, index) => {
     let actual = 0;
-    let contracted = 0;
-    let qualified = 0;
     for (const line of lines) {
-      const unitsThisBucket = line.weeklyUnits[index] ?? 0;
-      const share = line.units === 0 ? 0 : unitsThisBucket / line.units;
       actual += line.weeklyActualUsd[index] ?? 0;
-      const contractedCell = line.prices.find((p) => p.vendorId === contractedId)?.extendedUsd;
-      const qualifiedCell = line.prices.find((p) => p.vendorId === qualifiedId)?.extendedUsd;
-      contracted += (contractedCell ?? 0) * share;
-      qualified += (qualifiedCell ?? 0) * share;
     }
     return {
       label: bucket.label,
       actualUsd: round2(actual),
-      contractedUsd: round2(contracted),
-      qualifiedUsd: round2(qualified),
       partial: lastOrderDate !== null && bucket.endIso > lastOrderDate,
     };
   });

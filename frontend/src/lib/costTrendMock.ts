@@ -1,5 +1,8 @@
 /**
- * Placeholder trend history for the four cost KPI tiles.
+ * Placeholder trend history for the two KPI tiles that still use a time-series chart — Total Spend
+ * and Cost per patient-day. Budget utilization opens a real donut breakdown instead
+ * (lib/budgetBreakdown.ts) and Potential Savings opens a real vendor ranking instead
+ * (lib/vendorSavings.ts); neither needs placeholder history.
  *
  * The dataset holds one month of real orders (Aug 1-22, 2026) - there is no prior month and no
  * multi-month history anywhere in frontend/src/data. A per-tile "history leading up to today"
@@ -12,25 +15,23 @@
  * Swap this module for a real historical series once one exists; nothing else needs to change,
  * since the shape (TrendPoint[]) matches what a real endpoint would return.
  *
- * All four metrics are mechanically related in the real formulas - PPD is spend divided by a
- * constant (census x days), budget utilization is spend divided by a constant (the cap), and the
- * qualified-vendor delta moves with the size of the basket. So every metric for a given range is
- * generated from the SAME underlying relative shape and scaled by that metric's own real current
- * value, rather than each metric randomizing independently. That is what makes the four charts
- * agree with each other - spend rising and budget utilization falling in the same week never
- * happens, because both are the one shape multiplied by a different constant.
+ * Spend and PPD are mechanically related in the real formula - PPD is spend divided by a constant
+ * (census x days) - so both metrics for a given range are generated from the SAME underlying
+ * relative shape and scaled by that metric's own real current value, rather than each metric
+ * randomizing independently. That is what makes the two charts agree with each other - spend
+ * rising while PPD falls in the same week never happens, because both are the one shape multiplied
+ * by a different constant.
  *
- * One more thing has to hold for the numbers to "add up": spend and the qualified-vendor delta are
- * dollar amounts that accumulate over a period, while PPD and budget utilization are rates that
- * don't. At the 1wk/1mo ranges - buckets shorter than the month `currentValue` itself measures -
- * an accumulating metric's points are a partition that SUMS to currentValue (four weeks of spend
- * adding up to the month's total), never four points each independently hovering near the whole
- * month's figure. A rate keeps scaling from the shared shape at every range, since a rate doesn't
- * accumulate across sub-periods - "this week's $/patient-day" is comparable in size to "this
- * month's", not a quarter of it.
+ * One more thing has to hold for the numbers to "add up": spend is a dollar amount that
+ * accumulates over a period, while PPD is a rate that doesn't. At the 1wk/1mo ranges - buckets
+ * shorter than the month `currentValue` itself measures - spend's points are a partition that SUMS
+ * to currentValue (four weeks of spend adding up to the month's total), never four points each
+ * independently hovering near the whole month's figure. PPD keeps scaling from the shared shape at
+ * every range, since a rate doesn't accumulate across sub-periods - "this week's $/patient-day" is
+ * comparable in size to "this month's", not a quarter of it.
  */
 
-export type MetricKey = 'spend' | 'ppd' | 'delta' | 'budget';
+export type MetricKey = 'spend' | 'ppd';
 export type TrendRange = '1w' | '1m' | '3m' | '6m' | '1y';
 
 export interface TrendPoint {
@@ -121,9 +122,7 @@ function shapeFor(range: TrendRange): number[] {
 
 const ACCUMULATES: Record<MetricKey, boolean> = {
   spend: true,
-  delta: true,
   ppd: false,
-  budget: false,
 };
 
 /** Sub-month ranges: each point is a slice of the current month, not its own independent month. */
@@ -142,7 +141,7 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 /**
  * Placeholder history for one KPI tile, scaled from the range's shared shape so it moves in the
- * same relative pattern as the other three metrics at this range.
+ * same relative pattern as the other metric at this range.
  *
  * For a rate metric, or an accumulating metric at month-or-longer granularity, the final point
  * equals `currentValue` exactly (the shape ends at 1). For an accumulating metric at sub-month

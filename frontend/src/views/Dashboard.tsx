@@ -52,7 +52,6 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const { cartCount, setCartOpen } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [compareEnabled, setCompareEnabled] = useState(false);
   const [openHcpcs, setOpenHcpcs] = useState<string | null>(null);
   const [sort, setSort] = useState<{ key: AccountSortKey; dir: 1 | -1 }>({ key: 'name', dir: 1 });
   const [overrides, setOverrides] = useState<PpdOverrides>(NO_OVERRIDES);
@@ -68,10 +67,7 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const columns = useMemo(() => vendorColumns(hospiceId), [hospiceId]);
   const lines = useMemo(() => buildBasket(hospiceId, period), [hospiceId, period]);
   const totals = useMemo(() => basketTotals(lines, columns), [lines, columns]);
-  const trend = useMemo(
-    () => spendTrend(lines, period, columns, hospiceId),
-    [lines, period, columns, hospiceId],
-  );
+  const trend = useMemo(() => spendTrend(lines, period, hospiceId), [lines, period, hospiceId]);
 
   const accountRows = useMemo(
     () => buildAccountRows(hospiceId, period, overrides),
@@ -85,16 +81,6 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const roleCards = useMemo(() => roleRates(hospiceId, overrides), [hospiceId, overrides]);
 
   const selectTab = (tab: DashboardTab) => setSearchParams({ view: tab });
-
-  const toggleCompare = () => {
-    setCompareEnabled((on) => !on);
-    setOpenHcpcs(null);
-    setToast(
-      compareEnabled
-        ? 'Showing what you paid and your contracted rate.'
-        : 'Comparing your exact purchased basket against every vendor in this market.',
-    );
-  };
 
   const changeRoleRate = (role: UserRole, next: number | null) => {
     setOverrides((current) => setRoleOverride(current, role, next));
@@ -157,8 +143,6 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             trend={trend}
             budgetTotals={budgetTotals}
             accountRows={accountRows}
-            compareEnabled={compareEnabled}
-            onToggleCompare={toggleCompare}
             openHcpcs={openHcpcs}
             onOpenRow={(hcpcs) => setOpenHcpcs((current) => (current === hcpcs ? null : hcpcs))}
             onCloseRow={() => setOpenHcpcs(null)}

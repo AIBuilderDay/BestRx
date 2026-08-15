@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { moneyCents, moneyLabel } from '../../lib/catalog';
 import { accountBreakdown, productBreakdown } from '../../lib/budgetBreakdown';
 import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, TrendBucket, VendorColumn } from '../../lib/costLedger';
-import { ledgerPpd, SERVICE_FLOOR_PCT } from '../../lib/costLedger';
+import { ledgerPpd } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
-import type { MetricKey, TrendRange } from '../../lib/costTrendMock';
+import type { TrendRange } from '../../lib/costTrendMock';
+import { sortVendorSavings, vendorSavingsOptions } from '../../lib/vendorSavings';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
@@ -13,10 +14,12 @@ import { MetricTrendPanel, type TrendMetricVM } from './MetricTrendPanel';
 import { SpendTrendCard } from './SpendTrendCard';
 import { StatTiles, type StatTileVM } from './StatTiles';
 import { VendorPriceMatrix } from './VendorPriceMatrix';
+import { VendorSavingsPanel } from './VendorSavingsPanel';
 
 const DEFAULT_TREND_RANGE: TrendRange = '1m';
 
-const percentLabel = (value: number): string => `${Math.round(value)}%`;
+/** The four selectable stat tiles. Only spend/ppd open a (placeholder) trend chart. */
+type TileKey = 'spend' | 'ppd' | 'delta' | 'budget';
 
 export function CostLedgerPanel({
   hospiceId,
@@ -27,8 +30,6 @@ export function CostLedgerPanel({
   trend,
   budgetTotals,
   accountRows,
-  compareEnabled,
-  onToggleCompare,
   openHcpcs,
   onOpenRow,
   onCloseRow,
@@ -42,21 +43,22 @@ export function CostLedgerPanel({
   trend: TrendBucket[];
   budgetTotals: AccountTotals;
   accountRows: AccountBudgetRow[];
-  compareEnabled: boolean;
-  onToggleCompare: () => void;
   openHcpcs: string | null;
   onOpenRow: (hcpcs: string) => void;
   onCloseRow: () => void;
   onAction: (message: string) => void;
 }) {
   const ppd = ledgerPpd(hospiceId, totals.actualUsd, period);
-  const contracted = columns.find((c) => c.contracted);
-  const qualified = columns.find((c) => c.qualified && !c.contracted);
-  const delta = totals.qualifiedDeltaUsd;
   const openLine = lines.find((l) => l.hcpcs === openHcpcs) ?? null;
 
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>('spend');
+  const [selectedMetric, setSelectedMetric] = useState<TileKey | null>('spend');
   const [trendRange, setTrendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
+
+  const savingsOptions = useMemo(() => vendorSavingsOptions(totals, columns), [totals, columns]);
+  const bestValueOption = useMemo(
+    () => sortVendorSavings(savingsOptions, 'value')[0] ?? null,
+    [savingsOptions],
+  );
 
   const tiles: StatTileVM[] = [
     {
@@ -75,21 +77,24 @@ export function CostLedgerPanel({
     },
     {
       key: 'delta',
-      // The only vendor clearing the floor is the priciest, so this is usually a premium.
-      // It is labelled for what it is rather than dressed up as a saving.
-      label: delta !== null && delta < 0 ? 'Cost to qualify' : 'Savings available',
+      label: 'Potential Savings',
       value:
-        delta === null
+        bestValueOption === null
           ? '—'
-          : delta > 0
-            ? `↓ ${moneyLabel(delta)}`
-            : `+${moneyLabel(Math.abs(delta))}`,
+          : bestValueOption.savingsUsd > 0
+            ? `↓ ${moneyLabel(bestValueOption.savingsUsd)}`
+            : '$0',
+      // The best-value pick isn't always the cheapest — a lower-value vendor further down the list
+      // can still save real money, just not responsibly (see VendorSavingsPanel). The tile always
+      // names the top-ranked pick, never a raw price minimum.
       detail:
-        qualified && contracted
-          ? `${qualified.vendor.displayName} ${qualified.onTimePct}% on-time vs ${contracted.onTimePct}% contracted`
-          : `No vendor clears the ${SERVICE_FLOOR_PCT}% floor`,
-      tone: delta !== null && delta > 0 ? 'good' : 'plain',
-      chartable: delta !== null,
+        bestValueOption === null
+          ? 'No other vendor prices this basket'
+          : bestValueOption.savingsUsd > 0
+            ? `${bestValueOption.vendor.displayName} · value ${bestValueOption.valueScore}/100`
+            : `Best option (${bestValueOption.vendor.displayName}) costs ${moneyLabel(Math.abs(bestValueOption.savingsUsd))} more · value ${bestValueOption.valueScore}/100`,
+      tone: bestValueOption !== null && bestValueOption.savingsUsd > 0 ? 'good' : 'plain',
+      chartable: savingsOptions.length > 0,
     },
     {
       key: 'budget',
@@ -103,55 +108,48 @@ export function CostLedgerPanel({
     },
   ];
 
-  const trendMetrics: Record<MetricKey, TrendMetricVM> = {
+  const trendMetrics: Record<'spend' | 'ppd', TrendMetricVM> = {
     spend: { key: 'spend', label: 'Total Spend', currentValue: totals.actualUsd, formatValue: moneyLabel },
     ppd: { key: 'ppd', label: 'Cost per patient-day', currentValue: ppd.ppdUsd, formatValue: moneyCents },
-    delta: {
-      key: 'delta',
-      label: tiles[2].label,
-      currentValue: delta ?? 0,
-      formatValue: (v) => (v < 0 ? `-${moneyLabel(Math.abs(v))}` : moneyLabel(v)),
-    },
-    budget: {
-      key: 'budget',
-      label: 'Budget utilization',
-      currentValue: budgetTotals.utilizationPct ?? 0,
-      formatValue: percentLabel,
-    },
   };
 
   const selectMetric = (key: string) => {
     if (!['spend', 'ppd', 'delta', 'budget'].includes(key)) return;
-    setSelectedMetric((current) => (current === key ? null : (key as MetricKey)));
+    setSelectedMetric((current) => (current === key ? null : (key as TileKey)));
   };
 
   const productSlices = useMemo(() => productBreakdown(lines), [lines]);
   const accountSlices = useMemo(() => accountBreakdown(accountRows), [accountRows]);
 
+  let panel: ReactNode = null;
+  if (selectedMetric === 'budget') {
+    panel = (
+      <BudgetBreakdownPanel
+        productSlices={productSlices}
+        accountSlices={accountSlices}
+        totalUsd={totals.actualUsd}
+      />
+    );
+  } else if (selectedMetric === 'delta') {
+    panel = <VendorSavingsPanel options={savingsOptions} bestValueOption={bestValueOption} />;
+  } else if (selectedMetric === 'spend' || selectedMetric === 'ppd') {
+    panel = (
+      <MetricTrendPanel
+        metric={trendMetrics[selectedMetric]}
+        range={trendRange}
+        onRangeChange={setTrendRange}
+      />
+    );
+  }
+
   return (
     <div className="mt-5">
       <StatTiles tiles={tiles} selectedKey={selectedMetric} onSelect={selectMetric} />
 
-      {selectedMetric === 'budget' ? (
-        <BudgetBreakdownPanel
-          productSlices={productSlices}
-          accountSlices={accountSlices}
-          totalUsd={totals.actualUsd}
-        />
-      ) : selectedMetric ? (
-        <MetricTrendPanel
-          metric={trendMetrics[selectedMetric]}
-          range={trendRange}
-          onRangeChange={setTrendRange}
-        />
-      ) : null}
+      {panel}
 
       <div className="mt-4">
-        <LedgerControls
-          period={period}
-          compareEnabled={compareEnabled}
-          onToggleCompare={onToggleCompare}
-        />
+        <LedgerControls period={period} />
       </div>
 
       <div className="mt-3">
@@ -159,7 +157,6 @@ export function CostLedgerPanel({
           lines={lines}
           totals={totals}
           columns={columns}
-          compareEnabled={compareEnabled}
           openHcpcs={openHcpcs}
           onOpenRow={onOpenRow}
           periodLabel={period.label}
@@ -171,29 +168,12 @@ export function CostLedgerPanel({
       ) : null}
 
       <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">
-        {compareEnabled ? (
-          <>
-            <strong className="font-medium text-ink-2">Qualified</strong> means on-time delivery at or
-            above {SERVICE_FLOOR_PCT}%. {columns.find((c) => !c.qualified && !c.contracted)?.vendor
-              .displayName ?? 'The cheapest vendor'}{' '}
-            is cheaper on most codes but runs below that floor, so its prices are marked rather than
-            recommended. Paid is what this hospice actually spent, each order at the vendor that took
-            it; the vendor columns re-price that same basket as a counterfactual.
-          </>
-        ) : (
-          <>
-            Showing what was paid and your contracted vendor's rate. Turn on{' '}
-            <strong className="font-medium text-ink-2">competing vendor pricing</strong> to re-price
-            this exact basket against the other vendors in your market.
-          </>
-        )}
+        Paid is what this hospice actually spent, each order at the vendor that took it. See{' '}
+        <strong className="font-medium text-ink-2">Potential Savings</strong> above to compare
+        vendor options for this basket.
       </p>
 
-      <SpendTrendCard
-        buckets={trend}
-        compareEnabled={compareEnabled}
-        qualifiedVendorName={qualified?.vendor.displayName ?? null}
-      />
+      <SpendTrendCard buckets={trend} />
     </div>
   );
 }

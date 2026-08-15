@@ -93,13 +93,9 @@ describe('basketTotals', () => {
     expect(totals.purchaseUsd).toBeCloseTo(13822, 2);
   });
 
-  it('reports the qualified delta as a signed number, so a premium is never shown as a saving', () => {
-    // The only vendor clearing the service floor is also the most expensive: qualifying costs more.
-    expect(totals.qualifiedDeltaUsd).toBeCloseTo(15578 - 17786, 2);
-    expect(totals.qualifiedDeltaUsd).toBeLessThan(0);
-  });
-
-  it('measures every delta against what was actually paid, matching the trend chart', () => {
+  it('measures every per-code delta against what was actually paid (row-drawer data)', () => {
+    // qualifiedDeltaUsd/bestQualifiedUsd live on BasketLine for the per-code drawer; the
+    // basket-level KPI now uses lib/vendorSavings.ts instead, tested separately.
     for (const line of lines) {
       if (line.bestQualifiedUsd === null) continue;
       expect(line.qualifiedDeltaUsd, line.hcpcs).toBeCloseTo(
@@ -107,13 +103,11 @@ describe('basketTotals', () => {
         2,
       );
     }
-    const lineSum = lines.reduce((sum, l) => sum + (l.qualifiedDeltaUsd ?? 0), 0);
-    expect(totals.qualifiedDeltaUsd).toBeCloseTo(lineSum, 1);
   });
 });
 
 describe('spendTrend', () => {
-  const trend = spendTrend(lines, period, columns, 'HSP-001');
+  const trend = spendTrend(lines, period, 'HSP-001');
 
   it('returns one bucket per period bucket, summing to the actual spend', () => {
     expect(trend).toHaveLength(4);
