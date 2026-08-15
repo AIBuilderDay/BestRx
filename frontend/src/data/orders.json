@@ -10,11 +10,20 @@
     "orderedById": "USR-001",
     "orderType": "admission",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "E0250", "name": "Hospital Bed", "qty": 1 }],
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
     "orderedAt": "2026-08-03T09:14:00-06:00",
     "targetBy": "2026-08-04T14:00:00-06:00",
     "eta": null,
-    "dischargeReadiness": { "required": true, "confirmed": false },
+    "dischargeReadiness": {
+      "required": true,
+      "confirmed": false
+    },
     "notes": "Discharge scheduled for tomorrow afternoon. Sample Vendor 1 is preparing delivery."
   },
   {
@@ -28,7 +37,13 @@
     "orderedById": "USR-003",
     "orderType": "routine",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "E1130", "name": "Wheelchair", "qty": 1 }],
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Wheelchair",
+        "qty": 1
+      }
+    ],
     "orderedAt": "2026-08-14T08:02:00-06:00",
     "targetBy": "2026-08-15T08:02:00-06:00",
     "eta": "2026-08-14T15:40:00-06:00",
@@ -46,11 +61,20 @@
     "orderedById": "USR-001",
     "orderType": "admission",
     "urgency": "stat",
-    "equipment": [{ "hcpcs": "E0601", "name": "CPAP / Oxygen Concentrator", "qty": 1 }],
+    "equipment": [
+      {
+        "hcpcs": "E0601",
+        "name": "CPAP / Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
     "orderedAt": "2026-08-14T10:20:00-06:00",
     "targetBy": "2026-08-14T16:30:00-06:00",
     "eta": "2026-08-14T17:10:00-06:00",
-    "dischargeReadiness": { "required": true, "confirmed": false },
+    "dischargeReadiness": {
+      "required": true,
+      "confirmed": false
+    },
     "risk": {
       "score": 0.87,
       "reason": "Discharge is scheduled for 4:30 PM. The current ETA of 5:10 PM misses that window by about 40 minutes.",
@@ -60,7 +84,11 @@
         "Sample Vendor 2 route capacity at 91% today",
         "STAT order type carries the highest historical failure rate"
       ],
-      "escalation": { "state": "open", "assignedToId": "USR-001", "openedAt": "2026-08-14T14:05:00-06:00" }
+      "escalation": {
+        "state": "open",
+        "assignedToId": "USR-001",
+        "openedAt": "2026-08-14T14:05:00-06:00"
+      }
     },
     "notes": "Risk flag: discharge is scheduled for 4:30 PM. Current ETA misses that window by roughly 40 minutes."
   },
@@ -75,12 +103,26 @@
     "orderedById": "USR-004",
     "orderType": "admission",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "E0250", "name": "Hospital Bed", "qty": 1 }],
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
     "orderedAt": "2026-08-12T14:30:00-06:00",
     "targetBy": "2026-08-13T14:30:00-06:00",
     "deliveredAt": "2026-08-13T11:52:00-06:00",
-    "proofOfDelivery": { "signature": true, "photo": false, "capturedAt": "2026-08-13T11:52:00-06:00" },
-    "billing": { "claimTriggered": true, "claimStandard": "X12 837", "status": "submitted" },
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-13T11:52:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    },
     "notes": "Proof of delivery captured: signature and timestamp on file."
   },
   {
@@ -95,10 +137,22 @@
     "orderType": "pickup",
     "urgency": "routine",
     "equipment": [
-      { "hcpcs": "E1130", "name": "Wheelchair", "qty": 1 },
-      { "hcpcs": "E0601", "name": "Oxygen Concentrator", "qty": 1 }
+      {
+        "hcpcs": "E1130",
+        "name": "Wheelchair",
+        "qty": 1
+      },
+      {
+        "hcpcs": "E0601",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
     ],
-    "trigger": { "type": "emr_status_change", "value": "deceased", "source": "Axxess partner connection" },
+    "trigger": {
+      "type": "emr_status_change",
+      "value": "deceased",
+      "source": "Axxess partner connection"
+    },
     "pickupTriggeredAt": "2026-08-14T07:05:00-06:00",
     "pickupDueBy": "2026-08-17T07:05:00-06:00",
     "notes": "Pickup request sent automatically from EMR status change. Awaiting vendor scheduling."
@@ -114,8 +168,18 @@
     "orderedById": null,
     "orderType": "pickup",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "E0250", "name": "Hospital Bed", "qty": 1 }],
-    "trigger": { "type": "manual_call", "value": "deceased", "source": "Phone call from case manager" },
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "trigger": {
+      "type": "manual_call",
+      "value": "deceased",
+      "source": "Phone call from case manager"
+    },
     "pickupTriggeredAt": "2026-08-10T09:00:00-06:00",
     "pickupDueBy": "2026-08-13T09:00:00-06:00",
     "familyContacts": 2,
@@ -128,7 +192,11 @@
         "2 family complaint calls logged",
         "Escalated to the Sample Vendor 3 account rep on Aug 12"
       ],
-      "escalation": { "state": "escalated_to_vendor_rep", "assignedToId": "USR-009", "openedAt": "2026-08-12T10:00:00-06:00" }
+      "escalation": {
+        "state": "escalated_to_vendor_rep",
+        "assignedToId": "USR-009",
+        "openedAt": "2026-08-12T10:00:00-06:00"
+      }
     },
     "notes": "Risk flag: pickup was triggered four days ago with no scheduled retrieval. Family has called the hospice twice asking for the bed to be removed."
   },
@@ -144,13 +212,24 @@
     "orderType": "admission",
     "urgency": "urgent",
     "equipment": [
-      { "hcpcs": "E1390", "name": "Oxygen Concentrator", "qty": 1 },
-      { "hcpcs": "E0143", "name": "Walker", "qty": 1 }
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      },
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
     ],
     "orderedAt": "2026-08-14T11:45:00-06:00",
     "targetBy": "2026-08-15T10:00:00-06:00",
     "eta": null,
-    "dischargeReadiness": { "required": true, "confirmed": false },
+    "dischargeReadiness": {
+      "required": true,
+      "confirmed": false
+    },
     "notes": "New admission tomorrow morning. Sample Vendor 1 confirmed delivery."
   },
   {
@@ -164,7 +243,13 @@
     "orderedById": "USR-003",
     "orderType": "routine",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "E0277", "name": "Air Mattress", "qty": 1 }],
+    "equipment": [
+      {
+        "hcpcs": "E0277",
+        "name": "Air Mattress",
+        "qty": 1
+      }
+    ],
     "orderedAt": "2026-08-13T15:20:00-06:00",
     "targetBy": "2026-08-14T18:00:00-06:00",
     "eta": "2026-08-14T16:15:00-06:00",
@@ -181,13 +266,30 @@
     "orderedById": null,
     "orderType": "resupply",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "A7030", "name": "CPAP Full Face Mask", "qty": 2 }],
+    "equipment": [
+      {
+        "hcpcs": "A7030",
+        "name": "CPAP Full Face Mask",
+        "qty": 2
+      }
+    ],
     "orderedAt": "2026-08-11T09:00:00-06:00",
     "targetBy": "2026-08-12T21:00:00-06:00",
     "deliveredAt": "2026-08-12T14:22:00-06:00",
-    "proofOfDelivery": { "signature": false, "photo": true, "capturedAt": "2026-08-12T14:22:00-06:00" },
-    "billing": { "claimTriggered": true, "claimStandard": "X12 837", "status": "paid" },
-    "resupply": { "cadenceDays": 90, "nextDue": "2026-11-10" },
+    "proofOfDelivery": {
+      "signature": false,
+      "photo": true,
+      "capturedAt": "2026-08-12T14:22:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "paid"
+    },
+    "resupply": {
+      "cadenceDays": 90,
+      "nextDue": "2026-11-10"
+    },
     "notes": "Consumable resupply on a payer-approved 90-day cadence."
   },
   {
@@ -201,12 +303,1486 @@
     "orderedById": null,
     "orderType": "pickup",
     "urgency": "routine",
-    "equipment": [{ "hcpcs": "E0250", "name": "Hospital Bed", "qty": 1 }],
-    "trigger": { "type": "field_nurse", "value": "deceased", "source": "Jess Alvarez, field nurse, in the home" },
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "trigger": {
+      "type": "field_nurse",
+      "value": "deceased",
+      "source": "Jess Alvarez, field nurse, in the home"
+    },
     "pickupTriggeredAt": "2026-08-14T07:05:00-06:00",
     "pickupDueBy": "2026-08-16T07:05:00-06:00",
     "pickedUpAt": "2026-08-14T13:30:00-06:00",
-    "proofOfPickup": { "signature": true, "photo": true, "capturedAt": "2026-08-14T13:30:00-06:00" },
+    "proofOfPickup": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-14T13:30:00-06:00"
+    },
     "notes": "Same-day respectful pickup, 6.5 hours after trigger. Family notified in advance with a 30-minute window."
+  },
+  {
+    "id": "DME-10311",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88601",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "urgent",
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-01T15:00:00-06:00",
+    "targetBy": "2026-08-02T15:00:00-06:00",
+    "notes": "Hospital Bed for PT-88601. Demo caseload order.",
+    "deliveredAt": "2026-08-02T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-02T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10312",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88601",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-01T17:00:00-06:00",
+    "targetBy": "2026-08-02T17:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88601. Demo caseload order.",
+    "eta": "2026-08-02T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10313",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88602",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-02T15:00:00-06:00",
+    "targetBy": "2026-08-03T15:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88602. Demo caseload order.",
+    "eta": "2026-08-03T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10314",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88602",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-02T17:00:00-06:00",
+    "targetBy": "2026-08-03T17:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88602. Demo caseload order."
+  },
+  {
+    "id": "DME-10315",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88603",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-03T15:00:00-06:00",
+    "targetBy": "2026-08-04T15:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88603. Demo caseload order."
+  },
+  {
+    "id": "DME-10316",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88603",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-03T17:00:00-06:00",
+    "targetBy": "2026-08-04T17:00:00-06:00",
+    "notes": "Walker for PT-88603. Demo caseload order."
+  },
+  {
+    "id": "DME-10317",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88604",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-04T15:00:00-06:00",
+    "targetBy": "2026-08-05T15:00:00-06:00",
+    "notes": "Walker for PT-88604. Demo caseload order."
+  },
+  {
+    "id": "DME-10318",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88604",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0277",
+        "name": "Powered Air Mattress",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-04T17:00:00-06:00",
+    "targetBy": "2026-08-05T17:00:00-06:00",
+    "notes": "Powered Air Mattress for PT-88604. Demo caseload order.",
+    "deliveredAt": "2026-08-05T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-05T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10319",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88605",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0277",
+        "name": "Powered Air Mattress",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-05T15:00:00-06:00",
+    "targetBy": "2026-08-06T15:00:00-06:00",
+    "notes": "Powered Air Mattress for PT-88605. Demo caseload order.",
+    "deliveredAt": "2026-08-06T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-06T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    },
+    "dischargeReadiness": {
+      "required": true,
+      "confirmed": true
+    }
+  },
+  {
+    "id": "DME-10320",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88605",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0431",
+        "name": "Portable Oxygen",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-05T17:00:00-06:00",
+    "targetBy": "2026-08-06T17:00:00-06:00",
+    "notes": "Portable Oxygen for PT-88605. Demo caseload order.",
+    "eta": "2026-08-06T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10321",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88606",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0431",
+        "name": "Portable Oxygen",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-06T15:00:00-06:00",
+    "targetBy": "2026-08-07T15:00:00-06:00",
+    "notes": "Portable Oxygen for PT-88606. Demo caseload order.",
+    "eta": "2026-08-07T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10322",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88606",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0601",
+        "name": "CPAP Device",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-06T17:00:00-06:00",
+    "targetBy": "2026-08-07T17:00:00-06:00",
+    "notes": "CPAP Device for PT-88606. Demo caseload order.",
+    "deliveredAt": "2026-08-07T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-07T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10323",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88607",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0601",
+        "name": "CPAP Device",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-07T15:00:00-06:00",
+    "targetBy": "2026-08-08T15:00:00-06:00",
+    "notes": "CPAP Device for PT-88607. Demo caseload order.",
+    "deliveredAt": "2026-08-08T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-08T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10324",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88607",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0163",
+        "name": "Commode Chair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-07T17:00:00-06:00",
+    "targetBy": "2026-08-08T17:00:00-06:00",
+    "notes": "Commode Chair for PT-88607. Demo caseload order.",
+    "eta": "2026-08-08T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10325",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88608",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "urgent",
+    "equipment": [
+      {
+        "hcpcs": "E0163",
+        "name": "Commode Chair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-08T15:00:00-06:00",
+    "targetBy": "2026-08-09T15:00:00-06:00",
+    "notes": "Commode Chair for PT-88608. Demo caseload order.",
+    "eta": "2026-08-09T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10326",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88608",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "A7030",
+        "name": "Full Face CPAP Mask",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-08T17:00:00-06:00",
+    "targetBy": "2026-08-09T17:00:00-06:00",
+    "notes": "Full Face CPAP Mask for PT-88608. Demo caseload order."
+  },
+  {
+    "id": "DME-10327",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88609",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "A7030",
+        "name": "Full Face CPAP Mask",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-09T15:00:00-06:00",
+    "targetBy": "2026-08-10T15:00:00-06:00",
+    "notes": "Full Face CPAP Mask for PT-88609. Demo caseload order."
+  },
+  {
+    "id": "DME-10328",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88609",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0100",
+        "name": "Cane",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-09T17:00:00-06:00",
+    "targetBy": "2026-08-10T17:00:00-06:00",
+    "notes": "Cane for PT-88609. Demo caseload order."
+  },
+  {
+    "id": "DME-10329",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88610",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-001",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0100",
+        "name": "Cane",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-10T15:00:00-06:00",
+    "targetBy": "2026-08-11T15:00:00-06:00",
+    "notes": "Cane for PT-88610. Demo caseload order."
+  },
+  {
+    "id": "DME-10330",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88610",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-001",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-10T17:00:00-06:00",
+    "targetBy": "2026-08-11T17:00:00-06:00",
+    "notes": "Hospital Bed for PT-88610. Demo caseload order.",
+    "deliveredAt": "2026-08-11T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-11T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10331",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88611",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-11T15:00:00-06:00",
+    "targetBy": "2026-08-12T15:00:00-06:00",
+    "notes": "Hospital Bed for PT-88611. Demo caseload order.",
+    "deliveredAt": "2026-08-12T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-12T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    },
+    "dischargeReadiness": {
+      "required": true,
+      "confirmed": true
+    }
+  },
+  {
+    "id": "DME-10332",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88611",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-11T17:00:00-06:00",
+    "targetBy": "2026-08-12T17:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88611. Demo caseload order.",
+    "eta": "2026-08-12T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10333",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88611",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-11T19:00:00-06:00",
+    "targetBy": "2026-08-12T19:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88611. Demo caseload order.",
+    "deliveredAt": "2026-08-12T16:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-12T16:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10334",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88612",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-12T15:00:00-06:00",
+    "targetBy": "2026-08-13T15:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88612. Demo caseload order.",
+    "eta": "2026-08-13T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10335",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88612",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-12T17:00:00-06:00",
+    "targetBy": "2026-08-13T17:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88612. Demo caseload order.",
+    "deliveredAt": "2026-08-13T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-13T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10336",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88612",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-12T19:00:00-06:00",
+    "targetBy": "2026-08-13T19:00:00-06:00",
+    "notes": "Walker for PT-88612. Demo caseload order.",
+    "eta": "2026-08-13T18:00:00-06:00"
+  },
+  {
+    "id": "DME-10337",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88613",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-13T15:00:00-06:00",
+    "targetBy": "2026-08-14T15:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88613. Demo caseload order.",
+    "deliveredAt": "2026-08-14T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-14T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10338",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88613",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-13T17:00:00-06:00",
+    "targetBy": "2026-08-14T17:00:00-06:00",
+    "notes": "Walker for PT-88613. Demo caseload order.",
+    "eta": "2026-08-14T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10339",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88613",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0277",
+        "name": "Powered Air Mattress",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-13T19:00:00-06:00",
+    "targetBy": "2026-08-14T19:00:00-06:00",
+    "notes": "Powered Air Mattress for PT-88613. Demo caseload order."
+  },
+  {
+    "id": "DME-10340",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88614",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-14T15:00:00-06:00",
+    "targetBy": "2026-08-15T15:00:00-06:00",
+    "notes": "Walker for PT-88614. Demo caseload order.",
+    "eta": "2026-08-15T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10341",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88614",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0277",
+        "name": "Powered Air Mattress",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-14T17:00:00-06:00",
+    "targetBy": "2026-08-15T17:00:00-06:00",
+    "notes": "Powered Air Mattress for PT-88614. Demo caseload order."
+  },
+  {
+    "id": "DME-10342",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88614",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0431",
+        "name": "Portable Oxygen",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-14T19:00:00-06:00",
+    "targetBy": "2026-08-15T19:00:00-06:00",
+    "notes": "Portable Oxygen for PT-88614. Demo caseload order."
+  },
+  {
+    "id": "DME-10343",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88615",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "urgent",
+    "equipment": [
+      {
+        "hcpcs": "E0277",
+        "name": "Powered Air Mattress",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-15T15:00:00-06:00",
+    "targetBy": "2026-08-16T15:00:00-06:00",
+    "notes": "Powered Air Mattress for PT-88615. Demo caseload order."
+  },
+  {
+    "id": "DME-10344",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88615",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0431",
+        "name": "Portable Oxygen",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-15T17:00:00-06:00",
+    "targetBy": "2026-08-16T17:00:00-06:00",
+    "notes": "Portable Oxygen for PT-88615. Demo caseload order."
+  },
+  {
+    "id": "DME-10345",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88615",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0601",
+        "name": "CPAP Device",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-15T19:00:00-06:00",
+    "targetBy": "2026-08-16T19:00:00-06:00",
+    "notes": "CPAP Device for PT-88615. Demo caseload order.",
+    "deliveredAt": "2026-08-16T16:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-16T16:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10346",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88616",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0431",
+        "name": "Portable Oxygen",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-16T15:00:00-06:00",
+    "targetBy": "2026-08-17T15:00:00-06:00",
+    "notes": "Portable Oxygen for PT-88616. Demo caseload order."
+  },
+  {
+    "id": "DME-10347",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88616",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0601",
+        "name": "CPAP Device",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-16T17:00:00-06:00",
+    "targetBy": "2026-08-17T17:00:00-06:00",
+    "notes": "CPAP Device for PT-88616. Demo caseload order.",
+    "deliveredAt": "2026-08-17T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-17T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10348",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88616",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0163",
+        "name": "Commode Chair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-16T19:00:00-06:00",
+    "targetBy": "2026-08-17T19:00:00-06:00",
+    "notes": "Commode Chair for PT-88616. Demo caseload order.",
+    "eta": "2026-08-17T18:00:00-06:00"
+  },
+  {
+    "id": "DME-10349",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88617",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0601",
+        "name": "CPAP Device",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-17T15:00:00-06:00",
+    "targetBy": "2026-08-18T15:00:00-06:00",
+    "notes": "CPAP Device for PT-88617. Demo caseload order.",
+    "deliveredAt": "2026-08-18T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-18T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    },
+    "dischargeReadiness": {
+      "required": true,
+      "confirmed": true
+    }
+  },
+  {
+    "id": "DME-10350",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88617",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0163",
+        "name": "Commode Chair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-17T17:00:00-06:00",
+    "targetBy": "2026-08-18T17:00:00-06:00",
+    "notes": "Commode Chair for PT-88617. Demo caseload order.",
+    "eta": "2026-08-18T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10351",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88617",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "A7030",
+        "name": "Full Face CPAP Mask",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-17T19:00:00-06:00",
+    "targetBy": "2026-08-18T19:00:00-06:00",
+    "notes": "Full Face CPAP Mask for PT-88617. Demo caseload order.",
+    "deliveredAt": "2026-08-18T16:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-18T16:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10352",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88618",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0163",
+        "name": "Commode Chair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-18T15:00:00-06:00",
+    "targetBy": "2026-08-19T15:00:00-06:00",
+    "notes": "Commode Chair for PT-88618. Demo caseload order.",
+    "eta": "2026-08-19T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10353",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88618",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "A7030",
+        "name": "Full Face CPAP Mask",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-18T17:00:00-06:00",
+    "targetBy": "2026-08-19T17:00:00-06:00",
+    "notes": "Full Face CPAP Mask for PT-88618. Demo caseload order.",
+    "deliveredAt": "2026-08-19T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-19T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10354",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88618",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0100",
+        "name": "Cane",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-18T19:00:00-06:00",
+    "targetBy": "2026-08-19T19:00:00-06:00",
+    "notes": "Cane for PT-88618. Demo caseload order.",
+    "eta": "2026-08-19T18:00:00-06:00"
+  },
+  {
+    "id": "DME-10355",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88619",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "A7030",
+        "name": "Full Face CPAP Mask",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-19T15:00:00-06:00",
+    "targetBy": "2026-08-20T15:00:00-06:00",
+    "notes": "Full Face CPAP Mask for PT-88619. Demo caseload order.",
+    "deliveredAt": "2026-08-20T12:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-20T12:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10356",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88619",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0100",
+        "name": "Cane",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-19T17:00:00-06:00",
+    "targetBy": "2026-08-20T17:00:00-06:00",
+    "notes": "Cane for PT-88619. Demo caseload order.",
+    "eta": "2026-08-20T16:00:00-06:00"
+  },
+  {
+    "id": "DME-10357",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88619",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-19T19:00:00-06:00",
+    "targetBy": "2026-08-20T19:00:00-06:00",
+    "notes": "Hospital Bed for PT-88619. Demo caseload order."
+  },
+  {
+    "id": "DME-10358",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88620",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0100",
+        "name": "Cane",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-20T15:00:00-06:00",
+    "targetBy": "2026-08-21T15:00:00-06:00",
+    "notes": "Cane for PT-88620. Demo caseload order.",
+    "eta": "2026-08-21T14:00:00-06:00"
+  },
+  {
+    "id": "DME-10359",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88620",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-20T17:00:00-06:00",
+    "targetBy": "2026-08-21T17:00:00-06:00",
+    "notes": "Hospital Bed for PT-88620. Demo caseload order."
+  },
+  {
+    "id": "DME-10360",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88620",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-20T19:00:00-06:00",
+    "targetBy": "2026-08-21T19:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88620. Demo caseload order."
+  },
+  {
+    "id": "DME-10361",
+    "canonical": false,
+    "status": "dispatched",
+    "riskState": null,
+    "patientId": "PT-88621",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0250",
+        "name": "Hospital Bed",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-21T15:00:00-06:00",
+    "targetBy": "2026-08-22T15:00:00-06:00",
+    "notes": "Hospital Bed for PT-88621. Demo caseload order."
+  },
+  {
+    "id": "DME-10362",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88621",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-21T17:00:00-06:00",
+    "targetBy": "2026-08-22T17:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88621. Demo caseload order."
+  },
+  {
+    "id": "DME-10363",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88621",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-21T19:00:00-06:00",
+    "targetBy": "2026-08-22T19:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88621. Demo caseload order.",
+    "deliveredAt": "2026-08-22T16:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": true,
+      "capturedAt": "2026-08-22T16:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10364",
+    "canonical": false,
+    "status": "ordered",
+    "riskState": null,
+    "patientId": "PT-88622",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-001",
+    "orderedById": "USR-010",
+    "orderType": "admission",
+    "urgency": "urgent",
+    "equipment": [
+      {
+        "hcpcs": "E1390",
+        "name": "Oxygen Concentrator",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-22T15:00:00-06:00",
+    "targetBy": "2026-08-23T15:00:00-06:00",
+    "notes": "Oxygen Concentrator for PT-88622. Demo caseload order."
+  },
+  {
+    "id": "DME-10365",
+    "canonical": false,
+    "status": "delivered",
+    "riskState": null,
+    "patientId": "PT-88622",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-002",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E1130",
+        "name": "Standard Wheelchair",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-22T17:00:00-06:00",
+    "targetBy": "2026-08-23T17:00:00-06:00",
+    "notes": "Standard Wheelchair for PT-88622. Demo caseload order.",
+    "deliveredAt": "2026-08-23T14:00:00-06:00",
+    "proofOfDelivery": {
+      "signature": true,
+      "photo": false,
+      "capturedAt": "2026-08-23T14:00:00-06:00"
+    },
+    "billing": {
+      "claimTriggered": true,
+      "claimStandard": "X12 837",
+      "status": "submitted"
+    }
+  },
+  {
+    "id": "DME-10366",
+    "canonical": false,
+    "status": "in_transit",
+    "riskState": null,
+    "patientId": "PT-88622",
+    "hospiceId": "HSP-001",
+    "vendorId": "VND-003",
+    "orderedById": "USR-010",
+    "orderType": "routine",
+    "urgency": "routine",
+    "equipment": [
+      {
+        "hcpcs": "E0143",
+        "name": "Walker",
+        "qty": 1
+      }
+    ],
+    "orderedAt": "2026-08-22T19:00:00-06:00",
+    "targetBy": "2026-08-23T19:00:00-06:00",
+    "notes": "Walker for PT-88622. Demo caseload order.",
+    "eta": "2026-08-23T18:00:00-06:00"
   }
 ]
