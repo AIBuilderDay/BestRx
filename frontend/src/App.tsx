@@ -11,8 +11,8 @@ import Patients from './views/Patients';
 import Settings from './views/Settings';
 
 /**
- * Session gate, then routed app. Every role lands on the catalog by default; patients and other
- * views route from the top nav when permissions allow.
+ * Routed app with /login as a real route, so signing in pushes a history entry and the browser
+ * back button works. ThemeProvider wraps the router so color mode persists on the login screen.
  */
 export default function App() {
   const [user, setUser] = useState<User | null>(readSession);
@@ -27,23 +27,26 @@ export default function App() {
     setUser(null);
   };
 
+  const toLogin = <Navigate to="/login" replace />;
+
   return (
     <ThemeProvider>
-      {!user ? (
-        <Login onSignIn={signIn} />
-      ) : (
-        <BrowserRouter>
-          <CartProvider>
-            <Routes>
-              <Route path="/" element={<Navigate to="/catalog" replace />} />
-              <Route path="/catalog" element={<Catalog user={user} />} />
-              <Route path="/patients" element={<Patients user={user} />} />
-              <Route path="/patients/:patientId" element={<PatientDetail user={user} />} />
-              <Route path="/settings" element={<Settings user={user} onSignOut={signOut} />} />
-            </Routes>
-          </CartProvider>
-        </BrowserRouter>
-      )}
+      <BrowserRouter>
+        <CartProvider>
+          <Routes>
+            <Route path="/login" element={<Login onSignIn={signIn} />} />
+            <Route path="/" element={<Navigate to="/catalog" replace />} />
+            <Route path="/catalog" element={user ? <Catalog user={user} /> : toLogin} />
+            <Route path="/patients" element={user ? <Patients user={user} /> : toLogin} />
+            <Route
+              path="/patients/:patientId"
+              element={user ? <PatientDetail user={user} /> : toLogin}
+            />
+            <Route path="/settings" element={user ? <Settings user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="*" element={<Navigate to="/catalog" replace />} />
+          </Routes>
+        </CartProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
