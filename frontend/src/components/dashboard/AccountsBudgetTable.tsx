@@ -15,8 +15,8 @@ const COLUMNS: { key: AccountSortKey; label: string; numeric: boolean }[] = [
   { key: 'role', label: 'Role', numeric: false },
   { key: 'patients', label: 'Patients', numeric: true },
   { key: 'ppd', label: 'PPD rate', numeric: true },
-  { key: 'cap', label: 'Period cap', numeric: true },
-  { key: 'spent', label: 'Spent', numeric: true },
+  { key: 'cap', label: 'Allotted budget', numeric: true },
+  { key: 'spent', label: 'Purchased', numeric: true },
   { key: 'utilization', label: 'Utilization', numeric: true },
   { key: 'status', label: 'Status', numeric: false },
 ];
@@ -49,8 +49,8 @@ export function AccountsBudgetTable({
       <TableWrap>
         <table className="w-full min-w-[860px] border-collapse text-[13px]">
           <caption className="sr-only">
-            DME budget by account. Caps are derived from PPD rate, counted caseload, and days in the
-            period. Edit a rate to recompute that account's cap for this session.
+            DME budget by account. Allotted budgets are derived from PPD rate, counted caseload,
+            and days in the period. Edit a rate to recompute that account's cap for this session.
           </caption>
           <thead>
             <tr>

@@ -3,29 +3,39 @@
  * hospice actually ordered this period, which non-contracted vendor is the best value, and what
  * switching to it on that code alone would have cost or saved.
  *
- * Only the hospice's contracted (current) vendor is excluded from being "the suggestion" — every
- * other vendor priced on that code is a real option, scored and surfaced, never silently dropped.
+ * The hospice's contracted (current) vendor is never "the suggestion." Beyond that, a vendor whose
+ * service area reaches none of the hospice's patient locations is dropped before scoring — an
+ * unreachable vendor isn't a real alternative, whatever its price. Every remaining vendor priced on
+ * that code is scored and surfaced, never silently dropped.
  *
- * The value score is price against reviews and delivery reliability, each normalized to 0-100:
- *   Price (40%)    — how much cheaper (or pricier) the vendor's unit price is than what was
- *                     actually paid for this code, scaled so a 25%-of-price swing moves the term
- *                     the full 50 points off center.
- *   Reviews (30%)  — vendor.overallRating, 1-5 stars mapped onto 0-100.
- *   Delivery (30%) — trailing 30-day on-time delivery percentage, already 0-100.
- * ZIP coverage is NOT part of this score — it's a hospice-vendor fact that doesn't vary product to
- * product, so it's carried on every option for display (a vendor that can't reach these patients
- * should never look silently indistinguishable from one that can) but doesn't move the ranking the
- * way it does on the whole-basket comparison. This is BestRx's own scoring methodology, not a fact
- * about the vendor — every consumer must label it "Value score," never present it as something the
- * vendor reports about itself.
+ * The value score is a weighted blend of three 1-5 criteria, remapped to 0-100 for display:
+ *   Savings (60%)       — the heaviest factor. No savings is 1/5; $100 total savings is 3.5/5;
+ *                         $200+ total savings reaches 5/5. Cost premiums then subtract up to 30
+ *                         points: about $5 extra stays near 50, while $1,000 extra lands near 20.
+ *   Vendor rating (30%) — vendor.overallRating, already a 1-5 scale.
+ *   Local service (10%) — 5/5 if every patient location is served, 3/5 if only some are served.
+ * Vendors that reach none of the hospice's locations are still excluded before scoring — an
+ * unreachable vendor isn't a real alternative. This is BestRx's own scoring methodology, not a
+ * fact about the vendor — every consumer must label it "Value score," never present it as something
+ * the vendor reports about itself.
  */
 
 import type { BasketLine, VendorColumn } from './costLedger';
 import type { Vendor } from '../types/domain';
 
-export const PRICE_WEIGHT = 0.4;
-export const REVIEW_WEIGHT = 0.3;
-export const DELIVERY_WEIGHT = 0.3;
+export const SAVINGS_WEIGHT = 0.6;
+export const RATING_WEIGHT = 0.3;
+export const LOCAL_SERVICE_WEIGHT = 0.1;
+export const LOSS_FREE_PREMIUM_USD = 5;
+export const FULL_LOSS_PENALTY_USD = 1000;
+export const MAX_LOSS_VALUE_PENALTY = 30;
+
+export interface ValueScoreCriteria {
+  savingsScore: number;
+  ratingScore: number;
+  localServiceScore: number;
+  lossPenalty: number;
+}
 
 export interface ProductVendorOption {
   vendor: Vendor;
@@ -38,11 +48,13 @@ export interface ProductVendorOption {
   onTimePickupPct: number;
   rating: number;
   ratingCount: number;
-  zipCoveragePct: number;
-  servedZipCount: number;
-  patientZipCount: number;
-  /** 0-100, BestRx's own weighted score (price/reviews/delivery only) — see module doc comment. */
+  /** "City, ST" patient locations this vendor reaches. Always non-empty — see productVendorOptions. */
+  servedLocations: string[];
+  /** "City, ST" patient locations this vendor does NOT reach. */
+  unservedLocations: string[];
+  /** 0-100, BestRx's own weighted score — see module doc comment. */
   valueScore: number;
+  valueCriteria: ValueScoreCriteria;
 }
 
 export interface ProductSavingsRow {
@@ -58,19 +70,40 @@ export interface ProductSavingsRow {
 }
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
+const clamp5 = (n: number): number => Math.max(1, Math.min(5, n));
 const clamp100 = (n: number): number => Math.max(0, Math.min(100, n));
+
+function savingsScoreFor(paidUsd: number, savingsUsd: number): number {
+  if (paidUsd === 0 || savingsUsd <= 0) return 1;
+  return round2(clamp5(2 + (savingsUsd / 200) * 3));
+}
+
+function lossPenaltyFor(savingsUsd: number): number {
+  if (savingsUsd >= -LOSS_FREE_PREMIUM_USD) return 0;
+  const lossUsd = Math.abs(savingsUsd);
+  const penaltySpan = FULL_LOSS_PENALTY_USD - LOSS_FREE_PREMIUM_USD;
+  return round2(
+    clamp100(((lossUsd - LOSS_FREE_PREMIUM_USD) / penaltySpan) * MAX_LOSS_VALUE_PENALTY),
+  );
+}
 
 function scoreOption(paidUsd: number, unitUsd: number, extendedUsd: number, column: VendorColumn) {
   const savingsUsd = round2(paidUsd - extendedUsd);
-  const savingsShare = paidUsd === 0 ? 0 : savingsUsd / paidUsd;
 
-  const priceScore = clamp100(50 + savingsShare * 200);
-  const reviewScore = clamp100(((column.vendor.overallRating - 1) / 4) * 100);
-  const deliveryScore = clamp100(column.onTimePct);
+  const valueCriteria: ValueScoreCriteria = {
+    savingsScore: savingsScoreFor(paidUsd, savingsUsd),
+    ratingScore: round2(clamp5(column.vendor.overallRating)),
+    localServiceScore: column.unservedLocations.length === 0 ? 5 : 3,
+    lossPenalty: lossPenaltyFor(savingsUsd),
+  };
 
-  const valueScore = Math.round(
-    priceScore * PRICE_WEIGHT + reviewScore * REVIEW_WEIGHT + deliveryScore * DELIVERY_WEIGHT,
-  );
+  const unpenalizedScore =
+    ((valueCriteria.savingsScore * SAVINGS_WEIGHT +
+      valueCriteria.ratingScore * RATING_WEIGHT +
+      valueCriteria.localServiceScore * LOCAL_SERVICE_WEIGHT) /
+      5) *
+    100;
+  const valueScore = Math.round(clamp100(unpenalizedScore - valueCriteria.lossPenalty));
 
   const option: ProductVendorOption = {
     vendor: column.vendor,
@@ -82,19 +115,24 @@ function scoreOption(paidUsd: number, unitUsd: number, extendedUsd: number, colu
     onTimePickupPct: column.onTimePickupPct,
     rating: column.vendor.overallRating,
     ratingCount: column.vendor.overallRatingCount,
-    zipCoveragePct: column.zipCoveragePct,
-    servedZipCount: column.servedZipCount,
-    patientZipCount: column.patientZipCount,
+    servedLocations: column.servedLocations,
+    unservedLocations: column.unservedLocations,
     valueScore,
+    valueCriteria,
   };
   return option;
 }
 
-/** Every non-contracted vendor priced on this one code, scored and ranked best-value first. */
+/**
+ * Every non-contracted vendor priced on this one code that can actually reach the hospice's
+ * patients, scored and ranked best-value first. A vendor reaching none of them is excluded
+ * entirely, however it would have scored — it isn't a usable alternative.
+ */
 export function productVendorOptions(line: BasketLine, columns: VendorColumn[]): ProductVendorOption[] {
   const options: ProductVendorOption[] = [];
   for (const column of columns) {
     if (column.contracted) continue;
+    if (column.servedLocations.length === 0) continue;
     const cell = line.prices.find((p) => p.vendorId === column.vendor.id);
     if (!cell || cell.unitUsd === null || cell.extendedUsd === null) continue;
     options.push(scoreOption(line.actualUsd, cell.unitUsd, cell.extendedUsd, column));

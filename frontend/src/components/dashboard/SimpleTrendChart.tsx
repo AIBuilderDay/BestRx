@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { areaPath, hitBands, linePath, niceScale, toPoints, TREND_BOX, yAt } from '../../lib/chartScale';
-import type { TrendPoint } from '../../lib/costTrendMock';
+
+export interface TrendPoint {
+  label: string;
+  value: number;
+}
 
 /**
  * Single-series version of the vendor spend chart: same geometry and tooltip approach (viewBox

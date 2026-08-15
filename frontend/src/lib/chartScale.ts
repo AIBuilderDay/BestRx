@@ -103,7 +103,6 @@ export interface SparkGeometry {
 }
 
 export function sparklineGeometry(values: number[], w: number, h: number, pad: number): SparkGeometry {
-  const nonZero = values.filter((v) => v > 0).length;
   // Span is measured across the values themselves, not against a zero baseline: an all-equal
   // series has no span and must not read as a trend.
   const min = values.length === 0 ? 0 : Math.min(...values);
@@ -119,6 +118,6 @@ export function sparklineGeometry(values: number[], w: number, h: number, pad: n
     d: linePath(points),
     last: points[points.length - 1] ?? { x: w, y: h / 2 },
     direction: last > first ? 'rising' : last < first ? 'falling' : 'flat',
-    usable: values.length > 1 && nonZero >= 2 && span > 0,
+    usable: values.length > 1 && span > 0,
   };
 }

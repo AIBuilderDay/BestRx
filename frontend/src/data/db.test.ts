@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  aiUsage,
   budgetCapUsd,
   budgets,
   budgetUtilizationPct,
@@ -132,6 +133,15 @@ describe('mock database integrity', () => {
         expect(users.some((u) => u.role === budget.scopeRef), budget.id).toBe(true);
       }
       expect(budget.spentUsd).toBeLessThanOrEqual(budget.limitUsd);
+    }
+  });
+
+  it('links every AI usage event to a hospice account', () => {
+    for (const event of aiUsage) {
+      expect(hospices.some((h) => h.id === event.hospiceId), event.id).toBe(true);
+      expect(users.some((u) => u.id === event.userId && u.orgId === event.hospiceId), event.id).toBe(true);
+      expect(event.inputTokens + event.outputTokens, event.id).toBeGreaterThan(0);
+      expect(event.costUsd, event.id).toBeGreaterThanOrEqual(0);
     }
   });
 

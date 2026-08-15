@@ -13,13 +13,13 @@ export interface StatTileVM {
 const TONE_BORDER: Record<StatTone, string> = {
   plain: 'border-line',
   good: 'border-line',
-  alert: 'border-warn',
+  alert: 'border-line',
 };
 
 const TONE_VALUE: Record<StatTone, string> = {
   plain: 'text-ink',
   good: 'text-good',
-  alert: 'text-warn',
+  alert: 'text-risk',
 };
 
 export function StatTiles({

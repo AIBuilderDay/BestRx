@@ -6,7 +6,6 @@ import { CostLedgerPanel } from '../components/dashboard/CostLedgerPanel';
 import { DashboardTabs, type DashboardTab } from '../components/dashboard/DashboardTabs';
 import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
-import { getHospice } from '../data/db';
 import {
   accountTotals,
   buildAccountRows,
@@ -19,23 +18,9 @@ import {
   type AccountSortKey,
   type PpdOverrides,
 } from '../lib/budgetLedger';
-import { basketTotals, buildBasket, spendTrend, vendorColumns } from '../lib/costLedger';
+import { basketTotals, buildBasket, vendorColumns } from '../lib/costLedger';
 import { getPeriod } from '../lib/costPeriod';
 import type { User, UserRole } from '../types/domain';
-
-const TAB_COPY: Record<DashboardTab, { crumb: string; title: string; blurb: string }> = {
-  cost: {
-    crumb: 'Cost of care',
-    title: 'DME cost ledger',
-    blurb: 'Every code you bought, priced against every vendor that could have supplied it.',
-  },
-  budgets: {
-    crumb: 'Budget configuration',
-    title: 'Budget configuration',
-    blurb:
-      "Each account's DME ceiling is derived from the patients they carry — not a flat number someone guessed.",
-  },
-};
 
 const isDashboardTab = (value: string | null): value is DashboardTab =>
   value === 'cost' || value === 'budgets';
@@ -61,24 +46,24 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const activeTab: DashboardTab = isDashboardTab(viewParam) ? viewParam : 'cost';
   const hospiceId = user.orgId;
   const period = getPeriod('aug-2026');
-  const hospice = getHospice(hospiceId);
-  const copy = TAB_COPY[activeTab];
 
   const columns = useMemo(() => vendorColumns(hospiceId), [hospiceId]);
   const lines = useMemo(() => buildBasket(hospiceId, period), [hospiceId, period]);
   const totals = useMemo(() => basketTotals(lines, columns), [lines, columns]);
-  const trend = useMemo(() => spendTrend(lines, period, hospiceId), [lines, period, hospiceId]);
 
   const accountRows = useMemo(
-    () => buildAccountRows(hospiceId, period, overrides),
-    [hospiceId, period, overrides],
+    () => buildAccountRows(hospiceId, period, overrides, user.role),
+    [hospiceId, period, overrides, user.role],
   );
   const sortedRows = useMemo(
     () => sortAccountRows(accountRows, sort.key, sort.dir),
     [accountRows, sort],
   );
   const budgetTotals = useMemo(() => accountTotals(accountRows), [accountRows]);
-  const roleCards = useMemo(() => roleRates(hospiceId, overrides), [hospiceId, overrides]);
+  const roleCards = useMemo(
+    () => roleRates(hospiceId, overrides, user.role),
+    [hospiceId, overrides, user.role],
+  );
 
   const selectTab = (tab: DashboardTab) => setSearchParams({ view: tab });
 
@@ -110,25 +95,8 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
-        <div className="text-[12px] text-ink-3">
-          {hospice?.name ?? 'Hospice'} / {copy.crumb}
-        </div>
-
-        <div className="mt-2 mb-5 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-normal tracking-tight">{copy.title}</h1>
-            <p className="mt-1 max-w-[62ch] text-[13px] text-ink-2">{copy.blurb}</p>
-          </div>
-          {hospice ? (
-            <div className="text-right text-[12px] text-ink-3">
-              <div>
-                {hospice.name} · {hospice.emr}
-              </div>
-              <div>
-                {hospice.activeCensus} patients on service · {period.label}
-              </div>
-            </div>
-          ) : null}
+        <div className="mb-5">
+          <h1 className="text-3xl font-normal tracking-tight">Dashboard</h1>
         </div>
 
         <DashboardTabs activeTab={activeTab} onSelectTab={selectTab} />
@@ -140,7 +108,6 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             lines={lines}
             totals={totals}
             columns={columns}
-            trend={trend}
             budgetTotals={budgetTotals}
             accountRows={accountRows}
             openHcpcs={openHcpcs}

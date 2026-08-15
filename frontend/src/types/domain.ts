@@ -285,6 +285,23 @@ export interface Budget {
   derivedFrom?: { ppdUsd: number; assignedPatients: number; days: number };
 }
 
+export type AiUsageFeature =
+  | 'product_match'
+  | 'risk_explanation'
+  | 'patient_summary'
+  | 'budget_review';
+
+export interface AiUsageEvent {
+  id: string;
+  hospiceId: string;
+  userId: string;
+  feature: AiUsageFeature;
+  occurredAt: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+}
+
 export interface EmrEvent {
   id: string;
   eventType: 'newOrUpdatePatient' | 'patientStatusChange' | 'newMedications';

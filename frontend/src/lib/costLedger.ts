@@ -23,7 +23,8 @@ import {
 } from '../data/db';
 import { CATEGORY_LABELS } from './catalog';
 import { bucketIndexFor, periodContains, type CostPeriod } from './costPeriod';
-import type { Order, Vendor, VendorOffer } from '../types/domain';
+import type { TrendRange } from './trendRange';
+import type { EquipmentItem, Order, Vendor, VendorOffer } from '../types/domain';
 
 /** On-time delivery floor a vendor must clear before its price counts as a real alternative. */
 export const SERVICE_FLOOR_PCT = 85;
@@ -38,6 +39,10 @@ export interface VendorColumn {
   zipCoveragePct: number;
   servedZipCount: number;
   patientZipCount: number;
+  /** "City, ST" labels among this hospice's patient locations the vendor's service area reaches. */
+  servedLocations: string[];
+  /** "City, ST" labels the vendor's service area does NOT reach — never a real option there. */
+  unservedLocations: string[];
 }
 
 export interface VendorUnitPrice {
@@ -84,6 +89,13 @@ export interface TrendBucket {
   partial: boolean;
 }
 
+export interface SpendRangeSummary {
+  /** Sum of the real spend buckets for the selected range. */
+  actualUsd: number;
+  bucketCount: number;
+  partial: boolean;
+}
+
 export interface LadderRow {
   vendor: Vendor;
   tone: 'contracted' | 'best' | 'alt' | 'risk';
@@ -121,9 +133,16 @@ function codeUnitKind(hcpcs: string): BasketLine['kind'] {
 
 export function vendorColumns(hospiceId: string): VendorColumn[] {
   const patientZips = hospicePatientZips(hospiceId);
+  const patientLocations = hospicePatientLocations(hospiceId);
   return [...vendors]
     .map((vendor) => {
       const served = [...patientZips].filter((zip) => vendor.serviceAreaZips.includes(zip));
+      const servedLocations: string[] = [];
+      const unservedLocations: string[] = [];
+      for (const [label, zips] of patientLocations) {
+        const reaches = zips.some((zip) => vendor.serviceAreaZips.includes(zip));
+        (reaches ? servedLocations : unservedLocations).push(label);
+      }
       return {
         vendor,
         contracted: vendor.contracted === true,
@@ -134,6 +153,8 @@ export function vendorColumns(hospiceId: string): VendorColumn[] {
           patientZips.size === 0 ? 0 : Math.round((served.length / patientZips.size) * 100),
         servedZipCount: served.length,
         patientZipCount: patientZips.size,
+        servedLocations,
+        unservedLocations,
       };
     })
     .sort((a, b) => Number(b.contracted) - Number(a.contracted) || a.vendor.name.localeCompare(b.vendor.name));
@@ -143,16 +164,32 @@ function hospicePatientZips(hospiceId: string): Set<string> {
   return new Set(patients.filter((p) => p.hospiceId === hospiceId).map((p) => p.address.zip));
 }
 
-/** Prices one order's equipment at the vendor that actually delivered it. */
-export function orderExtendedUsd(order: Order, period: CostPeriod): number {
-  if (!order.vendorId) return 0;
-  let total = 0;
-  for (const item of order.equipment) {
-    const offer = cheapestOfferFor(order.vendorId, item.hcpcs);
-    if (offer === null) continue;
-    total += item.qty * offer.priceUsd * monthsFor(offer, period);
+/** This hospice's distinct patient locations ("City, ST" -> the ZIPs on file for it), alphabetical. */
+function hospicePatientLocations(hospiceId: string): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const p of patients) {
+    if (p.hospiceId !== hospiceId) continue;
+    const label = `${p.address.city}, ${p.address.state}`;
+    const zips = map.get(label);
+    if (zips) {
+      if (!zips.includes(p.address.zip)) zips.push(p.address.zip);
+    } else {
+      map.set(label, [p.address.zip]);
+    }
   }
-  return round2(total);
+  return new Map([...map].sort(([a], [b]) => a.localeCompare(b)));
+}
+
+/** Prices one order's equipment at the vendor that actually delivered it. */
+export function orderItemExtendedUsd(order: Order, item: EquipmentItem, period: CostPeriod): number {
+  if (!order.vendorId) return 0;
+  const offer = cheapestOfferFor(order.vendorId, item.hcpcs);
+  if (offer === null) return 0;
+  return round2(item.qty * offer.priceUsd * monthsFor(offer, period));
+}
+
+export function orderExtendedUsd(order: Order, period: CostPeriod): number {
+  return round2(order.equipment.reduce((total, item) => total + orderItemExtendedUsd(order, item, period), 0));
 }
 
 export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[] {
@@ -282,6 +319,72 @@ function newestOrderDate(hospiceId: string): string | null {
     .map((o) => o.orderedAt?.slice(0, 10))
     .filter((d): d is string => typeof d === 'string');
   return dates.length === 0 ? null : dates.reduce((a, b) => (a > b ? a : b));
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/**
+ * Real spend for each of the last 7 real days on file, ending at the newest order — the 1-week
+ * range on the Total Spend tile. Every bucket is real; a day with no orders is a real $0, not a
+ * gap. Anchored to the newest order rather than a hardcoded date so this stays correct if the
+ * dataset grows.
+ */
+export function dailySpendTrend(hospiceId: string, period: CostPeriod): TrendBucket[] {
+  const lastOrderDate = newestOrderDate(hospiceId);
+  if (lastOrderDate === null) return [];
+
+  const end = new Date(`${lastOrderDate}T00:00:00Z`);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(end.getTime() - (6 - i) * DAY_MS);
+    return d.toISOString().slice(0, 10);
+  });
+
+  const totalsByDay = new Map<string, number>();
+  for (const order of getOrdersForHospice(hospiceId)) {
+    const date = order.orderedAt?.slice(0, 10);
+    if (date === undefined || !days.includes(date)) continue;
+    totalsByDay.set(date, (totalsByDay.get(date) ?? 0) + orderExtendedUsd(order, period));
+  }
+
+  return days.map((date) => ({
+    label: WEEKDAY_LABELS[new Date(`${date}T00:00:00Z`).getUTCDay()],
+    actualUsd: round2(totalsByDay.get(date) ?? 0),
+    partial: false,
+  }));
+}
+
+/**
+ * Real spend for the Total Spend tile's range picker — the single dispatch point between the two
+ * ranges the dataset can actually back (1wk daily, 1mo weekly) and the three it can't. Null means
+ * "no real data for this range," never a fabricated series; the caller renders an honest empty
+ * state instead of a chart.
+ */
+export function spendTrendForRange(
+  hospiceId: string,
+  period: CostPeriod,
+  lines: BasketLine[],
+  range: TrendRange,
+): TrendBucket[] | null {
+  if (range === '1w') return dailySpendTrend(hospiceId, period);
+  if (range === '1m') return spendTrend(lines, period, hospiceId);
+  return null;
+}
+
+/** Total Spend tile summary for the selected range. Null means the range has no real history. */
+export function spendSummaryForRange(
+  hospiceId: string,
+  period: CostPeriod,
+  lines: BasketLine[],
+  range: TrendRange,
+): SpendRangeSummary | null {
+  const buckets = spendTrendForRange(hospiceId, period, lines, range);
+  if (buckets === null) return null;
+  return {
+    actualUsd: round2(buckets.reduce((sum, bucket) => sum + bucket.actualUsd, 0)),
+    bucketCount: buckets.length,
+    partial: buckets.some((bucket) => bucket.partial),
+  };
 }
 
 /** Vendors ranked cheapest first for one code, for the row drawer. */

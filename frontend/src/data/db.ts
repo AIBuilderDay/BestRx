@@ -8,6 +8,7 @@
  */
 
 import type {
+  AiUsageEvent,
   Budget,
   CatalogEntry,
   EmrEvent,
@@ -22,6 +23,7 @@ import type {
   VendorOffer,
 } from '../types/domain';
 
+import aiUsageJson from './ai_usage.json';
 import budgetsJson from './budgets.json';
 import equipmentCatalogJson from './equipment_catalog.json';
 import emrEventsJson from './emr_events.json';
@@ -49,6 +51,7 @@ export const emrEvents = emrEventsJson as unknown as EmrEvent[];
 export const vendorOffers = vendorOffersJson as unknown as VendorOffer[];
 export const productReviews = productReviewsJson as unknown as ProductReview[];
 export const budgets = budgetsJson as unknown as Budget[];
+export const aiUsage = aiUsageJson as unknown as AiUsageEvent[];
 
 export const getOrder = (id: string): Order | undefined => orders.find((o) => o.id === id);
 
@@ -107,6 +110,9 @@ export const getReviewsForVendor = (vendorId: string): ProductReview[] => {
 
 export const getBudgetsForHospice = (hospiceId: string): Budget[] =>
   budgets.filter((b) => b.hospiceId === hospiceId);
+
+export const getAiUsageForHospice = (hospiceId: string): AiUsageEvent[] =>
+  aiUsage.filter((e) => e.hospiceId === hospiceId);
 
 /** The cap a role budget works out to: per-patient-day allowance x patients carried x days. */
 export const budgetCapUsd = (budget: Budget): number =>

@@ -2,9 +2,15 @@ import { useState } from 'react';
 import { moneyLabel } from '../../lib/catalog';
 import type { BreakdownSlice } from '../../lib/budgetBreakdown';
 
-/** Fixed categorical order from the design system's four-step ramp — never cycled or reassigned. */
-const SLICE_COLOR = ['stroke-s1', 'stroke-s2', 'stroke-s3', 'stroke-s4'];
-const SLICE_DOT = ['bg-s1', 'bg-s2', 'bg-s3', 'bg-s4'];
+/**
+ * Fixed categorical order from the rainbow ramp (--chart-1..4 in tokens.css) — never cycled or
+ * reassigned. Full saturation in light mode, a desaturated pastel version of the same four hues in
+ * dark mode; each validated separately with the dataviz skill's validate_palette.js (lightness
+ * band, chroma floor, CVD-adjacent separation, normal-vision separation). Every slice also carries
+ * a direct text label in the legend, never relying on color alone.
+ */
+const SLICE_COLOR = ['stroke-chart-1', 'stroke-chart-2', 'stroke-chart-3', 'stroke-chart-4'];
+const SLICE_DOT = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4'];
 
 const SIZE = 220;
 const CENTER = SIZE / 2;
@@ -17,7 +23,17 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * Built from `stroke-dasharray` arcs on a shared circle rather than pie wedges, which keeps every
  * segment a simple 2px-gapped stroke instead of hand-rolled arc paths.
  */
-export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; totalLabel: string }) {
+export function DonutChart({
+  slices,
+  totalLabel,
+  centerLabel = 'Total',
+  centerValue = totalLabel,
+}: {
+  slices: BreakdownSlice[];
+  totalLabel: string;
+  centerLabel?: string;
+  centerValue?: string;
+}) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const total = slices.reduce((sum, s) => sum + s.valueUsd, 0);
 
@@ -51,10 +67,9 @@ export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; t
               className="transition-opacity"
               opacity={hoverIndex === null || hoverIndex === i ? 1 : 0.35}
             >
-              {/* A hairline outline half a step lighter than the fill defines every segment's edge
-                  regardless of the fill's own contrast against the surface — s4 (#cfcfcf / #3d3d3d)
-                  measures under the 2:1 floor against this app's card surface in both themes, so a
-                  fill-only ring would be nearly invisible for that slice without this. */}
+              {/* A hairline outline defines every segment's edge independent of the fill's own
+                  contrast against the surface, so adjacent slices stay visually separated even
+                  where two hues land close in lightness. */}
               <circle
                 cx={CENTER}
                 cy={CENTER}
@@ -91,8 +106,8 @@ export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; t
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           {hoverIndex === null ? (
             <>
-              <div className="text-[11px] uppercase tracking-[0.06em] text-ink-3">Total</div>
-              <div className="text-[17px] font-semibold tabular-nums text-ink">{totalLabel}</div>
+              <div className="text-[11px] uppercase tracking-[0.06em] text-ink-3">{centerLabel}</div>
+              <div className="text-[17px] font-semibold tabular-nums text-ink">{centerValue}</div>
             </>
           ) : (
             <>

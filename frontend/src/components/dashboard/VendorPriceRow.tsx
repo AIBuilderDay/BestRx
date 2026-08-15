@@ -1,28 +1,33 @@
-import { moneyCents, moneyLabel } from '../../lib/catalog';
-import type { BasketLine, VendorColumn } from '../../lib/costLedger';
+import { moneyLabel } from '../../lib/catalog';
+import type { BasketLine } from '../../lib/costLedger';
 import { Sparkline } from '../ui/Sparkline';
 
-const CELL = 'px-3 py-2.5 text-right tabular-nums';
+const CELL = 'px-4 py-2.5 text-right tabular-nums';
+const TREND_CELL = 'px-4 py-2.5 text-right';
 
-/** One HCPCS code: what it cost, and what the contracted vendor charges for it. */
+const cumulativeSpend = (values: number[]): number[] => {
+  let running = 0;
+  return [0, ...values.map((value) => {
+    running += value;
+    return running;
+  })];
+};
+
+/** One HCPCS code: what the hospice actually paid this period. */
 export function VendorPriceRow({
   line,
-  columns,
   isOpen,
   onOpen,
 }: {
   line: BasketLine;
-  columns: VendorColumn[];
   isOpen: boolean;
   onOpen: () => void;
 }) {
-  const visibleColumns = columns.filter((c) => c.contracted);
-
   return (
     <tr
       tabIndex={0}
       aria-expanded={isOpen}
-      onClick={onOpen}
+  onClick={onOpen}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -31,34 +36,17 @@ export function VendorPriceRow({
       }}
       className="group cursor-pointer border-t border-line"
     >
-      <td className="px-3 py-2.5 font-mono text-[12px] group-hover:bg-hover">{line.hcpcs}</td>
-      <td className="px-3 py-2.5 group-hover:bg-hover">
-        <div className="text-ink">{line.name}</div>
+      <td className="px-4 py-2.5 font-mono text-[12px] group-hover:bg-hover">{line.hcpcs}</td>
+      <td className="px-4 py-2.5 group-hover:bg-hover">
+        <div className="truncate text-ink">{line.name}</div>
         <div className="text-[12px] text-ink-3">
           {line.categoryLabel} · {line.kind === 'rental' ? 'monthly rental' : 'one-time'}
         </div>
       </td>
       <td className={`${CELL} group-hover:bg-hover`}>{line.units}</td>
       <td className={`${CELL} group-hover:bg-hover`}>{moneyLabel(line.actualUsd)}</td>
-
-      {visibleColumns.map((column) => {
-        const cell = line.prices.find((p) => p.vendorId === column.vendor.id);
-        return (
-          <td key={column.vendor.id} className={`${CELL} bg-bg-subtle border-x border-ink`}>
-            {cell?.unitUsd === null || cell === undefined ? (
-              <span className="text-ink-3">—</span>
-            ) : (
-              <>
-                <div>{moneyCents(cell.unitUsd)}</div>
-                <div className="text-[12px] opacity-70">{moneyLabel(cell.extendedUsd ?? 0)}</div>
-              </>
-            )}
-          </td>
-        );
-      })}
-
-      <td className={`${CELL} group-hover:bg-hover`}>
-        <Sparkline values={line.weeklyActualUsd} label={`${line.hcpcs} spend trend`} />
+      <td className={`${TREND_CELL} group-hover:bg-hover`}>
+        <Sparkline values={cumulativeSpend(line.weeklyActualUsd)} label={`${line.hcpcs} cumulative spend trend`} />
       </td>
     </tr>
   );

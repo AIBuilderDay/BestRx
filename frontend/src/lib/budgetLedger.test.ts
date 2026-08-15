@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   accountTotals,
   buildAccountRows,
+  canViewBudgetAccount,
   NO_OVERRIDES,
   parseRateInput,
   roleRates,
@@ -62,6 +63,23 @@ describe('buildAccountRows', () => {
     // BUD-002 claims 24 assigned patients for case_manager; only 13 are actually assigned.
     expect(rowFor('USR-001').assignedPatients).toBe(13);
   });
+
+  it('shows the owner every hospice account below owner, excluding owner accounts', () => {
+    const ownerRows = buildAccountRows('HSP-001', period, NO_OVERRIDES, 'hospice_admin');
+    expect(ownerRows.map((r) => r.user.id).sort()).toEqual([
+      'USR-001', 'USR-002', 'USR-010', 'USR-012',
+    ]);
+    expect(ownerRows.some((r) => r.user.role === 'hospice_admin')).toBe(false);
+  });
+
+  it('shows directors only case managers, field nurses, and admissions nurses', () => {
+    const directorRows = buildAccountRows('HSP-001', period, NO_OVERRIDES, 'director_of_nursing');
+    expect(directorRows.map((r) => r.user.id).sort()).toEqual([
+      'USR-001', 'USR-002', 'USR-010',
+    ]);
+    expect(directorRows.some((r) => r.user.role === 'hospice_admin')).toBe(false);
+    expect(directorRows.some((r) => r.user.role === 'director_of_nursing')).toBe(false);
+  });
 });
 
 describe('accountTotals', () => {
@@ -70,6 +88,7 @@ describe('accountTotals', () => {
     expect(totals.capUsd).toBeCloseTo(6200, 2);
     expect(totals.spentUsd).toBeCloseTo(15578, 2);
     expect(totals.utilizationPct).toBe(251);
+    expect(totals.overageUsd).toBeCloseTo(9378, 2);
     expect(totals.excludedUserIds.sort()).toEqual(['USR-002', 'USR-012', 'USR-013']);
     expect(totals.excludedReason).toContain('3 accounts excluded');
   });
@@ -116,6 +135,26 @@ describe('roleRates', () => {
     expect(caseManager.accountCount).toBe(2);
     expect(caseManager.assignedPatients).toBe(13);
     expect(cards.find((c) => c.role === 'hospice_admin')?.defaultPpdUsd).toBeNull();
+  });
+
+  it('uses the same role visibility as the account table', () => {
+    expect(roleRates('HSP-001', NO_OVERRIDES, 'hospice_admin').map((c) => c.role).sort()).toEqual([
+      'admissions_nurse', 'case_manager', 'director_of_nursing',
+    ]);
+    expect(roleRates('HSP-001', NO_OVERRIDES, 'director_of_nursing').map((c) => c.role).sort()).toEqual([
+      'admissions_nurse', 'case_manager',
+    ]);
+  });
+});
+
+describe('canViewBudgetAccount', () => {
+  it('allows only subordinate budget roles for reporting users', () => {
+    expect(canViewBudgetAccount('hospice_admin', 'hospice_admin')).toBe(false);
+    expect(canViewBudgetAccount('hospice_admin', 'director_of_nursing')).toBe(true);
+    expect(canViewBudgetAccount('director_of_nursing', 'hospice_admin')).toBe(false);
+    expect(canViewBudgetAccount('director_of_nursing', 'director_of_nursing')).toBe(false);
+    expect(canViewBudgetAccount('director_of_nursing', 'case_manager')).toBe(true);
+    expect(canViewBudgetAccount('director_of_nursing', 'admissions_nurse')).toBe(true);
   });
 });
 

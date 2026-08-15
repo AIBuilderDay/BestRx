@@ -48,6 +48,7 @@ export interface AccountBudgetRow {
   ppdSource: PpdSource;
   capUsd: number | null;
   spentUsd: number;
+  overageUsd: number;
   orderCount: number;
   /** Null when there is no cap to measure against — never Infinity. */
   utilizationPct: number | null;
@@ -61,6 +62,7 @@ export interface AccountTotals {
   capUsd: number;
   spentUsd: number;
   utilizationPct: number | null;
+  overageUsd: number;
   excludedUserIds: string[];
   excludedReason: string | null;
 }
@@ -76,6 +78,11 @@ export type AccountSortKey =
   | 'status';
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
+
+const BUDGET_VISIBLE_ROLES: Partial<Record<UserRole, UserRole[]>> = {
+  hospice_admin: ['director_of_nursing', 'case_manager', 'field_nurse', 'admissions_nurse'],
+  director_of_nursing: ['case_manager', 'field_nurse', 'admissions_nurse'],
+};
 
 /** Accepts partial input like "8." while typing; rejects anything not a finite, non-negative number. */
 export function parseRateInput(raw: string): number | null {
@@ -96,6 +103,18 @@ function hospiceStaff(hospiceId: string): User[] {
   return users
     .filter((u) => u.orgType === 'hospice' && u.orgId === hospiceId)
     .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function budgetVisibleRolesFor(viewerRole: UserRole): Set<UserRole> {
+  return new Set(BUDGET_VISIBLE_ROLES[viewerRole] ?? []);
+}
+
+export function canViewBudgetAccount(viewerRole: UserRole, accountRole: UserRole): boolean {
+  return budgetVisibleRolesFor(viewerRole).has(accountRole);
+}
+
+function visibleHospiceStaff(hospiceId: string, viewerRole: UserRole): User[] {
+  return hospiceStaff(hospiceId).filter((u) => canViewBudgetAccount(viewerRole, u.role));
 }
 
 const caseloadSize = (hospiceId: string, userId: string): number =>
@@ -122,12 +141,14 @@ export function buildAccountRows(
   hospiceId: string,
   period: CostPeriod,
   overrides: PpdOverrides,
+  viewerRole?: UserRole,
 ): AccountBudgetRow[] {
   const periodOrders = getOrdersForHospice(hospiceId).filter((o) =>
     periodContains(period, o.orderedAt),
   );
+  const staff = viewerRole === undefined ? hospiceStaff(hospiceId) : visibleHospiceStaff(hospiceId, viewerRole);
 
-  return hospiceStaff(hospiceId).map((user) => {
+  return staff.map((user) => {
     const assignedPatients = caseloadSize(hospiceId, user.id);
     const { ppdUsd, source } = effectivePpdFor(hospiceId, user, overrides);
 
@@ -153,6 +174,7 @@ export function buildAccountRows(
 
     const utilizationPct =
       capUsd === null || capUsd === 0 ? null : Math.round((spentUsd / capUsd) * 100);
+    const overageUsd = capUsd === null ? 0 : round2(Math.max(0, spentUsd - capUsd));
 
     let status: AccountBudgetStatus;
     let note: string | null = null;
@@ -181,6 +203,7 @@ export function buildAccountRows(
       ppdSource: source,
       capUsd,
       spentUsd,
+      overageUsd,
       orderCount: placed.length,
       utilizationPct,
       status,
@@ -190,8 +213,12 @@ export function buildAccountRows(
   });
 }
 
-export function roleRates(hospiceId: string, overrides: PpdOverrides): RoleRateVM[] {
-  const staff = hospiceStaff(hospiceId);
+export function roleRates(
+  hospiceId: string,
+  overrides: PpdOverrides,
+  viewerRole?: UserRole,
+): RoleRateVM[] {
+  const staff = viewerRole === undefined ? hospiceStaff(hospiceId) : visibleHospiceStaff(hospiceId, viewerRole);
   const roles = [...new Set(staff.map((u) => u.role))];
 
   return roles
@@ -223,6 +250,7 @@ export function accountTotals(rows: AccountBudgetRow[]): AccountTotals {
     assignedPatients: rows.reduce((sum, r) => sum + r.assignedPatients, 0),
     capUsd,
     spentUsd,
+    overageUsd: round2(Math.max(0, spentUsd - capUsd)),
     utilizationPct: capUsd === 0 ? null : Math.round((spentUsd / capUsd) * 100),
     excludedUserIds: excluded.map((r) => r.user.id),
     excludedReason:

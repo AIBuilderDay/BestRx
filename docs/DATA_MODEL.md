@@ -134,7 +134,12 @@ dashboard labels each one on screen.
   exposes one period and buckets it weekly; adding history is a data change, not a code change.
 - **Service areas are narrow.** VND-001 covers 4 of HSP-001's 10 patient ZIPs, VND-002 covers 1,
   VND-003 covers none. A vendor's price is not an available price if it cannot reach the patient, so
-  surface `serviceAreaZips` coverage wherever vendor prices are compared.
+  surface `serviceAreaZips` coverage wherever vendor prices are compared. On the Potential Savings
+  card (`lib/vendorSavings.ts`), coverage is grouped by patient location ("City, ST", derived from
+  `patients[].address`) rather than raw ZIP, and it's a hard gate: a vendor reaching none of a
+  hospice's patient locations is dropped from consideration before scoring, not just flagged. Under
+  the current data this means VND-003 is never suggested to HSP-001 (Salt Lake City) — it only
+  reaches Ogden — which zeroes out that hospice's genuine savings total.
 
 ## Adding data
 
