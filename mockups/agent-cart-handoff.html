@@ -684,7 +684,7 @@
       o.stage.classList.add('open');
       await wait(350);
       land(o);                                            // B's gradient-ring arrival
-      setTimeout(() => o.newwrap.classList.add('settled'), RM ? 0 : 4200);  /* longer hold per review */
+      setTimeout(() => o.newwrap.classList.add('settled'), RM ? 0 : 2200);  /* ~2.2s hold — trimmed per review */
       setTimeout(() => o.cart.classList.remove('flash', 'boom'), RM ? 0 : 1100);
       await wait(2200);
     } finally {

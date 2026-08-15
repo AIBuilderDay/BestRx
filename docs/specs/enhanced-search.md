@@ -192,6 +192,6 @@ Signal requirements regardless of which option wins:
 9. ~~Cart animation~~ — **✅ decided & built: streaking comet + burst + gradient-ring landing**
    (`mockups/agent-cart-handoff.html`). In-app: `src/lib/fx/agentComet.ts` flies the comet from
    the bar to the cart icon and fires the burst; the `.agent-added` line in the drawer wears the
-   sweeping gradient ring + glow for ~4.8s, then settles (CSS in `index.css`).
+   sweeping gradient ring + glow for ~2.4s, then settles (CSS in `index.css`).
 10. **Patient doctor's-notes field.** The data model has no free-text clinical notes yet — adding
    one would showcase the re-rank's real advantage over filters.

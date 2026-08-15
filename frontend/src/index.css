@@ -274,7 +274,7 @@ button:not(:disabled) {
   position: relative;
   isolation: isolate;
   animation:
-    agentAddedWash 4.8s ease-out both,
+    agentAddedWash 2.4s ease-out both,
     agentRingPop 0.9s ease-out both;
 }
 
@@ -296,8 +296,8 @@ button:not(:disabled) {
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation:
-    aiSweep 1.6s linear 3,
-    agentRingFade 4.8s ease-out both;
+    aiSweep 1.2s linear 2,
+    agentRingFade 2.4s ease-out both;
   pointer-events: none;
 }
 
@@ -312,8 +312,8 @@ button:not(:disabled) {
   background-size: 300% 100%;
   filter: blur(10px);
   animation:
-    aiSweep 2s linear 3,
-    agentGlowFade 4.8s ease-out both;
+    aiSweep 1.2s linear 2,
+    agentGlowFade 2.4s ease-out both;
   pointer-events: none;
 }
 
