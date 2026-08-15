@@ -163,10 +163,18 @@ describe('mock database integrity', () => {
     }
   });
 
-  it('sells rentals by the month and everything else outright', () => {
+  it('bills every code the same way across every vendor that sells it', () => {
+    // A code's Medicare-allowed reference basis (equipment_catalog.rental) and how a given vendor
+    // actually bills it are independent facts; what the ledger needs is that vendors selling the
+    // same code agree with each other, so cost derivations can pick one billing model per code.
+    const byCode = new Map<string, Set<string>>();
     for (const offer of vendorOffers) {
-      const expected = getCatalogEntry(offer.hcpcs)?.rental ? 'month' : 'purchase';
-      expect(offer.unit, offer.id).toBe(expected);
+      const units = byCode.get(offer.hcpcs) ?? new Set<string>();
+      units.add(offer.unit);
+      byCode.set(offer.hcpcs, units);
+    }
+    for (const [hcpcs, units] of byCode) {
+      expect([...units], hcpcs).toHaveLength(1);
     }
   });
 });

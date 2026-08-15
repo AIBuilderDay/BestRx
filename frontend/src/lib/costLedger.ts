@@ -23,7 +23,7 @@ import {
 } from '../data/db';
 import { CATEGORY_LABELS } from './catalog';
 import { bucketIndexFor, periodContains, type CostPeriod } from './costPeriod';
-import type { Order, Vendor } from '../types/domain';
+import type { Order, Vendor, VendorOffer } from '../types/domain';
 
 /** On-time delivery floor a vendor must clear before its price counts as a real alternative. */
 export const SERVICE_FLOOR_PCT = 85;
@@ -99,12 +99,27 @@ export interface LadderRow {
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-/** Cheapest offer a vendor lists for a code, or null when it doesn't sell it. */
-function unitPriceFor(vendorId: string, hcpcs: string): number | null {
-  const prices = getOffersForItem(hcpcs)
-    .filter((o) => o.vendorId === vendorId)
-    .map((o) => o.priceUsd);
-  return prices.length === 0 ? null : Math.min(...prices);
+/**
+ * Cheapest offer a vendor lists for a code, or null when it doesn't sell it. Billing model
+ * (`unit`) is read off the offer itself rather than `equipment_catalog.rental` — a code's
+ * Medicare-allowed reference basis and how a given vendor actually bills it are independent facts,
+ * and only the offer knows the latter.
+ */
+function cheapestOfferFor(vendorId: string, hcpcs: string): VendorOffer | null {
+  const offers = getOffersForItem(hcpcs).filter((o) => o.vendorId === vendorId);
+  if (offers.length === 0) return null;
+  return offers.reduce((min, o) => (o.priceUsd < min.priceUsd ? o : min));
+}
+
+const monthsFor = (offer: VendorOffer, period: CostPeriod): number =>
+  offer.unit === 'month' ? period.months : 1;
+
+/** The billing model this code is actually sold under. Falls back to the catalog only if a code
+ *  has no offers at all (nothing to read a real billing model from). */
+function codeUnitKind(hcpcs: string): BasketLine['kind'] {
+  const offers = getOffersForItem(hcpcs);
+  if (offers.length > 0) return offers[0].unit === 'month' ? 'rental' : 'purchase';
+  return getCatalogEntry(hcpcs)?.rental ? 'rental' : 'purchase';
 }
 
 export function vendorColumns(hospiceId: string): VendorColumn[] {
@@ -136,11 +151,9 @@ export function orderExtendedUsd(order: Order, period: CostPeriod): number {
   if (!order.vendorId) return 0;
   let total = 0;
   for (const item of order.equipment) {
-    const unit = unitPriceFor(order.vendorId, item.hcpcs);
-    if (unit === null) continue;
-    const entry = getCatalogEntry(item.hcpcs);
-    const months = entry?.rental ? period.months : 1;
-    total += item.qty * unit * months;
+    const offer = cheapestOfferFor(order.vendorId, item.hcpcs);
+    if (offer === null) continue;
+    total += item.qty * offer.priceUsd * monthsFor(offer, period);
   }
   return round2(total);
 }
@@ -158,16 +171,14 @@ export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[]
     if (!periodContains(period, order.orderedAt)) continue;
     const bucket = bucketIndexFor(period, order.orderedAt);
     for (const item of order.equipment) {
-      const entry = getCatalogEntry(item.hcpcs);
-      const months = entry?.rental ? period.months : 1;
       units.set(item.hcpcs, (units.get(item.hcpcs) ?? 0) + item.qty);
 
       const weeks = weeklyUnits.get(item.hcpcs) ?? new Array<number>(bucketCount).fill(0);
       if (bucket >= 0) weeks[bucket] += item.qty;
       weeklyUnits.set(item.hcpcs, weeks);
 
-      const paidUnit = order.vendorId ? unitPriceFor(order.vendorId, item.hcpcs) : null;
-      const paid = paidUnit === null ? 0 : item.qty * paidUnit * months;
+      const paidOffer = order.vendorId ? cheapestOfferFor(order.vendorId, item.hcpcs) : null;
+      const paid = paidOffer === null ? 0 : item.qty * paidOffer.priceUsd * monthsFor(paidOffer, period);
       actual.set(item.hcpcs, (actual.get(item.hcpcs) ?? 0) + paid);
 
       const paidWeeks = weeklyActual.get(item.hcpcs) ?? new Array<number>(bucketCount).fill(0);
@@ -179,15 +190,16 @@ export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[]
   const lines: BasketLine[] = [];
   for (const [hcpcs, unitCount] of units) {
     const entry = getCatalogEntry(hcpcs);
-    const kind: BasketLine['kind'] = entry?.rental ? 'rental' : 'purchase';
-    const months = entry?.rental ? period.months : 1;
+    const kind = codeUnitKind(hcpcs);
 
     const prices: VendorUnitPrice[] = columns.map((column) => {
-      const unitUsd = unitPriceFor(column.vendor.id, hcpcs);
+      const offer = cheapestOfferFor(column.vendor.id, hcpcs);
+      const unitUsd = offer?.priceUsd ?? null;
       return {
         vendorId: column.vendor.id,
         unitUsd,
-        extendedUsd: unitUsd === null ? null : round2(unitCount * unitUsd * months),
+        extendedUsd:
+          offer === null ? null : round2(unitCount * offer.priceUsd * monthsFor(offer, period)),
       };
     });
 

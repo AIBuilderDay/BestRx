@@ -70,27 +70,32 @@ describe('buildBasket', () => {
     }
   });
 
-  it('marks rentals and purchases from the catalog, never guessing', () => {
+  it('reads the billing model off the offers themselves, not a stale catalog flag', () => {
+    // E0250 and E0277 are rental:true in equipment_catalog (their Medicare reference basis is
+    // monthly) but every vendor now sells them as one-time purchases — the offers are what
+    // actually gets billed, so they win.
     const purchases = lines.filter((l) => l.kind === 'purchase').map((l) => l.hcpcs).sort();
-    expect(purchases).toEqual(['A7030', 'E0100', 'E0143', 'E0163']);
+    expect(purchases).toEqual(['A7030', 'E0100', 'E0143', 'E0163', 'E0250', 'E0277']);
   });
 });
 
 describe('basketTotals', () => {
   it('prices the basket at each vendor', () => {
-    expect(totals.perVendorUsd['VND-001']).toBeCloseTo(5140, 2);
-    expect(totals.perVendorUsd['VND-002']).toBeCloseTo(4563.5, 2);
-    expect(totals.perVendorUsd['VND-003']).toBeCloseTo(4144, 2);
+    expect(totals.perVendorUsd['VND-001']).toBeCloseTo(17786, 2);
+    expect(totals.perVendorUsd['VND-002']).toBeCloseTo(15785.5, 2);
+    expect(totals.perVendorUsd['VND-003']).toBeCloseTo(14434, 2);
   });
 
   it('reports what was actually paid, each order at the vendor that took it', () => {
-    expect(totals.actualUsd).toBeCloseTo(4606, 2);
+    expect(totals.actualUsd).toBeCloseTo(15578, 2);
     expect(totals.rentalMonthlyUsd + totals.purchaseUsd).toBeCloseTo(totals.actualUsd, 2);
+    expect(totals.rentalMonthlyUsd).toBeCloseTo(1756, 2);
+    expect(totals.purchaseUsd).toBeCloseTo(13822, 2);
   });
 
   it('reports the qualified delta as a signed number, so a premium is never shown as a saving', () => {
     // The only vendor clearing the service floor is also the most expensive: qualifying costs more.
-    expect(totals.qualifiedDeltaUsd).toBeCloseTo(4606 - 5140, 2);
+    expect(totals.qualifiedDeltaUsd).toBeCloseTo(15578 - 17786, 2);
     expect(totals.qualifiedDeltaUsd).toBeLessThan(0);
   });
 
@@ -140,7 +145,7 @@ describe('ledgerPpd', () => {
     const ppd = ledgerPpd('HSP-001', totals.actualUsd, period);
     expect(ppd.census).toBe(142);
     expect(ppd.days).toBe(31);
-    expect(ppd.ppdUsd).toBeCloseTo(4606 / (142 * 31), 4);
+    expect(ppd.ppdUsd).toBeCloseTo(15578 / (142 * 31), 4);
   });
 
   it('returns zero rather than Infinity for an unknown hospice', () => {

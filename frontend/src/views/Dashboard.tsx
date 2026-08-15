@@ -48,7 +48,7 @@ const isDashboardTab = (value: string | null): value is DashboardTab =>
  * PPD overrides are owned here rather than in BudgetPanel: editing a rate moves the account caps,
  * which move the budget-utilization tile on the cost panel. Split ownership would leave it stale.
  */
-export default function Dashboard({ user }: { user: User }) {
+export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -120,6 +120,7 @@ export default function Dashboard({ user }: { user: User }) {
         cartCount={cartCount}
         activeSection="dashboard"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">

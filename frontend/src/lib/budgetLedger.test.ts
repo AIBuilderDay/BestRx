@@ -27,15 +27,15 @@ describe('buildAccountRows', () => {
     expect(dana.assignedPatients).toBe(13);
     expect(dana.ppdUsd).toBe(8);
     expect(dana.capUsd).toBeCloseTo(8 * 13 * 31, 2);
-    expect(dana.spentUsd).toBeCloseTo(1645, 2);
-    expect(dana.status).toBe('under');
+    expect(dana.spentUsd).toBeCloseTo(6530, 2);
+    expect(dana.status).toBe('over');
   });
 
-  it('flags an account approaching its cap', () => {
+  it('flags an account that has blown through its cap', () => {
     const bea = rowFor('USR-010');
     expect(bea.capUsd).toBeCloseTo(8 * 12 * 31, 2);
-    expect(bea.utilizationPct).toBe(93);
-    expect(bea.status).toBe('near');
+    expect(bea.utilizationPct).toBe(298);
+    expect(bea.status).toBe('over');
   });
 
   it('never reports a utilization for a zero cap, and says why', () => {
@@ -68,8 +68,8 @@ describe('accountTotals', () => {
   it('sums only rows with a real cap, and names the exclusions', () => {
     const totals = accountTotals(rows);
     expect(totals.capUsd).toBeCloseTo(6200, 2);
-    expect(totals.spentUsd).toBeCloseTo(4606, 2);
-    expect(totals.utilizationPct).toBe(74);
+    expect(totals.spentUsd).toBeCloseTo(15578, 2);
+    expect(totals.utilizationPct).toBe(251);
     expect(totals.excludedUserIds.sort()).toEqual(['USR-002', 'USR-012', 'USR-013']);
     expect(totals.excludedReason).toContain('3 accounts excluded');
   });
@@ -149,7 +149,7 @@ describe('sortAccountRows', () => {
   });
 
   it('ranks status worst-first', () => {
-    expect(sortAccountRows(rows, 'status', 1)[0].status).toBe('near');
+    expect(sortAccountRows(rows, 'status', 1)[0].status).toBe('over');
   });
 
   it('leaves the source array untouched', () => {
