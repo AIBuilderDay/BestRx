@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { can, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
+import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
 export type NavSection = "catalog" | "orders" | "patients";
@@ -18,28 +18,7 @@ const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
 const canViewOrders = (user: User): boolean =>
   can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
 
-const SEARCH_BY_SECTION: Record<
-  NavSection,
-  { path: string; placeholder: string; label: string }
-> = {
-  catalog: {
-    path: "/catalog",
-    placeholder: "Search equipment…",
-    label: "Search equipment",
-  },
-  orders: {
-    path: "/orders",
-    placeholder: "Search orders, patients, or MRN…",
-    label: "Search orders",
-  },
-  patients: {
-    path: "/patients",
-    placeholder: "Search patients or MRN…",
-    label: "Search patients",
-  },
-};
-
-/** Sticky app header: brand, section nav, contextual search, cart icon, and the profile menu. */
+/** Sticky app header: brand, section nav, the AI search bar, cart icon, and the profile menu. */
 export function TopNav({
   user,
   cartCount,
@@ -53,25 +32,6 @@ export function TopNav({
   onOpenCart: () => void;
   onSignOut: () => void;
 }) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
-  const [query, setQuery] = useState(urlQuery);
-
-  // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
-  useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
-
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
-    const { path } = SEARCH_BY_SECTION[activeSection];
-    navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path);
-  };
-
-  const searchMeta = SEARCH_BY_SECTION[activeSection];
-
   const linkClass = (section: NavSection) =>
     section === activeSection
       ? "nav-link text-ink"
@@ -125,32 +85,7 @@ export function TopNav({
         </nav>
       </div>
 
-      <form
-        onSubmit={submitSearch}
-        role="search"
-        className="flex w-full min-w-0 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-ink-3 transition-colors focus-within:border-ink"
-      >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.5-3.5" />
-        </svg>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={searchMeta.placeholder}
-          aria-label={searchMeta.label}
-          className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
-        />
-      </form>
+      <NavSearch user={user} />
 
       <div className="flex shrink-0 items-center gap-3 justify-self-end">
         <button
@@ -161,8 +96,8 @@ export function TopNav({
           className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
         >
           <svg
-            width="30"
-            height="30"
+            width="36"
+            height="36"
             viewBox="0 0 32 32"
             fill="none"
             stroke="currentColor"
