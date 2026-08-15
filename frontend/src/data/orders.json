@@ -24,7 +24,7 @@
       "required": true,
       "confirmed": false
     },
-    "notes": "Discharge scheduled for tomorrow afternoon. Sample Vendor 1 is preparing delivery."
+    "notes": "Discharge scheduled for tomorrow afternoon. Alpine Home Medical is preparing delivery."
   },
   {
     "id": "DME-10198",
@@ -80,8 +80,8 @@
       "reason": "Discharge is scheduled for 4:30 PM. The current ETA of 5:10 PM misses that window by about 40 minutes.",
       "factors": [
         "ETA 5:10 PM vs 4:30 PM discharge deadline (40 minutes late)",
-        "Sample Vendor 2 on-time delivery rate 81% over 30 days",
-        "Sample Vendor 2 route capacity at 91% today",
+        "Affinity Home Medical on-time delivery rate 81% over 30 days (simulated)",
+        "Affinity Home Medical route capacity at 91% today (simulated)",
         "STAT order type carries the highest historical failure rate"
       ],
       "escalation": {
@@ -188,9 +188,9 @@
       "reason": "Pickup was triggered four days ago with no scheduled retrieval. The 72-hour SLA is breached and the family has called twice.",
       "factors": [
         "96 hours elapsed against a 72-hour pickup SLA",
-        "Sample Vendor 3 on-time pickup rate 52% over 30 days",
+        "IOC Home Medical on-time pickup rate 52% over 30 days (simulated)",
         "2 family complaint calls logged",
-        "Escalated to the Sample Vendor 3 account rep on Aug 12"
+        "Escalated to the IOC Home Medical account rep on Aug 12"
       ],
       "escalation": {
         "state": "escalated_to_vendor_rep",
@@ -230,7 +230,7 @@
       "required": true,
       "confirmed": false
     },
-    "notes": "New admission tomorrow morning. Sample Vendor 1 confirmed delivery."
+    "notes": "New admission tomorrow morning. Alpine Home Medical confirmed delivery."
   },
   {
     "id": "DME-10298",

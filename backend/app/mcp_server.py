@@ -190,16 +190,20 @@ def list_inventory(vendorId: str | None = None) -> list[Row]:
 
 
 @mcp.tool(tags={"catalog"}, annotations=_READ)
-def list_reviews(offerId: str | None = None) -> list[Row]:
-    """List product reviews written against vendor offers.
+def list_reviews(
+    offerId: str | None = None, sort: str = "recent", order: str = "desc"
+) -> list[Row]:
+    """List product reviews written against vendor offers, newest first by default.
 
     Args:
         offerId: Restrict to reviews of one offer.
+        sort: "recent" (by date) or "rating" (by stars).
+        order: "desc" (default) or "asc".
     """
     rows = fixtures.product_reviews()
     if offerId:
         rows = [r for r in rows if r.get("offerId") == offerId]
-    return rows
+    return fixtures.sort_reviews(rows, sort, order)
 
 
 @mcp.tool(tags={"catalog"}, annotations=_READ)

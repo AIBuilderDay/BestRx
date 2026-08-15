@@ -101,11 +101,15 @@ def list_inventory(vendorId: str | None = Query(default=None)) -> list[dict[str,
 
 
 @router.get("/reviews")
-def list_reviews(offerId: str | None = Query(default=None)) -> list[dict[str, Any]]:
+def list_reviews(
+    offerId: str | None = Query(default=None),
+    sort: str = Query(default="recent", description="recent | rating"),
+    order: str = Query(default="desc", description="desc | asc"),
+) -> list[dict[str, Any]]:
     rows = fixtures.product_reviews()
     if offerId:
         rows = [row for row in rows if row.get("offerId") == offerId]
-    return rows
+    return fixtures.sort_reviews(rows, sort, order)
 
 
 @router.get("/emr-events")

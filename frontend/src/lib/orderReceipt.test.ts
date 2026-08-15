@@ -12,7 +12,7 @@ describe('buildOrderReceiptVM', () => {
     expect(receiptTotalLabel(receipt!)).toContain('$');
   });
 
-  it('prices Vendor 2 wheelchair orders from vendor offers', () => {
+  it('prices Affinity Home Medical wheelchair orders from vendor offers', () => {
     const receipt = buildOrderReceiptVM('DME-10363');
     expect(receipt?.lines[0].unitPriceUsd).toBe(66);
     expect(receiptTotalLabel(receipt!)).toBe('$66/mo');

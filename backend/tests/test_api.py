@@ -160,6 +160,30 @@ def test_all_events_is_not_shadowed_by_the_order_id_route(client: TestClient) ->
     assert all("orderId" in event for event in events)
 
 
+def test_reviews_default_to_newest_first(client: TestClient) -> None:
+    rows = client.get("/reviews", params={"offerId": "OFR-001"}).json()
+    assert len(rows) > 1
+    assert all(row["offerId"] == "OFR-001" for row in rows)
+    dates = [row["reviewedAt"] for row in rows]
+    assert dates == sorted(dates, reverse=True)
+
+
+def test_reviews_sort_by_rating_and_oldest(client: TestClient) -> None:
+    by_rating = client.get("/reviews", params={"offerId": "OFR-001", "sort": "rating"}).json()
+    ratings = [row["rating"] for row in by_rating]
+    assert ratings == sorted(ratings, reverse=True)
+
+    oldest = client.get("/reviews", params={"offerId": "OFR-001", "order": "asc"}).json()
+    dates = [row["reviewedAt"] for row in oldest]
+    assert dates == sorted(dates)
+
+
+def test_unknown_review_sort_falls_back_to_recent(client: TestClient) -> None:
+    rows = client.get("/reviews", params={"sort": "nonsense"}).json()
+    dates = [row["reviewedAt"] for row in rows]
+    assert dates == sorted(dates, reverse=True)
+
+
 def test_real_vendors_are_served_and_sourced(client: TestClient) -> None:
     response = client.get("/real-vendors")
     assert response.status_code == 200

@@ -30,8 +30,8 @@ usable.
 |---|---|---|---|
 | `equipment_catalog.json` | 10 | `hcpcs` | — |
 | `hospices.json` | 3 | `id` (HSP-) | — |
-| `vendors.json` | 3 | `id` (VND-) | — |
-| `real_vendors.json` | 8 | `id` (RVND-) | `hcpcsCarried` → `equipment_catalog.hcpcs`. Reference only — see below |
+| `vendors.json` | 3 | `id` (VND-) | `realVendorId` → `real_vendors.id`. Real supplier identities; telemetry simulated — see below |
+| `real_vendors.json` | 11 | `id` (RVND-) | `hcpcsCarried` → `equipment_catalog.hcpcs`. Scraped reference data — see below |
 | `users.json` | 13 | `id` (USR-) | `orgId` → hospice or vendor. `email` is the login identity; permissions derive from `role` in `src/lib/auth.ts`, not from this table |
 | `patients.json` | 30 | `id` (PT-) | `hospiceId`, `caseManagerId` |
 | `orders.json` | 66 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
@@ -58,32 +58,57 @@ patient_notes   ──> patients, users             care-team sticky notes on a 
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
-## Two vendor tables, on purpose
+## Two vendor tables
 
-**`vendors.json`** is the simulated storefront: three fictional vendors (`Sample Vendor 1…3`) that
-orders point at. It carries operational telemetry — `fleet`, `sla`, `performance30d`,
-`overallRating` — that drives the scorecard and risk math.
+**`vendors.json`** is the storefront that orders point at. Each of its three rows now names a **real
+Utah supplier**, scraped from that supplier's own site:
 
-**`real_vendors.json`** is reference data: eight real, publicly-listed DME suppliers (four Utah,
-four national/multi-region), scraped from each vendor's own site or a directory listing. Nothing
-points at it and nothing derives from it.
+| id | Supplier | Market | Source |
+|---|---|---|---|
+| `VND-001` | Alpine Home Medical | Salt Lake City, UT | `alpinehomemedical.com` |
+| `VND-002` | Affinity Home Medical | Salt Lake City, UT | `affinityhomemedical.com` |
+| `VND-003` | IOC Home Medical | Orem, UT | `iocdme.com` |
 
-They are separate because **no supplier publishes the telemetry `vendors.json` carries.** Truck
-counts, on-time percentages, POD capture rates, and contracted SLA hours are private operational
-data. Filling those in for a named real company would be inventing vendor facts about a real
-business — the exact thing CLAUDE.md forbids. So `RealVendor` has no such fields: every value is
-either sourced or `null`, and each row records `sourceUrl` and `sourceRetrieved`.
+Each row records `realVendorId` (the `real_vendors.json` row it was built from), `sourceUrl`, and
+`sourceRetrieved`.
 
-Consequences for anyone extending this:
+**Identity is real; operational telemetry is not.** `fleet`, `sla`, `performance30d`,
+`overallRating` and `overallRatingCount` are fabricated for the demo, because no supplier publishes
+truck counts, on-time percentages, POD capture rates or contracted SLA hours. Every row therefore
+carries a **`simulated`** object naming exactly which fields are invented, and the `Vendor` type
+documents the same. **Anything that renders one of those fields must show it as simulated** — a demo
+figure must never read as a performance claim about the named company. `VND-003` carries the weak
+performance profile (52% on-time pickup), which makes this disclosure load-bearing, not cosmetic.
 
-- Don't merge the two tables, and don't widen `Vendor` to accept real rows. An order's `vendorId`
-  must stay a `VND-` id.
+Scraped, and therefore real: `name`, `displayName`, `market`, `hours`, `contact.dispatchPhone`.
+`contact.dispatchEmail` and `contact.repName` are `null` — the suppliers do not publish them. Prices
+in `vendor_offers.json` remain synthetic; see [PRICE_SOURCES.md](PRICE_SOURCES.md).
+
+**`real_vendors.json`** is the reference table behind it: eleven real, publicly-listed DME suppliers
+(six Utah, five national/multi-region), each scraped from the vendor's own site or a directory
+listing, each carrying `sourceUrl` and `sourceRetrieved`. It holds **no invented fields at all** —
+every value is either sourced or `null` — which is what makes it safe to widen. `RealVendor` has no
+telemetry fields and must not gain any.
+
+Rules for anyone extending this:
+
+- An order's `vendorId` must stay a `VND-` id. Point a storefront row at a real supplier through
+  `realVendorId`; do not make orders reference `RVND-` ids directly.
+- Adding or repointing a storefront vendor means scraping a real source, adding the `RVND-` row
+  first, and setting `sourceUrl`/`sourceRetrieved`. Never invent a supplier identity.
+- Never add a field to `Vendor` that a real supplier does not publish without also listing it in
+  that row's `simulated.fields`.
 - `serviceAreaDescription` is prose, not `serviceAreaZips`. Suppliers publish "the Wasatch Front",
-  not ZIP lists. Do not synthesize ZIPs from it.
+  not ZIP lists. Do not synthesize ZIPs from it. (`vendors.json` keeps a `serviceAreaZips` list for
+  routing math; treat it as demo data, not a published service area.)
 - `hcpcsCarried` is a mapping from each vendor's published product lines onto our catalog codes, so
   it is a coverage claim, not a price list. There are no prices — nobody publishes hospice contract
   rates. If a screen needs a price, it belongs in `vendor_offers.json`.
 - If a field is `null`, the source did not state it. Render it as unknown; never backfill a guess.
+
+The bounty's canonical orders in [bounty/SAMPLE_ORDERS.md](bounty/SAMPLE_ORDERS.md) still say
+`Sample Vendor 1…3`; that is the organizers' source material and is left as written — read it as
+`VND-001…003` in order.
 
 ## The tables that carry the product
 
@@ -102,8 +127,9 @@ a score without the reason next to it.
 what a drawer or detail view renders, and it is the shape a real event feed would take.
 
 **`vendors[].sla` vs `vendors[].performance30d`** is the promise against the reality — the pair that
-makes the scorecard worth looking at. Vendor 1 is the strong performer, Vendor 3 is the weak one
-(52% on-time pickup), and Vendor 2 sits between them with a capacity problem today.
+makes the scorecard worth looking at. `VND-001` is the strong performer, `VND-003` is the weak one
+(52% on-time pickup), and `VND-002` sits between them with a capacity problem today. **Both fields
+are simulated** — see the `simulated` block on each row before rendering either.
 
 **`emr_events`** shows the integration story concretely: a `patientStatusChange` (deceased) that
 arrived 47 minutes *after* the field nurse already triggered the pickup, and one 7.5 hours late.
@@ -130,7 +156,7 @@ that item rating next to the product name. Admissions nurses and case managers s
 stored for director of nursing and hospice owner views. They are not shown on the catalog storefront.
 `vendorRatingSummary()` in `lib/reviews.ts` must agree with these stored values.
 
-**`vendors[].displayName`** is the short label shown in the catalog and cart (e.g. "Vendor 1").
+**`vendors[].displayName`** is the short label shown in the catalog and cart (e.g. "Alpine Home Medical").
 Use it in the UI rather than trimming `name`.
 
 **`budgets`** carries both kinds from the whiteboard: a monthly cap per role, and a cap per one-time

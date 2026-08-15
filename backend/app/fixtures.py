@@ -68,6 +68,29 @@ def product_reviews() -> list[Row]:
     return load_table("product_reviews")
 
 
+# Sort keys the reviews endpoint accepts. "recent" is the default everywhere a reader sees reviews:
+# the newest delivery is the one that says most about how a vendor is performing now.
+REVIEW_SORTS = ("recent", "rating")
+
+
+def sort_reviews(rows: list[Row], sort: str = "recent", order: str = "desc") -> list[Row]:
+    """Order reviews by date or star rating. Unknown keys fall back to "recent".
+
+    Ties break on `reviewedAt` descending so a rating sort still reads newest-first within a star
+    band, and the order is stable across calls.
+    """
+    if sort not in REVIEW_SORTS:
+        sort = "recent"
+    reverse = order != "asc"
+
+    rows = sorted(rows, key=lambda row: str(row.get("reviewedAt") or ""), reverse=True)
+    if sort == "rating":
+        rows.sort(key=lambda row: row.get("rating") or 0, reverse=reverse)
+    elif not reverse:
+        rows.reverse()
+    return rows
+
+
 def hospices() -> list[Row]:
     return load_table("hospices")
 

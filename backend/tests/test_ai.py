@@ -361,11 +361,53 @@ def test_agent_order_writes_the_cart_through_mcp(
     assert body["cart"]["lines"][0]["offerId"] == "OFR-002"
     # Priced server-side from the catalog — the model never supplied a number.
     assert body["cart"]["lines"][0]["priceUsd"] > 0
-    assert body["added"] == {"offerId": "OFR-002", "patientId": "PT-88421"}
+    assert body["added"] == [{"offerId": "OFR-002", "patientId": "PT-88421"}]
     assert [call["tool"] for call in body["toolCalls"]] == ["get_cart", "update_cart"]
 
     # And the same store answers the REST endpoint — one cart, not two.
     assert ai_client.get(f"/carts/{USER}").json()["lines"][0]["offerId"] == "OFR-002"
+
+
+def test_agent_order_reports_every_line_it_added(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """One command can fill several lines across several patients — the drawer spotlights all."""
+    first = {"offerId": "OFR-002", "patientId": "PT-88421", "qty": 1, "unit": "month"}
+    second = {"offerId": "OFR-001", "patientId": "PT-88190", "qty": 1, "unit": "month"}
+    _stub_model(
+        monkeypatch,
+        [
+            _Response(
+                [_ToolUseBlock("tu_1", "get_cart", {"userId": USER})], stop_reason="tool_use"
+            ),
+            _Response(
+                [_ToolUseBlock("tu_2", "update_cart", {"userId": USER, "lines": [first]})],
+                stop_reason="tool_use",
+            ),
+            # A second write turn: the earlier line must stay highlighted, not be replaced.
+            _Response(
+                [
+                    _ToolUseBlock(
+                        "tu_3", "update_cart", {"userId": USER, "lines": [first, second]}
+                    )
+                ],
+                stop_reason="tool_use",
+            ),
+            _Response([_TextBlock("Added 2 items.")]),
+        ],
+    )
+
+    response = ai_client.post(
+        "/ai/order",
+        json={"command": "order a wheelchair for Harold and a bed for Maria", "userId": USER},
+    )
+
+    assert response.status_code == 200
+    added = response.json()["added"]
+    assert {(a["offerId"], a["patientId"]) for a in added} == {
+        ("OFR-002", "PT-88421"),
+        ("OFR-001", "PT-88190"),
+    }
 
 
 def test_agent_order_reports_no_match_without_touching_the_cart(
@@ -380,7 +422,7 @@ def test_agent_order_reports_no_match_without_touching_the_cart(
     assert response.status_code == 200
     body = response.json()
     assert body["cart"] is None
-    assert body["added"] is None
+    assert body["added"] == []
     assert ai_client.get(f"/carts/{USER}").json()["lines"] == []
 
 

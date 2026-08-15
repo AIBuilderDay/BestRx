@@ -18,7 +18,7 @@ export function CartDrawer({
   onViewCart,
   onPlaceOrder,
   placing = false,
-  agentAdded = null,
+  agentAdded = [],
 }: {
   open: boolean;
   groups: CartGroupVM[];
@@ -30,8 +30,8 @@ export function CartDrawer({
   onPlaceOrder: () => void;
   /** True while checkout is in flight, so a double-tap cannot place the order twice. */
   placing?: boolean;
-  /** The line the AI agent just added — spotlighted so the nurse can verify it. */
-  agentAdded?: AgentAddedLine | null;
+  /** Every line the AI agent just added — all spotlighted so the nurse can verify them. */
+  agentAdded?: AgentAddedLine[];
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;
@@ -90,20 +90,20 @@ export function CartDrawer({
                   <div className="font-mono text-[12.5px] tabular-nums">{g.patientName}</div>
                   <div className="mt-0.5 text-[11px] text-ink-3">{g.patientMetaLine}</div>
                 </div>
-                <div className="mt-3 grid gap-3">
+                <div className="mt-3 grid gap-5">
                   {g.lines.map((l) => {
                     // Gate on `open` so the ring animation starts when the drawer is
                     // actually visible — the drawer stays mounted while closed.
                     const byAgent =
                       open &&
-                      agentAdded !== null &&
-                      agentAdded.offerId === l.offerId &&
-                      agentAdded.patientId === l.patientId;
+                      agentAdded.some(
+                        (a) => a.offerId === l.offerId && a.patientId === l.patientId,
+                      );
                     return (
                     <div
                       key={l.offerId}
                       style={{ animationDelay: `${staggerMs(step++)}ms` }}
-                      className={`grid animate-[lineIn_0.4s_cubic-bezier(0.2,0.7,0.2,1)_both] grid-cols-[46px_1fr_auto] items-center gap-2.5 ${byAgent ? 'agent-added rounded-sm p-1 -m-1' : ''}`}
+                      className={`grid animate-[lineIn_0.4s_cubic-bezier(0.2,0.7,0.2,1)_both] grid-cols-[46px_1fr_auto] items-center gap-2.5 ${byAgent ? 'agent-added rounded-sm p-1' : ''}`}
                     >
                       <img
                         src={l.imagePath}

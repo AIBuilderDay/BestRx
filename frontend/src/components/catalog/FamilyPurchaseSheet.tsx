@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react';
-import { moneyLabel, type CatalogProductVM } from '../../lib/catalog';
+import {
+  moneyLabel,
+  offerPriceFor,
+  unitTermsFor,
+  type CatalogProductVM,
+  type PriceUnit,
+} from '../../lib/catalog';
 
 /**
  * Family-facing add-to-cart modal. Unlike the staff PatientAssignSheet there is no patient to pick —
@@ -8,11 +14,14 @@ import { moneyLabel, type CatalogProductVM } from '../../lib/catalog';
  */
 export function FamilyPurchaseSheet({
   product,
+  unit,
   patientName,
   onClose,
   onAddToCart,
 }: {
   product: CatalogProductVM | null;
+  /** The arrangement the card was showing — the cart line is created under this same unit. */
+  unit: PriceUnit;
   patientName: string;
   onClose: () => void;
   onAddToCart: (qty: number) => void;
@@ -25,7 +34,9 @@ export function FamilyPurchaseSheet({
 
   if (!product) return null;
 
-  const unit = product.price.unit === '/mo' ? '/mo' : '';
+  // Price the arrangement the card was showing, not the page default.
+  const price = offerPriceFor(product.offer, unit) ?? product.price;
+  const terms = unitTermsFor(price);
   const step = (delta: number) => setQty((v) => Math.max(1, Math.min(99, v + delta)));
 
   return (
@@ -39,8 +50,12 @@ export function FamilyPurchaseSheet({
             <div className="text-[11px] uppercase tracking-[0.1em] text-ink-3">For {patientName}</div>
             <div className="mt-1.5 text-[17px] tracking-tight">{product.offer.productName}</div>
             <div className="mt-0.5 text-xs text-ink-2">
-              {product.offer.hcpcs} · {product.vendor.displayName} · {moneyLabel(product.price.amount)}
-              {unit}
+              {product.offer.hcpcs} · {product.vendor.displayName}
+            </div>
+            <div className="mt-1.5 text-xs">
+              <span className="text-ink-3">{terms.label}</span>{' '}
+              <span className="font-mono tabular-nums">{moneyLabel(price.amount)}</span>
+              {terms.suffix} <span className="text-ink-3">per unit</span>
             </div>
           </div>
           <button
@@ -82,8 +97,8 @@ export function FamilyPurchaseSheet({
             </button>
           </div>
           <div className="text-sm">
-            <span className="font-mono tabular-nums">{moneyLabel(product.price.amount * qty)}</span>
-            {unit} total
+            <span className="font-mono tabular-nums">{moneyLabel(price.amount * qty)}</span>
+            {terms.suffix} total
           </div>
         </div>
 

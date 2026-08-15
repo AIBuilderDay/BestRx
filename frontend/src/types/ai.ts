@@ -57,7 +57,7 @@ export interface AgentToolCall {
   ok: boolean;
 }
 
-/** The cart line the agent just added, so the drawer can spotlight it. */
+/** A cart line the agent just added, so the drawer can spotlight it. */
 export interface AgentAddedLine {
   offerId: string;
   patientId: string;
@@ -76,7 +76,7 @@ export interface AgentOrderResult {
   summary: string;
   /** The cart as the server now holds it, or null when nothing was added. */
   cart: CartDto | null;
-  /** The line the cart gained, for the drawer's spotlight. Null when the cart was not changed. */
-  added: AgentAddedLine | null;
+  /** Every line the cart gained, for the drawer's spotlight. Empty when the cart was not changed. */
+  added: AgentAddedLine[];
   toolCalls: AgentToolCall[];
 }

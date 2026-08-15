@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { Patient } from '../../types/domain';
-import { moneyLabel, patientFullName, patientMeta, patientOwnsEquipment, type CatalogProductVM } from '../../lib/catalog';
+import {
+  moneyLabel,
+  offerPriceFor,
+  patientFullName,
+  patientMeta,
+  patientOwnsEquipment,
+  unitTermsFor,
+  type CatalogProductVM,
+  type PriceUnit,
+} from '../../lib/catalog';
 
 function QuantityPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   const step = (delta: number) => onChange(Math.max(1, Math.min(99, value + delta)));
@@ -39,11 +48,14 @@ function QuantityPicker({ value, onChange }: { value: number; onChange: (n: numb
 /** Two-step modal: pick patient(s), then choose the quantity to add to the cart. */
 export function PatientAssignSheet({
   product,
+  unit,
   patients,
   onClose,
   onConfirm,
 }: {
   product: CatalogProductVM | null;
+  /** The arrangement the card was showing — the cart line is created under this same unit. */
+  unit: PriceUnit;
   patients: Patient[];
   onClose: () => void;
   onConfirm: (selectedPatientIds: string[], qty: number) => void;
@@ -62,6 +74,11 @@ export function PatientAssignSheet({
   }, [product?.offer.id]);
 
   if (!product) return null;
+
+  // Price the arrangement the card was showing, not the page default. offerPriceFor falls back to
+  // the arrangement the vendor does sell, so a single-price offer still shows a real number.
+  const price = offerPriceFor(product.offer, unit) ?? product.price;
+  const terms = unitTermsFor(price);
 
   const q = query.trim().toLowerCase();
   const filtered = patients.filter(
@@ -101,8 +118,9 @@ export function PatientAssignSheet({
                 </div>
                 <div className="mt-1.5 text-[17px] tracking-tight">{product.offer.productName}</div>
                 <div className="mt-0.5 text-xs text-ink-2">
-                  {product.offer.hcpcs} · {product.vendor.displayName} · {moneyLabel(product.price.amount)}
-                  {product.price.unit === '/mo' ? '/mo' : ''}
+                  {product.offer.hcpcs} · {product.vendor.displayName} · {terms.label}{' '}
+                  {moneyLabel(price.amount)}
+                  {terms.suffix}
                 </div>
               </div>
               <button
@@ -184,8 +202,12 @@ export function PatientAssignSheet({
                 <div className="mt-0.5 text-xs text-ink-2">
                   {selectedPatients.length === 1
                     ? `For ${patientFullName(selectedPatients[0])}`
-                    : `For ${selectedPatients.length} patients · ${moneyLabel(product.price.amount * qty)} each`}
-                  {product.price.unit === '/mo' ? '/mo' : ''}
+                    : `For ${selectedPatients.length} patients`}
+                </div>
+                <div className="mt-1.5 text-xs">
+                  <span className="text-ink-3">{terms.label}</span>{' '}
+                  <span className="font-mono tabular-nums">{moneyLabel(price.amount)}</span>
+                  {terms.suffix} <span className="text-ink-3">per unit</span>
                 </div>
               </div>
               <button
@@ -203,9 +225,11 @@ export function PatientAssignSheet({
             </div>
 
             <div className="text-center text-xs text-ink-3">
-              {moneyLabel(product.price.amount * qty)}
-              {product.price.unit === '/mo' ? '/mo' : ''} per patient
-              {selectedPatients.length > 1 ? ` · ${moneyLabel(product.price.amount * qty * selectedPatients.length)} total` : ''}
+              <span className="font-mono tabular-nums text-ink">{moneyLabel(price.amount * qty)}</span>
+              {terms.suffix} {terms.each}
+              {selectedPatients.length > 1
+                ? ` · ${moneyLabel(price.amount * qty * selectedPatients.length)}${terms.suffix} total`
+                : ''}
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2">

@@ -18,7 +18,9 @@ import {
   projectedOrderCount,
   rescaleMaxPrice,
   searchCatalog,
+  searchVendorChoices,
   setCartLineQty,
+  vendorAlternatives,
   cartTotals,
   offerPriceFor,
   upsertCartLine,
@@ -61,7 +63,7 @@ describe('buildCatalogItems', () => {
       amount: 1045,
       unit: 'one-time',
     });
-    expect(bed.vendor.displayName).toBe('Vendor 1');
+    expect(bed.vendor.displayName).toBe('Alpine Home Medical');
     expect(bed.offer.deliveryLeadDays).toBe(1);
     expect(bed.offer.productName).toBe('Hospital Bed');
     expect(bed.rating).not.toBeNull();
@@ -347,7 +349,7 @@ describe('rent versus buy pricing', () => {
   const offer = (id: string) => vendorOffers().find((o) => o.id === id)!;
 
   it('prices an offer under whichever arrangement is asked for', () => {
-    // OFR-003: a wheelchair Vendor 1 both rents and sells.
+    // OFR-003: a wheelchair Alpine Home Medical both rents and sells.
     const wheelchair = offer('OFR-003');
     expect(offerPriceFor(wheelchair, 'month')).toEqual({ amount: 70, unit: '/mo' });
     expect(offerPriceFor(wheelchair, 'purchase')).toEqual({ amount: 280, unit: 'one-time' });
@@ -378,6 +380,67 @@ describe('rent versus buy pricing', () => {
     expect(rescaleMaxPrice(50, 100, 1000)).toBe(500);
     // A filter left wide open stays wide open rather than snapping to a fraction.
     expect(rescaleMaxPrice(100, 100, 1000)).toBe(1000);
+  });
+});
+
+describe('vendorAlternatives', () => {
+  const items = buildCatalogItems();
+  const bed = items.find((it) => it.offer.id === 'OFR-001')!;
+
+  it('lists every vendor selling the same code, cheapest first', () => {
+    const choices = vendorAlternatives(items, bed, 'month');
+    expect(choices.map((c) => c.offerId)).toEqual(['OFR-013', 'OFR-007', 'OFR-001']);
+    expect(choices.map((c) => c.price.amount)).toEqual([95, 110, 130]);
+  });
+
+  it('marks the offer being viewed and prices the others against it', () => {
+    const choices = vendorAlternatives(items, bed, 'month');
+    expect(choices.filter((c) => c.current).map((c) => c.offerId)).toEqual(['OFR-001']);
+    // The cheaper vendors read as savings relative to the $130 offer on screen.
+    expect(choices.find((c) => c.offerId === 'OFR-013')!.priceDelta).toBe(-35);
+    expect(choices.find((c) => c.offerId === 'OFR-001')!.priceDelta).toBe(0);
+  });
+
+  it('reprices the alternatives when the page switches to purchase', () => {
+    const buyItems = buildCatalogItems([], 'buy');
+    const buyBed = buyItems.find((it) => it.offer.id === 'OFR-001')!;
+    const choices = vendorAlternatives(buyItems, buyBed, 'purchase');
+    expect(choices.map((c) => c.price.amount)).toEqual([848, 925, 1045]);
+    expect(choices.every((c) => c.price.unit === 'one-time')).toBe(true);
+  });
+
+  it('returns just the one vendor when nobody else sells the item', () => {
+    const cpap = items.find((it) => it.offer.id === 'OFR-008')!;
+    const choices = vendorAlternatives(items, cpap, 'month');
+    expect(choices).toHaveLength(1);
+    expect(choices[0].current).toBe(true);
+  });
+
+  it('carries the lead time and rating each vendor promises', () => {
+    const cheapest = vendorAlternatives(items, bed, 'month')[0];
+    expect(cheapest.offerId).toBe('OFR-013');
+    expect(cheapest.leadDays).toBe(2);
+    expect(cheapest.displayName).toBe(vendors().find((v) => v.id === cheapest.vendorId)!.displayName);
+  });
+});
+
+describe('searchVendorChoices', () => {
+  const items = buildCatalogItems();
+  const choices = vendorAlternatives(items, items.find((it) => it.offer.id === 'OFR-001')!, 'month');
+
+  it('returns everything for an empty query', () => {
+    expect(searchVendorChoices(choices, '   ')).toHaveLength(choices.length);
+  });
+
+  it('matches a vendor name case-insensitively', () => {
+    const name = choices[0].displayName;
+    expect(searchVendorChoices(choices, name.toUpperCase()).map((c) => c.offerId)).toEqual([
+      choices[0].offerId,
+    ]);
+  });
+
+  it('returns nothing when no vendor matches', () => {
+    expect(searchVendorChoices(choices, 'zzzz')).toEqual([]);
   });
 });
 

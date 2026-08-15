@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { OrderFilterState } from '../../lib/orders';
+import type { OrderDateRange, OrderFilterState } from '../../lib/orders';
 import type { CategoryOption } from '../catalog/CatalogFilters';
 
 export interface PatientFilterOption {
@@ -8,16 +8,24 @@ export interface PatientFilterOption {
   count: number;
 }
 
+export interface DateRangeFilterOption {
+  key: OrderDateRange;
+  label: string;
+  count: number;
+}
+
 export function OrderFilters({
   filters,
   categories,
   patients,
+  dateRanges,
   onChange,
   onReset,
 }: {
   filters: OrderFilterState;
   categories: CategoryOption[];
   patients: PatientFilterOption[];
+  dateRanges: DateRangeFilterOption[];
   onChange: (patch: Partial<OrderFilterState>) => void;
   onReset: () => void;
 }) {
@@ -41,6 +49,24 @@ export function OrderFilters({
             >
               <span>{c.label}</span>
               <span className="font-mono text-xs tabular-nums text-ink-3">{c.count}</span>
+            </button>
+          ))}
+        </div>
+      </FilterGroup>
+
+      <FilterGroup label="Ordered">
+        <div className="grid gap-0.5">
+          {dateRanges.map((r) => (
+            <button
+              key={r.key}
+              type="button"
+              onClick={() => onChange({ dateRange: r.key })}
+              className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover hover:text-ink ${
+                filters.dateRange === r.key ? 'bg-hover text-ink' : 'text-ink-2'
+              }`}
+            >
+              <span>{r.label}</span>
+              <span className="font-mono text-xs tabular-nums text-ink-3">{r.count}</span>
             </button>
           ))}
         </div>

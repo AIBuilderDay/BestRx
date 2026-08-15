@@ -26,6 +26,21 @@ export type PriceUnit = 'month' | 'purchase';
 
 export const UNIT_FOR_MODE: Record<PricingMode, PriceUnit> = { rent: 'month', buy: 'purchase' };
 
+/**
+ * How each arrangement is worded where the price is shown. A quantity prompt that says only
+ * "$285" leaves the nurse guessing whether that is a month of rental or the price of the thing,
+ * so the label and the suffix always travel with the number.
+ */
+export const UNIT_TERMS: Record<PriceUnit, { label: string; suffix: string; each: string }> = {
+  month: { label: 'Rental', suffix: '/mo', each: 'per patient, per month' },
+  purchase: { label: 'Purchase', suffix: '', each: 'per patient, one-time' },
+};
+
+/** The wording for the arrangement a price actually resolved to. */
+export function unitTermsFor(price: ItemPrice): (typeof UNIT_TERMS)[PriceUnit] {
+  return UNIT_TERMS[price.unit === '/mo' ? 'month' : 'purchase'];
+}
+
 /** One storefront listing: a single vendor offer row from vendor_offers.json. */
 export interface CatalogProductVM {
   offer: VendorOffer;
@@ -126,6 +141,56 @@ export function buildCatalogItems(
  * Highest price across the storefront as currently priced, for the "max price" filter's upper
  * bound. Rental and purchase are different orders of magnitude, so the ceiling moves with the mode.
  */
+/** One vendor's offer of the same HCPCS, priced against the arrangement the page is showing. */
+export interface VendorChoice {
+  offerId: string;
+  vendorId: string;
+  displayName: string;
+  price: ItemPrice;
+  /** This offer's price minus the one currently shown — negative is a saving. */
+  priceDelta: number;
+  leadDays: number;
+  rating: OfferRatingSummary | null;
+  current: boolean;
+}
+
+/**
+ * Every vendor selling the same HCPCS as `item`, cheapest first. This is the switching-cost lever:
+ * the same hospital bed is $130/mo from one vendor and $95/mo from another, and the nurse can only
+ * act on that if both are on the page. Prices are the vendor's own — nothing derived or invented.
+ */
+export function vendorAlternatives(
+  items: CatalogProductVM[],
+  item: CatalogProductVM,
+  unit: PriceUnit,
+): VendorChoice[] {
+  const currentPrice = offerPriceFor(item.offer, unit);
+  const choices: VendorChoice[] = [];
+  for (const other of items) {
+    if (other.offer.hcpcs !== item.offer.hcpcs) continue;
+    const price = offerPriceFor(other.offer, unit);
+    if (!price) continue;
+    choices.push({
+      offerId: other.offer.id,
+      vendorId: other.vendor.id,
+      displayName: other.vendor.displayName,
+      price,
+      priceDelta: currentPrice ? price.amount - currentPrice.amount : 0,
+      leadDays: other.offer.deliveryLeadDays,
+      rating: other.rating,
+      current: other.offer.id === item.offer.id,
+    });
+  }
+  return choices.sort((a, b) => a.price.amount - b.price.amount);
+}
+
+/** Text search inside the vendor picker: matches the vendor's display name. */
+export function searchVendorChoices(choices: VendorChoice[], query: string): VendorChoice[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return choices;
+  return choices.filter((c) => c.displayName.toLowerCase().includes(q));
+}
+
 export function priceCeiling(items: CatalogProductVM[]): number {
   const max = Math.max(0, ...items.map((it) => it.price.amount));
   return Math.max(50, Math.ceil(max / 10) * 10);

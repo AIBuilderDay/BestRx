@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-import pytest
-from fastapi.testclient import TestClient
+import os
 
-from app.ai.client import reset_client as reset_ai_client
-from app.ai.usage import reset_usage_ledger
-from app.carts import CartStore, reset_cart_store
-from app.config import Settings, get_settings
-from app.main import app
-from app.services import notifications
-from app.store import OrderStore, reset_store
-from app.subscriptions import reset_subscription_store
+# Set before app.config is imported: Settings reads the environment in its dataclass defaults. A
+# background task walking orders forward mid-test would make every order assertion flaky.
+os.environ.setdefault("AUTO_ADVANCE_SECONDS", "0")
+
+import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
+
+from app.ai.client import reset_client as reset_ai_client  # noqa: E402
+from app.ai.usage import reset_usage_ledger  # noqa: E402
+from app.carts import CartStore, reset_cart_store  # noqa: E402
+from app.config import Settings, get_settings  # noqa: E402
+from app.main import app  # noqa: E402
+from app.services import notifications  # noqa: E402
+from app.store import OrderStore, reset_store  # noqa: E402
+from app.subscriptions import reset_subscription_store  # noqa: E402
 
 
 @pytest.fixture(autouse=True)

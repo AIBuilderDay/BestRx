@@ -416,5 +416,143 @@
     "logoPath": null,
     "sourceUrl": "https://en.wikipedia.org/wiki/Lincare_Holdings",
     "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-UT-005",
+    "name": "National DME",
+    "displayName": "National DME",
+    "scope": "regional",
+    "market": "Midvale, UT",
+    "headquarters": {
+      "street1": "7757 Allen Street",
+      "city": "Midvale",
+      "state": "UT",
+      "zip": "84111"
+    },
+    "hours": null,
+    "contact": {
+      "dispatchPhone": "800-644-1968",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Founded in Salt Lake City in 1997; facilities in Utah, Nevada, Ohio, Idaho and Florida, with an appointment request form covering all 50 states",
+    "statesServed": [
+      "UT",
+      "NV",
+      "OH",
+      "ID",
+      "FL"
+    ],
+    "locationCount": 1,
+    "locations": [
+      {
+        "city": "Midvale",
+        "state": "UT",
+        "street1": "7757 Allen Street",
+        "zip": "84111",
+        "phone": "800-644-1968"
+      }
+    ],
+    "hcpcsCarried": [],
+    "categoriesCarried": [],
+    "catalogNotes": "Describes itself as an inventory-outsourcing provider of DME and orthopedic soft goods, including spine bracing, for hospital systems, surgery centers, urgent care, community clinics and physician practices. CHAP accredited since 2002 and a certified Medicare supplier. Hospice is not listed among the facility types served, and the site publishes no product list that maps onto our catalog codes.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://www.nationaldme.net/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-UT-006",
+    "name": "IOC Home Medical",
+    "displayName": "IOC Home Medical",
+    "scope": "regional",
+    "market": "Orem, UT",
+    "headquarters": {
+      "street1": "1435 South State Street",
+      "city": "Orem",
+      "state": "UT",
+      "zip": "84097"
+    },
+    "hours": "Mon-Fri 9:00-18:00; Sat-Sun closed",
+    "contact": {
+      "dispatchPhone": "801-226-4741",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Utah County, serving Orem and Provo",
+    "statesServed": [
+      "UT"
+    ],
+    "locationCount": 1,
+    "locations": [
+      {
+        "city": "Orem",
+        "state": "UT",
+        "street1": "1435 South State Street",
+        "zip": "84097",
+        "phone": "801-226-4741"
+      }
+    ],
+    "hcpcsCarried": [
+      "E0250",
+      "E1390",
+      "E1130",
+      "E0143",
+      "E0163",
+      "E0244"
+    ],
+    "categoriesCarried": [
+      "bed",
+      "respiratory",
+      "mobility",
+      "bathroom_safety"
+    ],
+    "catalogNotes": "Site lists hospital beds, portable oxygen concentrators, mobility products (wheelchairs, walkers, scooters, lift chairs), bathroom safety aids, rentals, plus lymphedema, catheter, compression, bracing and post-surgical lines outside our catalog.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://iocdme.com/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-US-005",
+    "name": "DME Express LLC",
+    "displayName": "DME Express",
+    "scope": "national",
+    "market": "Nationwide (HQ The Woodlands, TX)",
+    "headquarters": {
+      "street1": "1780 Hughes Landing Blvd, Suite 250",
+      "city": "The Woodlands",
+      "state": "TX",
+      "zip": "77380"
+    },
+    "hours": null,
+    "contact": {
+      "dispatchPhone": "888-355-3208",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Ten states across 60+ warehouse locations; the individual states are not listed on the page",
+    "statesServed": null,
+    "locationCount": 60,
+    "locations": [],
+    "hcpcsCarried": [
+      "E0250",
+      "E1390",
+      "E1130",
+      "E0163",
+      "E0244",
+      "E0277"
+    ],
+    "categoriesCarried": [
+      "bed",
+      "respiratory",
+      "mobility",
+      "bathroom_safety"
+    ],
+    "catalogNotes": "Focuses exclusively on hospice and nursing facility customers. Published lines: bariatric equipment, bathroom safety, bedding and bed frames, mattresses, mobility products, oxygen/respiratory, patient lifts, wheelchairs/Broda chairs. Founded 2006, ACHC accredited.",
+    "hospiceFocused": true,
+    "logoPath": null,
+    "sourceUrl": "https://dmeexpress.com/about/",
+    "sourceRetrieved": "2026-08-15"
   }
 ]

@@ -56,10 +56,12 @@ interface CartContextValue {
   placing: boolean;
   /** Current transient message, or '' when nothing is showing. */
   toast: string;
-  say: (message: string) => void;
-  /** The line the AI agent just added, so the drawer can spotlight it. */
-  agentAdded: AgentAddedLine | null;
-  setAgentAdded: (line: AgentAddedLine | null) => void;
+  /** Product image for the current message, when it is about a specific item. */
+  toastImage: string | undefined;
+  say: (message: string, imagePath?: string) => void;
+  /** Every line the AI agent just added, so the drawer can spotlight all of them. */
+  agentAdded: AgentAddedLine[];
+  setAgentAdded: (lines: AgentAddedLine[]) => void;
   /**
    * Take the server's cart as-is, without pushing it back.
    *
@@ -81,15 +83,17 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
   const [cartOpen, setCartOpen] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [toast, setToast] = useState('');
+  const [toastImage, setToastImage] = useState<string | undefined>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [agentAdded, setAgentAdded] = useState<AgentAddedLine | null>(null);
+  const [agentAdded, setAgentAdded] = useState<AgentAddedLine[]>([]);
 
   // Serialises pushes so two quick edits reach the server in the order they were made.
   const queue = useRef<Promise<unknown>>(Promise.resolve());
 
-  const say = useCallback((message: string) => {
+  const say = useCallback((message: string, imagePath?: string) => {
     clearTimeout(toastTimer.current);
     setToast(message);
+    setToastImage(imagePath);
     toastTimer.current = setTimeout(() => setToast(''), 3000);
   }, []);
 
@@ -217,6 +221,7 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
       placeOrder,
       placing,
       toast,
+      toastImage,
       say,
       agentAdded,
       setAgentAdded,
@@ -233,6 +238,7 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
       placeOrder,
       placing,
       toast,
+      toastImage,
       say,
       agentAdded,
     ],

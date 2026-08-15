@@ -18,6 +18,7 @@ from .config import Settings, get_settings
 from .mcp_server import mcp
 from .routers import ai, carts, catalog, orders, push, stream
 from .schemas import HealthResponse
+from .services import autoadvance
 from .store import get_store
 
 _settings = get_settings()
@@ -49,10 +50,21 @@ async def lifespan(app_: FastAPI) -> AsyncIterator[None]:
     # A status change may be handled on a worker thread, but subscriber queues belong to the loop.
     # Binding it here lets the store hand events across that boundary safely.
     get_store().bind_loop(asyncio.get_running_loop())
-    # Mounting an ASGI app does not run its lifespan, and FastMCP's session manager is started
-    # there — without this every /mcp request fails. Both must run, so ours wraps theirs.
-    async with mcp_app.lifespan(app_):
-        yield
+
+    # Walks this session's orders forward on a timer so the demo has live status changes to show.
+    # Off when AUTO_ADVANCE_SECONDS=0.
+    advancer: asyncio.Task[None] | None = None
+    if _settings.auto_advance_enabled:
+        advancer = asyncio.create_task(autoadvance.run_loop(get_store(), _settings))
+
+    try:
+        # Mounting an ASGI app does not run its lifespan, and FastMCP's session manager is started
+        # there — without this every /mcp request fails. Both must run, so ours wraps theirs.
+        async with mcp_app.lifespan(app_):
+            yield
+    finally:
+        if advancer is not None:
+            advancer.cancel()
 
 
 app = FastAPI(

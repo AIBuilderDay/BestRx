@@ -68,7 +68,7 @@ Rules:
 - Never call a tool you were not given.
 
 When you are done, reply with a single sentence a nurse can skim to confirm what you understood,
-e.g. "Added 1 Hospital Bed (Sample Vendor 1) for Harold B."
+e.g. "Added 1 Hospital Bed (Alpine Home Medical) for Harold B."
 If you could not safely resolve the patient or the product, reply with exactly NO_MATCH and
 nothing else."""
 
@@ -117,15 +117,15 @@ def _line_keys(cart: Row | None) -> set[tuple[str, str]]:
     }
 
 
-def _find_line(cart: Row | None, keys: set[tuple[str, str]]) -> Row | None:
-    """The first line matching one of `keys`, as {offerId, patientId}. None when nothing matches."""
+def _find_lines(cart: Row | None, keys: set[tuple[str, str]]) -> list[Row]:
+    """Every line matching `keys`, as {offerId, patientId}, in cart order."""
     if not cart or not keys:
-        return None
-    for line in cart.get("lines") or []:
-        key = (str(line.get("offerId")), str(line.get("patientId")))
-        if key in keys:
-            return {"offerId": key[0], "patientId": key[1]}
-    return None
+        return []
+    return [
+        {"offerId": key[0], "patientId": key[1]}
+        for line in cart.get("lines") or []
+        if (key := (str(line.get("offerId")), str(line.get("patientId")))) in keys
+    ]
 
 
 def _resolve_patient_context(command: str, patients: list[Row]) -> Row | None:
@@ -173,10 +173,11 @@ async def run_agent_order(
     tool_calls: list[Row] = []
     summary = ""
     cart: Row | None = None
-    # The (offerId, patientId) the cart gained, so the drawer can spotlight the right row. Derived
-    # by diffing rather than trusting line order, which `update_cart` does not promise.
+    # Every (offerId, patientId) the cart gained, so the drawer can spotlight all of them — one
+    # command can add several lines, and across several `update_cart` turns. Derived by diffing
+    # rather than trusting line order, which `update_cart` does not promise.
     lines_before: set[tuple[str, str]] = set()
-    added: Row | None = None
+    added_keys: set[tuple[str, str]] = set()
 
     try:
         async with Client(mcp) as mcp_client:
@@ -221,8 +222,9 @@ async def run_agent_order(
                                 # The state the agent read before writing: the diff baseline.
                                 lines_before = keys
                             else:
-                                new_keys = keys - lines_before
-                                added = _find_line(cart, new_keys)
+                                added_keys |= keys - lines_before
+                                # A line the agent added then removed is no longer a highlight.
+                                added_keys &= keys
                                 lines_before = keys
                     results.append(
                         {
@@ -255,5 +257,10 @@ async def run_agent_order(
 
     # NO_MATCH, or a turn that talked without ever writing: either way there is no cart to show.
     if NO_MATCH in summary or cart is None or not cart.get("lines"):
-        return {"summary": summary, "cart": None, "added": None, "toolCalls": tool_calls}
-    return {"summary": summary, "cart": cart, "added": added, "toolCalls": tool_calls}
+        return {"summary": summary, "cart": None, "added": [], "toolCalls": tool_calls}
+    return {
+        "summary": summary,
+        "cart": cart,
+        "added": _find_lines(cart, added_keys),
+        "toolCalls": tool_calls,
+    }

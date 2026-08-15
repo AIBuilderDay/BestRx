@@ -55,6 +55,9 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - CORS_ORIGINS=http://localhost:5173
+      # How often orders placed this session walk one step forward, so the demo has live status
+      # changes to show. Set to 0 to freeze the board and drive it by hand instead.
+      - AUTO_ADVANCE_SECONDS=${AUTO_ADVANCE_SECONDS-5}
       # Uncomment to send real push notifications from a local container. Needs AWS credentials
       # mounted in, and the notification service deployed.
       # - PUSH_QUEUE_URL=

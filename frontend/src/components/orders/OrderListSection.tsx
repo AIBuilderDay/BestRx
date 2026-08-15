@@ -69,6 +69,9 @@ function OrderCard({
               {item.whenLabel} {item.when}
             </span>
           </MetaItem>
+          <MetaItem icon={<CalendarIcon />}>
+            <span className="tabular-nums">Ordered {item.orderedAtLabel}</span>
+          </MetaItem>
         </div>
 
         {item.address ? (
@@ -240,6 +243,15 @@ function ClockIcon() {
     <MetaIcon>
       <circle cx="12" cy="12" r="8.5" />
       <path d="M12 7.5V12l3 2" />
+    </MetaIcon>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <MetaIcon>
+      <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+      <path d="M3.5 9.5h17M8 3.5V6M16 3.5V6" />
     </MetaIcon>
   );
 }
