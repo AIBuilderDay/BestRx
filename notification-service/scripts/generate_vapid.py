@@ -62,14 +62,26 @@ def main() -> int:
     session = boto3.Session(profile_name=args.profile, region_name=args.region)
     client = session.client("secretsmanager")
 
+    # describe_secret, not get_secret_value: an empty secret — exactly what Terraform creates, and
+    # exactly the state this script exists to fill — raises ResourceNotFoundException from
+    # get_secret_value, the same error code as a secret that genuinely is not there. Only
+    # describe_secret tells the two apart.
     try:
-        existing = client.get_secret_value(SecretId=args.secret_id)
-        has_key = "privateKey" in json.loads(existing["SecretString"])
+        client.describe_secret(SecretId=args.secret_id)
     except ClientError as exc:
         if exc.response["Error"]["Code"] != "ResourceNotFoundException":
             raise
         print(f"Secret {args.secret_id} does not exist. Run `terraform apply` first.")
         return 1
+
+    try:
+        existing = client.get_secret_value(SecretId=args.secret_id)
+        has_key = "privateKey" in json.loads(existing["SecretString"])
+    except ClientError as exc:
+        # The secret is there but has no version yet, which is the normal first-run case.
+        if exc.response["Error"]["Code"] != "ResourceNotFoundException":
+            raise
+        has_key = False
     except (json.JSONDecodeError, KeyError):
         has_key = False
 
@@ -87,9 +99,13 @@ def main() -> int:
     )
 
     print(f"Stored a new VAPID keypair in {args.secret_id}.\n")
-    print("Public key (safe to expose — set it on the API and the frontend):")
+    print("Public key (safe to expose — the browser needs it to subscribe):")
     print(f"  {public_key}\n")
-    print("Set it as VITE_VAPID_PUBLIC_KEY in frontend/.env and rerun `terraform apply`.")
+    # The frontend fetches this from GET /push/public-key rather than reading an env var, so the
+    # API is the only place it needs to be set.
+    print("Next:")
+    print("  1. Set VAPID_PUBLIC_KEY to that value in the Render service's environment.")
+    print(f'  2. terraform -chdir=infra apply -var="vapid_public_key={public_key}"')
     return 0
 
 
