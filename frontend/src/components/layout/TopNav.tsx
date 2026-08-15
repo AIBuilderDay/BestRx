@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { can, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
+import { Tooltip } from "../ui/Tooltip";
 import { ProfileMenu } from "./ProfileMenu";
 
 export type NavSection = "catalog" | "orders" | "patients";
@@ -14,6 +15,12 @@ const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
   { label: "Costs", permissions: ["reporting"] },
   { label: "Vendors", permissions: ["vendors:manage"] },
 ];
+
+/** Mac shows ⌘K, everything else Ctrl K. Guarded for the non-browser (test) case. */
+const SHORTCUT_HINT =
+  typeof navigator !== "undefined" && /mac/i.test(navigator.platform)
+    ? "⌘K"
+    : "Ctrl K";
 
 const canViewOrders = (user: User): boolean =>
   can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
@@ -57,11 +64,27 @@ export function TopNav({
   const [searchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(urlQuery);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
   useEffect(() => {
     setQuery(urlQuery);
   }, [urlQuery]);
+
+  // ⌘K / Ctrl+K from anywhere focuses search; Escape gives the page back.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      } else if (e.key === "Escape" && document.activeElement === inputRef.current) {
+        inputRef.current?.blur();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +166,7 @@ export function TopNav({
           <path d="m20 20-3.5-3.5" />
         </svg>
         <input
+          ref={inputRef}
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -150,49 +174,57 @@ export function TopNav({
           aria-label={searchMeta.label}
           className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
         />
+        <kbd
+          aria-hidden="true"
+          className="shrink-0 rounded border border-line-strong px-1.5 py-0.5 font-sans text-[10.5px] leading-none tracking-wide text-ink-3"
+        >
+          {SHORTCUT_HINT}
+        </kbd>
       </form>
 
       <div className="flex shrink-0 items-center gap-3 justify-self-end">
-        <button
-          type="button"
-          onClick={onOpenCart}
-          aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-          data-testid="cart-button"
-          className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
-        >
-          <svg
-            width="30"
-            height="30"
-            viewBox="0 0 32 32"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+        <Tooltip label={`Cart · ${cartCount} item${cartCount === 1 ? "" : "s"}`}>
+          <button
+            type="button"
+            onClick={onOpenCart}
+            aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+            data-testid="cart-button"
+            className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
           >
-            <path
-              className="fill-current"
-              stroke="none"
-              d="M7.5 10.5h19l-2.2 10.2a2 2 0 0 1-2 1.6H11.4a2 2 0 0 1-2-1.6L7.5 10.5Z"
-            />
-            <path d="M7.5 10.5 6.2 6.8H3.5" />
-            <circle cx="12.5" cy="26.7" r="1.7" />
-            <circle cx="22" cy="26.7" r="1.7" />
-            <text
-              x="16.9"
-              y="16.6"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="10.5"
-              fontWeight="700"
-              stroke="none"
-              className="fill-bg"
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 32 32"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              {cartCount > 99 ? "99" : cartCount}
-            </text>
-          </svg>
-        </button>
+              <path
+                className="fill-current"
+                stroke="none"
+                d="M7.5 10.5h19l-2.2 10.2a2 2 0 0 1-2 1.6H11.4a2 2 0 0 1-2-1.6L7.5 10.5Z"
+              />
+              <path d="M7.5 10.5 6.2 6.8H3.5" />
+              <circle cx="12.5" cy="26.7" r="1.7" />
+              <circle cx="22" cy="26.7" r="1.7" />
+              <text
+                x="16.9"
+                y="16.6"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize="10.5"
+                fontWeight="700"
+                stroke="none"
+                className="fill-bg"
+              >
+                {cartCount > 99 ? "99" : cartCount}
+              </text>
+            </svg>
+          </button>
+        </Tooltip>
 
         <ProfileMenu user={user} onSignOut={onSignOut} />
       </div>

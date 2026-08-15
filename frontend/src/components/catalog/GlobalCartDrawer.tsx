@@ -8,8 +8,13 @@ import { CartDrawer } from './CartDrawer';
  * opens it from every route, not only the views that used to render their own copy.
  */
 export function GlobalCartDrawer() {
-  const { cartGroups, cartTotals, setCartLineQty, cartOpen, setCartOpen, placeOrder, toast } = useCart();
+  const { cartGroups, cartTotals, setCartLineQty, cartOpen, setCartOpen, placeOrder, placing, toast } = useCart();
   const navigate = useNavigate();
+
+  /** A placed order has nothing left in the drawer to show, so the user lands on the board. */
+  const placeOrderAndLeave = async () => {
+    if (await placeOrder()) navigate('/orders');
+  };
 
   return (
     <>
@@ -24,7 +29,8 @@ export function GlobalCartDrawer() {
           setCartOpen(false);
           navigate('/cart');
         }}
-        onPlaceOrder={placeOrder}
+        onPlaceOrder={placeOrderAndLeave}
+        placing={placing}
       />
       <Toast message={toast} />
     </>

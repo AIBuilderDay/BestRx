@@ -194,6 +194,40 @@ def test_real_vendor_by_id_and_404(client: TestClient) -> None:
     assert client.get("/real-vendors/RVND-NOPE").status_code == 404
 
 
+def test_real_vendors_are_served_and_sourced(client: TestClient) -> None:
+    response = client.get("/real-vendors")
+    assert response.status_code == 200
+    rows = response.json()
+    assert len(rows) > 0
+    # Every row must name where it came from — these are real companies, not simulated ones.
+    assert all(row["sourceUrl"] and row["sourceRetrieved"] for row in rows)
+
+
+def test_real_vendors_filter_by_state(client: TestClient) -> None:
+    response = client.get("/real-vendors", params={"state": "UT"})
+    assert response.status_code == 200
+    rows = response.json()
+    assert len(rows) > 0
+    for row in rows:
+        in_ut = (
+            "UT" in (row.get("statesServed") or [])
+            or (row.get("headquarters") or {}).get("state") == "UT"
+            or any(loc["state"] == "UT" for loc in row["locations"])
+        )
+        assert in_ut, row["id"]
+
+
+def test_real_vendors_filter_by_hcpcs(client: TestClient) -> None:
+    response = client.get("/real-vendors", params={"hcpcs": "E0250"})
+    assert response.status_code == 200
+    assert all("E0250" in row["hcpcsCarried"] for row in response.json())
+
+
+def test_real_vendor_by_id_and_404(client: TestClient) -> None:
+    assert client.get("/real-vendors/RVND-UT-001").json()["name"] == "Alpine Home Medical"
+    assert client.get("/real-vendors/RVND-NOPE").status_code == 404
+
+
 def test_patients_filter_by_case_manager(client: TestClient) -> None:
     response = client.get("/patients", params={"caseManagerId": "USR-001"})
     assert response.status_code == 200

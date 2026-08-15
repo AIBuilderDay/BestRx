@@ -190,6 +190,8 @@ pointing at a backend that is not ready. The API needs no AWS account — it ser
 `frontend/src/data/` straight from disk.
 
 ```bash
+task backend:start   # build + start only the API (no frontend container)
+task backend:stop    # stop just the API
 task backend:logs    # tail just the API
 task backend:shell   # a shell inside the API container
 task test:backend    # pytest inside the container

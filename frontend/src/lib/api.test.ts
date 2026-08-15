@@ -11,9 +11,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ApiUnavailableError,
+  checkoutCart,
+  clearCart,
+  createCart,
   createOrder,
+  EmptyCartError,
   fetchSnapshot,
   isApiConfigured,
+  updateCart,
   updateOrderStatus,
 } from './api';
 import { orders, patients } from '../data/db';
@@ -46,6 +51,76 @@ describe('with no backend configured', () => {
     await expect(updateOrderStatus(orders()[0].id, 'dispatched')).rejects.toBeInstanceOf(
       ApiUnavailableError,
     );
+  });
+
+});
+
+/**
+ * Cart writes go to the server or fail loudly — a cart that silently diverged from what gets
+ * ordered would be worse than a visible error. These assert against a stubbed fetch rather than the
+ * unconfigured guard, so they hold whether or not a local .env points at a real API.
+ */
+describe('cart writes', () => {
+  const line = { offerId: 'OFR-001', patientId: patients()[0].id, qty: 1 };
+
+  const stubFetch = (response: Partial<Response>) => {
+    const spy = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}), ...response });
+    vi.stubGlobal('fetch', spy);
+    return spy;
+  };
+
+  it('sends a whole-cart replace as a PUT, never a price', async () => {
+    const fetchSpy = stubFetch({
+      json: async () => ({ id: 'CART-1', userId: 'USR-001', lines: [], totals: {} }),
+    });
+
+    await updateCart('USR-001', [line]);
+
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toMatch(/\/carts\/USR-001$/);
+    expect(init.method).toBe('PUT');
+    expect(JSON.parse(init.body)).toEqual({ lines: [line] });
+  });
+
+  it('posts a new cart with its owner', async () => {
+    const fetchSpy = stubFetch({
+      json: async () => ({ id: 'CART-1', userId: 'USR-001', lines: [], totals: {} }),
+    });
+
+    await createCart('USR-001', [line]);
+
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toMatch(/\/carts$/);
+    expect(JSON.parse(init.body)).toEqual({ userId: 'USR-001', lines: [line] });
+  });
+
+  it('deletes a cart without expecting a body back', async () => {
+    const fetchSpy = stubFetch({ status: 204 });
+
+    await expect(clearCart('USR-001')).resolves.toBeUndefined();
+    expect(fetchSpy.mock.calls[0][1].method).toBe('DELETE');
+  });
+
+  it('surfaces a failed write rather than resolving quietly', async () => {
+    stubFetch({ ok: false, status: 500, statusText: 'Server Error', text: async () => 'boom' });
+
+    await expect(updateCart('USR-001', [line])).rejects.toThrow(/500/);
+  });
+
+  it('reports an empty cart as its own error, not a raw 409', async () => {
+    stubFetch({ ok: false, status: 409, statusText: 'Conflict', text: async () => 'empty' });
+
+    await expect(checkoutCart('USR-001')).rejects.toBeInstanceOf(EmptyCartError);
+  });
+
+  // Without this the Orders board would not show a just-placed order until a full reload.
+  it('puts checked-out orders into the snapshot the views read', async () => {
+    const created = { ...orders()[0], id: 'DME-99001', status: 'ordered' as const };
+    stubFetch({ json: async () => ({ orders: [created], orderIds: [created.id] }) });
+
+    await checkoutCart('USR-001');
+
+    expect(orders().find((o) => o.id === 'DME-99001')).toBeDefined();
   });
 });
 

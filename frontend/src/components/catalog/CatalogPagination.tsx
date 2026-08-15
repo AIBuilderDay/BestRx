@@ -1,3 +1,5 @@
+import { Tooltip } from '../ui/Tooltip';
+
 const MAX_VISIBLE_PAGES = 3;
 
 function visiblePageWindow(page: number, totalPages: number, windowSize = MAX_VISIBLE_PAGES): number[] {
@@ -38,15 +40,16 @@ export function CatalogPagination({
       </div>
       <div className="flex items-center gap-1.5">
         {page > 1 ? (
-          <button
-            type="button"
-            aria-label="Previous page"
-            title="Previous page"
-            onClick={() => onPageChange(page - 1)}
-            className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
-          >
-            ←
-          </button>
+          <Tooltip label="Previous page" placement="top">
+            <button
+              type="button"
+              aria-label="Previous page"
+              onClick={() => onPageChange(page - 1)}
+              className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
+            >
+              ←
+            </button>
+          </Tooltip>
         ) : null}
         {pages.map((pageNumber) => (
           <button
@@ -65,15 +68,16 @@ export function CatalogPagination({
           </button>
         ))}
         {page < totalPages ? (
-          <button
-            type="button"
-            aria-label="Next page"
-            title="Next page"
-            onClick={() => onPageChange(page + 1)}
-            className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
-          >
-            →
-          </button>
+          <Tooltip label="Next page" placement="top">
+            <button
+              type="button"
+              aria-label="Next page"
+              onClick={() => onPageChange(page + 1)}
+              className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
+            >
+              →
+            </button>
+          </Tooltip>
         ) : null}
       </div>
     </nav>

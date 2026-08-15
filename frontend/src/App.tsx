@@ -58,7 +58,7 @@ function RoutedApp() {
   return (
     <BrowserRouter>
       <ScrollToTop />
-      <CartProvider>
+      <CartProvider userId={user?.id ?? null}>
         <Routes>
           <Route path="/login" element={<Login onSignIn={signIn} />} />
           <Route path="/" element={<Navigate to="/catalog" replace />} />

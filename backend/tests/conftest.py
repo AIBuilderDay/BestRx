@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+from app.carts import CartStore, reset_cart_store
 from app.config import Settings, get_settings
 from app.main import app
 from app.services import notifications
@@ -14,9 +15,15 @@ from app.subscriptions import reset_subscription_store
 def _isolate_state() -> None:
     """Every test gets a fresh store, subscription store, and settings cache."""
     reset_store()
+    reset_cart_store()
     reset_subscription_store()
     get_settings.cache_clear()
     notifications.reset_client()
+
+
+@pytest.fixture
+def carts() -> CartStore:
+    return CartStore()
 
 
 @pytest.fixture

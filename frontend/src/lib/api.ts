@@ -200,6 +200,106 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   return order;
 }
 
+// ── Carts ─────────────────────────────────────────────────────────────────────
+// The cart is server-authoritative: the client sends the lines it wants and renders what comes
+// back. Prices are never sent — the server resolves them from the catalog, so the cart can never
+// show a total the catalog disputes.
+
+/** A stored cart line, enriched by the server with the catalog facts needed to render it. */
+export interface CartLineDto {
+  offerId: string;
+  patientId: string;
+  qty: number;
+  hcpcs: string | null;
+  productName: string | null;
+  vendorId: string | null;
+  unit: string | null;
+  priceUsd: number;
+  lineTotalUsd: number;
+}
+
+export interface CartTotalsDto {
+  monthlyUsd: number;
+  oneTimeUsd: number;
+  firstMonthUsd: number;
+  unitCount: number;
+  lineCount: number;
+}
+
+export interface CartDto {
+  id: string;
+  userId: string;
+  hospiceId: string | null;
+  lines: CartLineDto[];
+  totals: CartTotalsDto;
+  updatedAt: string;
+}
+
+/** What the client sends: an offer, a patient, and a quantity. Never a price. */
+export interface CartLineInput {
+  offerId: string;
+  patientId: string;
+  qty: number;
+}
+
+/** The user's cart. The server opens an empty one on first read, so this always resolves. */
+export const fetchCart = (userId: string): Promise<CartDto> =>
+  request<CartDto>(`/carts/${userId}`);
+
+export async function createCart(userId: string, lines: CartLineInput[] = []): Promise<CartDto> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+  return request<CartDto>('/carts', { method: 'POST', body: JSON.stringify({ userId, lines }) });
+}
+
+/** Replace the cart's lines with exactly this list. */
+export async function updateCart(userId: string, lines: CartLineInput[]): Promise<CartDto> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+  return request<CartDto>(`/carts/${userId}`, { method: 'PUT', body: JSON.stringify({ lines }) });
+}
+
+export async function clearCart(userId: string): Promise<void> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+  await request<void>(`/carts/${userId}`, { method: 'DELETE' });
+}
+
+export interface CheckoutInput {
+  urgency?: Order['urgency'];
+  orderType?: Order['orderType'];
+  notes?: string;
+}
+
+/** Thrown when checkout is attempted with nothing in the cart. */
+export class EmptyCartError extends Error {
+  constructor() {
+    super('Cart is empty');
+    this.name = 'EmptyCartError';
+  }
+}
+
+/**
+ * Turn the cart into orders — one per patient and vendor — and empty it server-side.
+ * Every created order lands in the boot snapshot so the Orders board shows it without a reload.
+ */
+export async function checkoutCart(
+  userId: string,
+  input: CheckoutInput = {},
+): Promise<{ orders: Order[]; orderIds: string[] }> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+
+  try {
+    const result = await request<{ orders: Order[]; orderIds: string[] }>(
+      `/carts/${userId}/checkout`,
+      { method: 'POST', body: JSON.stringify(input) },
+    );
+    for (const order of result.orders) upsertOrder(order);
+    return result;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (message.startsWith('409')) throw new EmptyCartError();
+    throw error;
+  }
+}
+
 export async function updateOrderStatus(
   orderId: string,
   status: Order['status'],

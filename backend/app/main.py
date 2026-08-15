@@ -14,7 +14,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import Settings, get_settings
-from .routers import catalog, orders, push, stream
+from .routers import carts, catalog, orders, push, stream
 from .schemas import HealthResponse
 from .store import get_store
 
@@ -40,11 +40,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_settings.cors_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
 app.include_router(orders.router)
+app.include_router(carts.router)
 app.include_router(catalog.router)
 app.include_router(push.router)
 app.include_router(stream.router)

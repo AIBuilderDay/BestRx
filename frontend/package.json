@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "start": "pnpm build && pnpm preview",
     "deploy": "wrangler deploy"
   },
   "dependencies": {

@@ -11,6 +11,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
+from .carts import MAX_LINE_QTY
 from .lifecycle import ALL_STATUSES
 
 OrderStatus = Literal[
@@ -40,6 +41,32 @@ class UpdateStatusRequest(BaseModel):
     status: OrderStatus
     actorId: str | None = None
     detail: str | None = None
+
+
+class CartLineIn(BaseModel):
+    """A cart line is an offer and a quantity. Prices are never accepted from the client — they are
+    resolved from vendor_offers server-side so a cart cannot quote a number the catalog disputes."""
+
+    offerId: str = Field(min_length=1)
+    patientId: str = Field(min_length=1)
+    qty: int = Field(ge=1, le=MAX_LINE_QTY)
+
+
+class CreateCartRequest(BaseModel):
+    userId: str = Field(min_length=1)
+    lines: list[CartLineIn] = Field(default_factory=list)
+
+
+class UpdateCartRequest(BaseModel):
+    """A whole-cart replace: the client sends the complete line list it wants stored."""
+
+    lines: list[CartLineIn]
+
+
+class CheckoutRequest(BaseModel):
+    urgency: Literal["stat", "urgent", "routine"] = "routine"
+    orderType: Literal["admission", "routine", "resupply", "pickup"] = "routine"
+    notes: str = ""
 
 
 class PushSubscriptionKeys(BaseModel):

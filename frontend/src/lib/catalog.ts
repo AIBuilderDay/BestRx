@@ -353,6 +353,21 @@ export interface CartTotals {
   slowestLeadDays: number | null;
 }
 
+/**
+ * How many orders this cart will become. Mirrors the backend's checkout split — one order per
+ * (patient, vendor) — so the summary never promises a number the API then contradicts. Change one
+ * and you must change the other: `backend/app/services/carts.py::checkout`.
+ */
+export function projectedOrderCount(lines: CartLine[], catalogItems: CatalogProductVM[]): number {
+  const groups = new Set<string>();
+  for (const line of lines) {
+    const item = catalogItems.find((it) => it.offer.id === line.offerId);
+    if (!item) continue;
+    groups.add(`${line.patientId}|${item.vendor.id}`);
+  }
+  return groups.size;
+}
+
 export function cartTotals(lines: CartLine[], catalogItems: CatalogProductVM[]): CartTotals {
   let monthly = 0;
   let oneTime = 0;

@@ -22,23 +22,7 @@ describe('getVisibleOrders', () => {
 
 describe('filterAndSortOrders', () => {
   const dana = users().find((u) => u.id === 'USR-001')!;
-  const items = getVisibleOrders(dana).map((order) => ({
-    orderId: order.id,
-    name: order.equipment[0]?.name ?? '—',
-    statusLabel: order.status,
-    icon: 'ordered' as const,
-    pillTone: 'plain' as const,
-    vendor: '—',
-    phone: '—',
-    whenLabel: 'Expected',
-    when: '—',
-    history: '—',
-    patientId: order.patientId,
-    patientName: order.patientId,
-    imagePath: null,
-    category: null,
-    orderedAtLabel: '—',
-  }));
+  const items = getVisibleOrders(dana).map(buildOrderListItemVM);
 
   it('filters to one patient only', () => {
     const patientId = items[0]?.patientId;

@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { OrderListItemVM } from '../../lib/orders';
 import { pillClasses } from '../../lib/patients';
+import { Tooltip } from '../ui/Tooltip';
 
 export function OrderListSection({
   items,
@@ -16,14 +17,21 @@ export function OrderListSection({
   }
 
   return (
-    <div className="flex flex-col gap-3.5">
-      {items.map((item) => (
-        <OrderCard
+    // Keying the list on its contents remounts the rows when filters, sort, or page change,
+    // so the cascade replays instead of the new orders appearing all at once.
+    <div key={items.map((item) => item.orderId).join()} className="flex flex-col gap-2.5">
+      {items.map((item, i) => (
+        <div
           key={item.orderId}
-          item={item}
-          onCallVendor={onCallVendor}
-          onDownloadReceipt={onDownloadReceipt}
-        />
+          className="animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+          style={{ animationDelay: `${i * 0.045}s` }}
+        >
+          <OrderCard
+            item={item}
+            onCallVendor={onCallVendor}
+            onDownloadReceipt={onDownloadReceipt}
+          />
+        </div>
       ))}
     </div>
   );
@@ -39,50 +47,93 @@ function OrderCard({
   onDownloadReceipt: (item: OrderListItemVM) => void;
 }) {
   return (
-    <article className="overflow-hidden rounded-[14px] border border-line bg-surface">
-      <div className="flex flex-col sm:flex-row sm:items-stretch">
-        <OrderCardImage imagePath={item.imagePath} name={item.name} />
+    <article className="flex flex-col gap-4 rounded-card border border-line bg-surface p-3 transition-colors hover:border-line-strong sm:grid sm:grid-cols-[84px_minmax(0,1fr)_auto] sm:items-center sm:gap-4">
+      <OrderCardImage imagePath={item.imagePath} name={item.name} />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:flex-row sm:gap-5 sm:p-5">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-base font-semibold tracking-tight">{item.name}</h3>
-            <p className="mt-0.5 font-mono text-[13px] tabular-nums text-ink-3">{item.orderId}</p>
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+          <h3 className="text-[15px] font-semibold tracking-tight">{item.name}</h3>
+          <span className="font-mono text-[12.5px] tabular-nums text-ink-3">{item.orderId}</span>
+          <span className="rounded-[5px] border border-line px-1.5 text-[12.5px] tabular-nums text-ink-2">
+            {item.qtyLabel}
+          </span>
+        </div>
 
-            <div className="mt-2 sm:hidden">
-              <OrderStatusPill item={item} />
-            </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-ink-2">
+          <MetaItem icon={<PersonIcon />} className="text-ink">
+            {item.patientName}
+          </MetaItem>
+          <MetaItem icon={<StorefrontIcon />}>{item.vendor}</MetaItem>
+          <MetaItem icon={<ClockIcon />}>
+            <span className="tabular-nums">
+              {item.whenLabel} {item.when}
+            </span>
+          </MetaItem>
+        </div>
 
-            <dl className="mt-3.5 grid max-w-md grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-[13px]">
-              <dt className="text-ink-3">Patient</dt>
-              <dd>{item.patientName}</dd>
-              <dt className="text-ink-3">Vendor</dt>
-              <dd>{item.vendor}</dd>
-              <dt className="text-ink-3">{item.whenLabel}</dt>
-              <dd className="tabular-nums">{item.when}</dd>
-            </dl>
+        {item.address ? (
+          <MetaItem icon={<LocationIcon />} className="min-w-0 text-[13px] text-ink-2">
+            <span className="truncate">{item.address}</span>
+          </MetaItem>
+        ) : null}
+      </div>
+
+      <div className="flex items-center justify-between gap-3.5 sm:justify-end">
+        <div className="flex flex-col items-start gap-1.5 sm:w-[150px] sm:items-end">
+          {/* Reserved whether or not this order can be priced, so the pill below keeps its line. */}
+          <div className="flex min-h-[34px] flex-col items-start gap-1 sm:items-end">
+            {item.price ? (
+              <>
+                <div className="text-[19px] leading-none font-bold tracking-tight tabular-nums">
+                  {item.price.totalLabel}
+                  {item.price.unit === '/mo' ? (
+                    <span className="ml-1 text-[12px] font-normal text-ink-3">/mo</span>
+                  ) : null}
+                </div>
+                <div className="text-[12px] tabular-nums text-ink-3">{item.price.unitLine}</div>
+              </>
+            ) : (
+              // No offer row from this vendor for this equipment (or a rental/purchase mix
+              // that cannot be summed). Shown blank rather than as a guessed figure.
+              <span className="text-[15px] text-ink-3" title="No vendor price on file">
+                —
+              </span>
+            )}
           </div>
+          <OrderStatusPill item={item} />
+        </div>
 
-          <div className="flex shrink-0 flex-col items-stretch gap-2.5 sm:items-end">
-            <div className="hidden sm:block">
-              <OrderStatusPill item={item} className="sm:self-end" />
-            </div>
-
-            <div className="flex flex-col gap-2 sm:items-end">
-              <CardActionButton
-                label="Call vendor"
-                onClick={() => onCallVendor(item)}
-                icon={<PhoneIcon />}
-              />
-              <CardActionButton
-                label="Download receipt"
-                onClick={() => onDownloadReceipt(item)}
-                icon={<DownloadIcon />}
-              />
-            </div>
-          </div>
+        <div className="flex shrink-0 flex-col gap-1.5">
+          <CardActionButton
+            label="Call vendor"
+            onClick={() => onCallVendor(item)}
+            icon={<PhoneIcon />}
+          />
+          <CardActionButton
+            label="Download receipt"
+            onClick={() => onDownloadReceipt(item)}
+            icon={<DownloadIcon />}
+          />
         </div>
       </div>
     </article>
+  );
+}
+
+function MetaItem({
+  icon,
+  children,
+  className,
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 ${className ?? ''}`}>
+      <span className="flex-none text-ink-3">{icon}</span>
+      {children}
+    </span>
   );
 }
 
@@ -107,16 +158,16 @@ function CardActionButton({
   icon: ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className="flex min-h-[38px] w-full cursor-pointer items-center justify-center gap-2 rounded-[10px] border border-line-strong bg-surface px-3.5 text-[13px] text-ink transition-colors hover:bg-hover sm:h-[38px] sm:w-[38px] sm:px-0"
-    >
-      {icon}
-      <span className="sm:hidden">{label}</span>
-    </button>
+    <Tooltip label={label} placement="left">
+      <button
+        type="button"
+        aria-label={label}
+        onClick={onClick}
+        className="flex h-[34px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-line-strong bg-surface text-ink-2 transition-colors hover:bg-hover hover:text-ink"
+      >
+        {icon}
+      </button>
+    </Tooltip>
   );
 }
 
@@ -124,27 +175,81 @@ function OrderCardImage({ imagePath, name }: { imagePath: string | null; name: s
   const [broken, setBroken] = useState(false);
 
   return (
-    <div className="flex h-28 shrink-0 items-center justify-center border-b border-line bg-bg-subtle sm:h-auto sm:w-[140px] sm:border-r sm:border-b-0">
-      <div className="h-14 w-14 overflow-hidden">
-        {imagePath && !broken ? (
-          <img
-            src={imagePath}
-            alt=""
-            onError={() => setBroken(true)}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <div
-            className="h-full w-full"
-            style={{
-              backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
-            }}
-            aria-hidden
-          />
-        )}
-      </div>
+    <div className="h-28 w-full shrink-0 overflow-hidden rounded-[8px] border border-line bg-bg-subtle sm:h-[84px] sm:w-[84px]">
+      {imagePath && !broken ? (
+        <img
+          src={imagePath}
+          alt=""
+          onError={() => setBroken(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div
+          className="h-full w-full"
+          style={{
+            backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
+          }}
+          aria-hidden
+        />
+      )}
       <span className="sr-only">{name}</span>
     </div>
+  );
+}
+
+/** Shared frame for the small meta-row icons, matching the mock's 17px Material glyphs. */
+function MetaIcon({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="block"
+      aria-hidden
+    >
+      {children}
+    </svg>
+  );
+}
+
+function PersonIcon() {
+  return (
+    <MetaIcon>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </MetaIcon>
+  );
+}
+
+function StorefrontIcon() {
+  return (
+    <MetaIcon>
+      <path d="M4 4h16l1 5a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z" />
+      <path d="M5 11.5V20h14v-8.5" />
+    </MetaIcon>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <MetaIcon>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </MetaIcon>
+  );
+}
+
+function LocationIcon() {
+  return (
+    <MetaIcon>
+      <path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11Z" />
+      <circle cx="12" cy="10" r="2.4" />
+    </MetaIcon>
   );
 }
 

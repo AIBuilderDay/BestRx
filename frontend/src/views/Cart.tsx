@@ -21,7 +21,7 @@ const staggerMs = (n: number) => Math.min(n, 12) * 60;
 
 export default function Cart({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const hospice = getHospice(user.orgId);
-  const { lines, cartGroups, cartTotals: totals, setCartLineQty, setCartOpen, placeOrder } = useCart();
+  const { lines, cartGroups, cartTotals: totals, orderCount, placing, setCartLineQty, setCartOpen, placeOrder } = useCart();
   const navigate = useNavigate();
 
   const firstMonthTotal = totals.monthly + totals.oneTime;
@@ -61,11 +61,10 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
     return n;
   }, [cartGroups]);
 
-  /** The cart page has nothing left to show once the order is placed, so it returns to the catalog. */
-  const placeOrderAndLeave = () => {
-    const hadLines = lines.length > 0;
-    placeOrder();
-    if (hadLines) navigate('/catalog');
+  /** The cart page has nothing left to show once the order is placed, so it returns to the catalog.
+   *  Navigating only after checkout resolves means a failed order leaves the cart intact to retry. */
+  const placeOrderAndLeave = async () => {
+    if (await placeOrder()) navigate('/orders');
   };
 
   const unitCount = totalUnitsInCart(lines);
@@ -112,12 +111,12 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
                   </div>
                   {g.lines.map((l) => (
                     <CartLineRow
-                      key={`${l.hcpcs}-${l.patientId}`}
+                      key={`${l.offerId}-${l.patientId}`}
                       line={l}
                       delayMs={staggerMs(step++)}
                       patient={getPatient(g.patientId)}
-                      onQtyChange={(q) => setCartLineQty(l.hcpcs, l.patientId, q)}
-                      onRemove={() => setCartLineQty(l.hcpcs, l.patientId, 0)}
+                      onQtyChange={(q) => setCartLineQty(l.offerId, l.patientId, q)}
+                      onRemove={() => setCartLineQty(l.offerId, l.patientId, 0)}
                     />
                   ))}
                 </section>
@@ -135,6 +134,8 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
               atRiskCount={atRiskCount}
               budget={budget}
               ppd={ppd}
+              orderCount={orderCount}
+              placing={placing}
               onPlaceOrder={placeOrderAndLeave}
             />
           </div>

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { equipmentCatalog, patients, vendors } from '../data/db';
+import { resetSnapshot } from '../data/store';
+import { seedFixtures } from '../data/testSnapshot';
 import {
+  buildCartGroups,
   buildCatalogItems,
   catalogFilterOptions,
   CATEGORY_LABELS,
@@ -12,6 +15,7 @@ import {
   paginateCatalog,
   patientOwnsEquipment,
   priceCeiling,
+  projectedOrderCount,
   searchCatalog,
 } from './catalog';
 
@@ -254,5 +258,75 @@ describe('searchCatalog', () => {
 
   it('requires every word in the query to match', () => {
     expect(searchCatalog(items, 'hospital zzzznope')).toHaveLength(0);
+  });
+});
+
+describe('projectedOrderCount', () => {
+  const items = buildCatalogItems();
+  const [patientA, patientB] = patients();
+
+  /** An offer id from a vendor other than the first, so a split can actually be observed. */
+  const offerFrom = (vendorId: string) => items.find((it) => it.vendor.id === vendorId)!.offer.id;
+  const vendorIds = [...new Set(items.map((it) => it.vendor.id))];
+
+  it('counts nothing for an empty cart', () => {
+    expect(projectedOrderCount([], items)).toBe(0);
+  });
+
+  it('groups one patient buying from one vendor into a single order', () => {
+    const [first, second] = items.filter((it) => it.vendor.id === vendorIds[0]);
+    const lines = [
+      { offerId: first.offer.id, patientId: patientA.id, qty: 1 },
+      { offerId: second.offer.id, patientId: patientA.id, qty: 2 },
+    ];
+    expect(projectedOrderCount(lines, items)).toBe(1);
+  });
+
+  it('splits one patient across two vendors into two orders', () => {
+    const lines = [
+      { offerId: offerFrom(vendorIds[0]), patientId: patientA.id, qty: 1 },
+      { offerId: offerFrom(vendorIds[1]), patientId: patientA.id, qty: 1 },
+    ];
+    expect(projectedOrderCount(lines, items)).toBe(2);
+  });
+
+  it('splits the same vendor across two patients into two orders', () => {
+    const lines = [
+      { offerId: offerFrom(vendorIds[0]), patientId: patientA.id, qty: 1 },
+      { offerId: offerFrom(vendorIds[0]), patientId: patientB.id, qty: 1 },
+    ];
+    expect(projectedOrderCount(lines, items)).toBe(2);
+  });
+
+  it('ignores a line whose offer is not in the catalog', () => {
+    const lines = [{ offerId: 'OFR-does-not-exist', patientId: patientA.id, qty: 1 }];
+    expect(projectedOrderCount(lines, items)).toBe(0);
+  });
+});
+
+describe('buildCatalogItems timing', () => {
+  /**
+   * Regression: CartContext used to call buildCatalogItems() at module load, before DataProvider
+   * had fetched the snapshot. That cached [] forever, and buildCartGroups silently dropped every
+   * cart line because no offer matched. Callers must build it after the snapshot is populated.
+   */
+  it('returns nothing when the snapshot has not loaded yet', () => {
+    resetSnapshot();
+    expect(buildCatalogItems()).toHaveLength(0);
+
+    seedFixtures();
+    expect(buildCatalogItems().length).toBeGreaterThan(0);
+  });
+
+  it('drops cart lines when built against an empty snapshot', () => {
+    const line = [{ offerId: 'OFR-003', patientId: patients()[0].id, qty: 1 }];
+    const populated = buildCatalogItems();
+
+    resetSnapshot();
+    const stale = buildCatalogItems();
+    seedFixtures();
+
+    expect(buildCartGroups(line, stale, patients())).toHaveLength(0);
+    expect(buildCartGroups(line, populated, patients())).toHaveLength(1);
   });
 });

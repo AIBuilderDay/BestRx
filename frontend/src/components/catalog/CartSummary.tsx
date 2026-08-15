@@ -19,6 +19,8 @@ export function CartSummary({
   atRiskCount,
   budget,
   ppd,
+  orderCount,
+  placing = false,
   onPlaceOrder,
 }: {
   totals: CartTotals;
@@ -28,6 +30,9 @@ export function CartSummary({
   atRiskCount: number;
   budget: CartBudgetVM | null;
   ppd: CartPpdImpact;
+  /** Orders this cart will become — one per patient and vendor, matching the backend's split. */
+  orderCount: number;
+  placing?: boolean;
   onPlaceOrder: () => void;
 }) {
   const meterWidth = budget ? Math.min(100, Math.max(0, budget.pct)) : 0;
@@ -89,15 +94,17 @@ export function CartSummary({
       <button
         type="button"
         onClick={onPlaceOrder}
-        className="mt-4 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
+        disabled={placing}
+        className="mt-4 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Place order
+        {placing ? 'Placing order…' : 'Place order'}
       </button>
       <div className="mt-3 text-[11px] leading-relaxed text-ink-3">
-        {patientCount > 1
-          ? `${patientCount} orders will be created — one per patient.`
+        {orderCount > 1
+          ? `${orderCount} orders will be created — one per patient and vendor.`
           : 'One order will be created.'}{' '}
-        Vendors are confirmed at dispatch. {lineCount} line{lineCount > 1 ? 's' : ''} total.
+        {lineCount} line{lineCount > 1 ? 's' : ''} total across {patientCount} patient
+        {patientCount > 1 ? 's' : ''}.
       </div>
     </aside>
   );

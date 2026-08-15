@@ -3,15 +3,15 @@
  * patient order row logic from lib/patients.ts.
  */
 
-import { getCatalogEntry, getPatient, orders } from '../data/db';
+import { getCatalogEntry, getOffersForVendor, getPatient, orders } from '../data/db';
 import { can } from './auth';
-import { CATEGORY_LABELS, paginateItems, patientFullName } from './catalog';
+import { CATEGORY_LABELS, moneyLabel, paginateItems, patientFullName } from './catalog';
 import {
   buildOrderEquipmentVM,
   getCaseloadPatients,
   type PatientEquipmentVM,
 } from './patients';
-import type { EquipmentCategory, Order, OrderStatus, User } from '../types/domain';
+import type { EquipmentCategory, Order, OrderStatus, Patient, User } from '../types/domain';
 
 export type OrderSortKey = 'recent' | 'status';
 
@@ -28,6 +28,17 @@ export interface OrderListItemVM extends PatientEquipmentVM {
   imagePath: string | null;
   category: EquipmentCategory | null;
   orderedAtLabel: string;
+  /** Total units across the order's equipment lines. */
+  qty: number;
+  qtyLabel: string;
+  /** Delivery address, one line. Empty when the patient record is missing. */
+  address: string;
+  /**
+   * Order cost from the vendor's own offer rows, or null when this vendor lists no offer for
+   * the equipment. Rentals and purchases are kept apart — `unit` says which, and a mixed order
+   * (both kinds, or a line with no offer) resolves to null rather than a misleading sum.
+   */
+  price: { totalLabel: string; unitLine: string; unit: '/mo' | 'one-time' } | null;
 }
 
 const STATUS_SORT_RANK: Record<OrderStatus, number> = {
@@ -86,9 +97,48 @@ function formatOrderedAt(iso: string | undefined): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function formatAddress(patient: Patient | undefined): string {
+  if (!patient) return '';
+  const { street1, city, state, zip } = patient.address;
+  return [street1, city, `${state} ${zip}`.trim()].filter(Boolean).join(', ');
+}
+
+/**
+ * Order cost, priced from this vendor's offer rows. Returns null unless every line has an offer
+ * from the order's vendor and all lines share one unit — a rental and a purchase do not add up,
+ * so a mixed or unpriceable order shows no total rather than a wrong one.
+ */
+function orderPrice(order: Order): OrderListItemVM['price'] {
+  if (!order.vendorId || order.equipment.length === 0) return null;
+
+  const offers = getOffersForVendor(order.vendorId);
+  const lines = order.equipment.map((item) => ({
+    offer: offers.find((o) => o.hcpcs === item.hcpcs),
+    qty: item.qty,
+  }));
+  if (lines.some((l) => !l.offer)) return null;
+
+  const units = new Set(lines.map((l) => l.offer!.unit));
+  if (units.size !== 1) return null;
+
+  const total = lines.reduce((sum, l) => sum + l.offer!.priceUsd * l.qty, 0);
+  const unit = units.has('month') ? '/mo' : 'one-time';
+  const single = lines.length === 1 ? lines[0]! : null;
+
+  return {
+    totalLabel: moneyLabel(total),
+    // One line shows its arithmetic; a multi-line order just names the line count.
+    unitLine: single
+      ? `${moneyLabel(single.offer!.priceUsd)} × ${single.qty}`
+      : `${lines.length} items`,
+    unit,
+  };
+}
+
 export function buildOrderListItemVM(order: Order): OrderListItemVM {
   const patient = getPatient(order.patientId);
   const base = buildOrderEquipmentVM(order);
+  const qty = order.equipment.reduce((sum, item) => sum + item.qty, 0);
   return {
     ...base,
     patientId: order.patientId,
@@ -96,6 +146,10 @@ export function buildOrderListItemVM(order: Order): OrderListItemVM {
     imagePath: primaryImagePath(order),
     category: primaryCategory(order),
     orderedAtLabel: formatOrderedAt(order.orderedAt),
+    qty,
+    qtyLabel: `Qty ${qty}`,
+    address: formatAddress(patient),
+    price: orderPrice(order),
   };
 }
 

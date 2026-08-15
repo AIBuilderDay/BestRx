@@ -16,6 +16,7 @@ export function CartDrawer({
   onClose,
   onViewCart,
   onPlaceOrder,
+  placing = false,
 }: {
   open: boolean;
   groups: CartGroupVM[];
@@ -25,6 +26,8 @@ export function CartDrawer({
   onClose: () => void;
   onViewCart: () => void;
   onPlaceOrder: () => void;
+  /** True while checkout is in flight, so a double-tap cannot place the order twice. */
+  placing?: boolean;
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;
@@ -186,9 +189,10 @@ export function CartDrawer({
             <button
               type="button"
               onClick={onPlaceOrder}
-              className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
+              disabled={placing}
+              className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Add to cart
+              {placing ? 'Placing…' : 'Place order'}
             </button>
           </div>
         </div>

@@ -119,6 +119,37 @@ tasks:
 
   # ── Backend and infrastructure ───────────────────────────────────────────────
 
+  backend:start:
+    desc: "Build and start only the API container (no frontend)"
+    aliases: [backend:up]
+    silent: true
+    cmds:
+      - task: _check_docker
+      # --no-deps so compose does not pull the frontend up alongside it.
+      - docker compose up -d --build --no-deps {{.BACKEND_SERVICE}}
+      - |
+        echo ""
+        echo "Waiting for the API to answer..."
+        for i in $(seq 1 30); do
+          if curl -sf {{.BACKEND_URL}}/health > /dev/null 2>&1; then break; fi
+          sleep 1
+        done
+        if curl -sf {{.BACKEND_URL}}/health > /dev/null 2>&1; then
+          echo "API:       {{.BACKEND_URL}}  (docs at {{.BACKEND_URL}}/docs)"
+        else
+          echo "API has not answered yet. Check: task backend:logs"
+        fi
+        echo ""
+        echo "  task backend:logs   tail the API"
+        echo "  task test:backend   pytest in the container"
+        echo "  task backend:stop   stop just the API"
+
+  backend:stop:
+    desc: "Stop only the API container"
+    aliases: [backend:down]
+    cmds:
+      - docker compose stop {{.BACKEND_SERVICE}}
+
   backend:logs:
     desc: "Tail the backend container logs"
     cmds:

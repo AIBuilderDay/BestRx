@@ -12,6 +12,7 @@ app/
 ├── config.py       environment-driven settings
 ├── lifecycle.py    the order status state machine
 ├── store.py        orders, events, and the SSE fan-out
+├── carts.py        one open cart per user, in memory
 ├── subscriptions.py push subscriptions (the one thing in DynamoDB)
 ├── fixtures.py     read-only access to the JSON tables
 ├── routers/        HTTP endpoints, including /stream
@@ -29,6 +30,7 @@ The Dockerfile builds from the **repo root**, not `./backend` — the JSON fixtu
 
 ```bash
 task start              # frontend :5173, API :8000, docs at :8000/docs
+task backend:start      # just the API, no frontend container
 ```
 
 No AWS account and no credentials. Orders live in memory, seeded from the fixtures at startup, and
@@ -38,6 +40,7 @@ SSE fans out in-process.
 task backend:logs       # tail just the API
 task backend:shell      # a shell inside the container
 task test:backend       # pytest inside the container
+task backend:stop       # stop just the API
 ```
 
 Editing anything under `backend/app/` reloads the running server through the bind mount.
@@ -51,6 +54,11 @@ Editing anything under `backend/app/` reloads the running server through the bin
 | `POST` | `/orders` | create |
 | `PATCH` | `/orders/{id}/status` | **drives both notification channels** |
 | `GET` | `/stream` | **SSE** — live order status |
+| `GET` | `/carts/{userId}` | the user's cart, priced from the catalog; opens an empty one on first read |
+| `POST` | `/carts` | create (replaces any existing cart for that user) |
+| `PUT` | `/carts/{userId}` | replace the cart's lines |
+| `DELETE` | `/carts/{userId}` | empty the cart |
+| `POST` | `/carts/{userId}/checkout` | **cart → orders**, one per patient and vendor |
 | `GET` | `/patients` | filter by `hospiceId`, `caseManagerId` |
 | `GET` | `/products` | vendor offers — per-vendor pricing |
 | `GET` | `/equipment` | the HCPCS catalog |
@@ -78,6 +86,25 @@ Invalid transitions return `409` with what *is* possible:
 { "detail": { "message": "...", "currentStatus": "ordered", "allowedNext": ["dispatched"] } }
 ```
 
+## Carts
+
+One open cart per user, server-authoritative. The client sends the lines it wants and renders what
+comes back — **prices are never accepted from the client**, they are resolved from `vendor_offers`
+on every read, so a cart can never quote a number the catalog disputes.
+
+Updates are a whole-cart replace rather than per-line patches: the client already holds the full
+list, and one shape of update means there is no ordering question between concurrent edits.
+Duplicate `(offer, patient)` pairs are merged server-side so totals cannot double-count.
+
+**Checkout groups lines by `(patient, vendor)`.** An order carries one `patientId`, and a real DME
+dispatch goes to one vendor, so a cart spanning three patients across two vendors becomes up to six
+orders rather than one unshippable blob. Each one is created through the same service call a single
+order uses, so every cart order fans out over SSE and enqueues a push exactly as it would otherwise
+— there is no second, quieter way for an order to come into existence.
+
+Carts live in memory like orders, with the same trade. A cart is short-lived by nature (filled and
+checked out in one session), so losing it on a restart costs far less than losing orders would.
+
 ## SSE
 
 `GET /stream` holds a connection open and pushes events as they happen. No polling: a status change
@@ -103,7 +130,7 @@ Forward only, no skipping, no crossing tracks. `delivered` and `picked_up` are t
 
 ## Where state lives
 
-**Orders and events: in this process's memory**, seeded from the JSON fixtures at startup. A
+**Orders, events, and carts: in this process's memory**, seeded from the JSON fixtures at startup. A
 long-running container can hold them, so it does — no database to provision, no seeding step, and a
 restart returns the dataset to a known-good state.
 
@@ -130,7 +157,8 @@ not a config flag.
 task test:backend
 ```
 
-Covers the transition rules including every rejected edge, that a status change reaches a connected
+Covers cart pricing, line merging, the checkout split by patient and vendor, and that checkout
+empties the cart and opens each order's timeline. Plus the transition rules including every rejected edge, that a status change reaches a connected
 SSE client, that a stale cursor does not silence the stream, that a slow client is dropped rather
 than blocking the write path, that hospice filtering works, and that a failed SQS enqueue does not
 fail the order update.
