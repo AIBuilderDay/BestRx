@@ -66,6 +66,9 @@ export const permissionsFor = (user: User): Permission[] => ROLE_PERMISSIONS[use
 export const can = (user: User | null, permission: Permission): boolean =>
   user !== null && permissionsFor(user).includes(permission);
 
+/** Vendor-wide scorecard ratings — not shown on the catalog. DON and hospice owner only. */
+export const canViewVendorScorecard = (user: User | null): boolean => can(user, 'reporting');
+
 export const findUserByEmail = (email: string): User | undefined => {
   const needle = email.trim().toLowerCase();
   return needle === '' ? undefined : users.find((u) => u.email.toLowerCase() === needle);

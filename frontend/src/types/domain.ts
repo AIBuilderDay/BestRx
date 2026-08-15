@@ -76,6 +76,8 @@ export interface VendorSla {
 export interface Vendor {
   id: string;
   name: string;
+  /** Short label shown in the catalog and cart (e.g. "Vendor 1"). */
+  displayName: string;
   market: string;
   serviceAreaZips: string[];
   hours: string;
@@ -89,6 +91,12 @@ export interface Vendor {
     podCapturePct: number;
   };
   logoPath: string;
+  /**
+   * Hospice-wide vendor scorecard metric. Visible only to director_of_nursing and hospice_admin —
+   * not shown on the catalog storefront.
+   */
+  overallRating: number;
+  overallRatingCount: number;
 }
 
 export interface User {
@@ -222,14 +230,35 @@ export interface VendorOffer {
   id: string;
   vendorId: string;
   hcpcs: string;
+  /** Denormalized from equipment_catalog for a self-contained storefront row. */
+  productName: string;
+  description: string;
+  category: EquipmentCategory;
   priceUsd: number;
   unit: 'month' | 'purchase';
   inStock: boolean;
   /** Vendor's own promise, not a measurement. Compare against vendor.performance30d. */
   deliveryEtaHours: number;
-  /** 1-5, averaged from the nurses who received previous deliveries. */
-  nurseRating: number;
-  ratingCount: number;
+  /** Whole days promised for catalog display. Auditable counterpart to deliveryEtaHours. */
+  deliveryLeadDays: number;
+  /** Listing image for this vendor's SKU. */
+  imagePath: string;
+}
+
+/** One nurse review of a specific vendor offer (one vendor SKU). */
+export interface ProductReview {
+  id: string;
+  offerId: string;
+  /** 1-5 stars. */
+  rating: number;
+  reviewedAt: string;
+  reviewerId: string;
+  comment: string;
+}
+
+export interface OfferRatingSummary {
+  average: number;
+  count: number;
 }
 
 export interface Budget {

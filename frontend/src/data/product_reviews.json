@@ -1,0 +1,3242 @@
+[
+  {
+    "id": "REV-0001",
+    "offerId": "OFR-001",
+    "rating": 1,
+    "reviewedAt": "2026-06-02T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Missed the discharge window entirely — had to source locally."
+  },
+  {
+    "id": "REV-0002",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-03T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0003",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-04T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0004",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-05T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0005",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-06T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0006",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-06-07T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0007",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-08T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0008",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-09T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0009",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-10T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0010",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-11T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0011",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-06-12T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0012",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-13T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0013",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-14T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0014",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-15T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0015",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-16T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0016",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-06-17T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0017",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-18T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0018",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-19T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0019",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-20T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0020",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-21T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0021",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-06-22T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0022",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-23T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0023",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-24T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0024",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-25T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0025",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-26T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0026",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-06-27T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0027",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-28T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0028",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-01T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0029",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-06-02T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0030",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-03T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0031",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-07-04T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0032",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-05T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0033",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-06T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0034",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-07T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0035",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-08T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0036",
+    "offerId": "OFR-001",
+    "rating": 4,
+    "reviewedAt": "2026-07-09T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0037",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-10T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0038",
+    "offerId": "OFR-001",
+    "rating": 5,
+    "reviewedAt": "2026-07-11T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0039",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-12T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0040",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-13T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0041",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-14T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0042",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-15T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0043",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-16T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0044",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-17T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0045",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-18T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0046",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-19T10:46:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0047",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-20T10:47:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0048",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-21T10:48:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0049",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-22T10:49:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0050",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-23T10:50:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0051",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-24T10:51:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0052",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-25T10:52:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0053",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-26T10:53:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0054",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-27T10:54:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0055",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-28T10:55:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0056",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-01T10:56:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0057",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-02T10:57:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0058",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-07-03T10:58:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0059",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-07-04T10:59:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0060",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-05T10:00:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0061",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-06T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0062",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-07T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0063",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-08T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0064",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-09T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0065",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-10T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0066",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-11T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0067",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-12T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0068",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-13T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0069",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-14T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0070",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-15T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0071",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-16T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0072",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-17T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0073",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-18T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0074",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-19T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0075",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-20T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0076",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-21T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0077",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-22T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0078",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-23T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0079",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-24T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0080",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-25T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0081",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-26T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0082",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-27T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0083",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-28T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0084",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-01T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0085",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-02T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0086",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-03T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0087",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-04T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0088",
+    "offerId": "OFR-002",
+    "rating": 5,
+    "reviewedAt": "2026-08-05T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0089",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-08-06T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0090",
+    "offerId": "OFR-002",
+    "rating": 4,
+    "reviewedAt": "2026-06-07T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0091",
+    "offerId": "OFR-003",
+    "rating": 3,
+    "reviewedAt": "2026-06-08T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0092",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-09T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0093",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-10T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0094",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-11T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0095",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-12T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0096",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-13T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0097",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-14T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0098",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-15T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0099",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-16T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0100",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-17T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0101",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-18T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0102",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-19T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0103",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-20T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0104",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-21T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0105",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-22T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0106",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-23T10:46:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0107",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-24T10:47:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0108",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-25T10:48:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0109",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-26T10:49:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0110",
+    "offerId": "OFR-003",
+    "rating": 5,
+    "reviewedAt": "2026-06-27T10:50:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0111",
+    "offerId": "OFR-003",
+    "rating": 4,
+    "reviewedAt": "2026-06-28T10:51:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0112",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-01T10:52:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0113",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-02T10:53:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0114",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-03T10:54:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0115",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-04T10:55:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0116",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-05T10:56:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0117",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-06T10:57:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0118",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-07T10:58:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0119",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-06-08T10:59:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0120",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-07-09T10:00:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0121",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-07-10T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0122",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-07-11T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Solid unit — nurses report no issues after delivery."
+  },
+  {
+    "id": "REV-0123",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-07-12T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0124",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-07-13T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0125",
+    "offerId": "OFR-004",
+    "rating": 5,
+    "reviewedAt": "2026-07-14T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0126",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-15T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0127",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-16T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0128",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-17T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0129",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-18T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0130",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-19T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0131",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-20T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0132",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-21T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0133",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-22T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0134",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-23T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0135",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-24T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0136",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-25T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0137",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-26T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0138",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-27T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0139",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-28T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0140",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-01T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0141",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-02T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0142",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-03T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0143",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-04T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0144",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-05T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0145",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-06T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0146",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-07T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0147",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-08T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0148",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-07-09T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0149",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-07-10T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0150",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-08-11T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0151",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-08-12T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0152",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-08-13T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0153",
+    "offerId": "OFR-005",
+    "rating": 4,
+    "reviewedAt": "2026-08-14T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0154",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-08-15T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Clean equipment and the delivery team was respectful in the home."
+  },
+  {
+    "id": "REV-0155",
+    "offerId": "OFR-005",
+    "rating": 5,
+    "reviewedAt": "2026-08-16T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0156",
+    "offerId": "OFR-006",
+    "rating": 5,
+    "reviewedAt": "2026-08-17T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Arrived on time and setup was straightforward for the family."
+  },
+  {
+    "id": "REV-0157",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-18T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0158",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-19T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0159",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-20T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0160",
+    "offerId": "OFR-006",
+    "rating": 5,
+    "reviewedAt": "2026-08-21T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0161",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-22T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0162",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-23T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0163",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-24T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0164",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-25T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0165",
+    "offerId": "OFR-006",
+    "rating": 5,
+    "reviewedAt": "2026-08-26T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0166",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-27T10:46:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0167",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-28T10:47:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0168",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-01T10:48:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0169",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-02T10:49:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0170",
+    "offerId": "OFR-006",
+    "rating": 5,
+    "reviewedAt": "2026-08-03T10:50:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Quick turnaround from order to bedside."
+  },
+  {
+    "id": "REV-0171",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-04T10:51:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0172",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-05T10:52:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0173",
+    "offerId": "OFR-006",
+    "rating": 4,
+    "reviewedAt": "2026-08-06T10:53:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0174",
+    "offerId": "OFR-007",
+    "rating": 1,
+    "reviewedAt": "2026-08-07T10:54:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Unacceptable delay for a STAT admission order."
+  },
+  {
+    "id": "REV-0175",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-08-08T10:55:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0176",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-08-09T10:56:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0177",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-08-10T10:57:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0178",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-08-11T10:58:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0179",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-08-12T10:59:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0180",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-13T10:00:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0181",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-14T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0182",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-15T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0183",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-16T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0184",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-17T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0185",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-18T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0186",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-19T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0187",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-20T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0188",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-21T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0189",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-22T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0190",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-23T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0191",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-24T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0192",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-25T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0193",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-26T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0194",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-27T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0195",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-28T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0196",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-01T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0197",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-02T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0198",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-03T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0199",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-04T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0200",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-05T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0201",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-06T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0202",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-07T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0203",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-08T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0204",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-09T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0205",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-10T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0206",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-11T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0207",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-12T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0208",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-13T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0209",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-06-14T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0210",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-15T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0211",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-16T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0212",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-17T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0213",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-18T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0214",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-19T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0215",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-20T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0216",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-21T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0217",
+    "offerId": "OFR-007",
+    "rating": 4,
+    "reviewedAt": "2026-07-22T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0218",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-23T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0219",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-24T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0220",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-25T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0221",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-26T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0222",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-27T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0223",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-28T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0224",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-01T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0225",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-02T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0226",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-03T10:46:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0227",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-04T10:47:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0228",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-05T10:48:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0229",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-06T10:49:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0230",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-07T10:50:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0231",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-08T10:51:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0232",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-09T10:52:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0233",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-10T10:53:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0234",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-11T10:54:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0235",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-12T10:55:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0236",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-13T10:56:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0237",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-14T10:57:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0238",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-15T10:58:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0239",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-07-16T10:59:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0240",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-17T10:00:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0241",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-18T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0242",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-19T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0243",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-20T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0244",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-21T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0245",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-22T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0246",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-23T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0247",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-24T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0248",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-25T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0249",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-26T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0250",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-27T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0251",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-28T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0252",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-01T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0253",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-02T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0254",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-03T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0255",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-04T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0256",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-05T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0257",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-06T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0258",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-07T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0259",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-08T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0260",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-09T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0261",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-10T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0262",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-11T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0263",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-12T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0264",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-13T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0265",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-14T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0266",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-15T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0267",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-16T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0268",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-17T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0269",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-08-18T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0270",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-19T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0271",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-20T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0272",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-21T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0273",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-22T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0274",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-23T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0275",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-24T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0276",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-25T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0277",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-26T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0278",
+    "offerId": "OFR-008",
+    "rating": 4,
+    "reviewedAt": "2026-06-27T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0279",
+    "offerId": "OFR-009",
+    "rating": 2,
+    "reviewedAt": "2026-06-28T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0280",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-01T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0281",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-02T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0282",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-03T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0283",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-04T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0284",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-05T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0285",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-06T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0286",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-07T10:46:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0287",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-08T10:47:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0288",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-09T10:48:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0289",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-10T10:49:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0290",
+    "offerId": "OFR-009",
+    "rating": 4,
+    "reviewedAt": "2026-06-11T10:50:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0291",
+    "offerId": "OFR-010",
+    "rating": 1,
+    "reviewedAt": "2026-06-12T10:51:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Unacceptable delay for a STAT admission order."
+  },
+  {
+    "id": "REV-0292",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-13T10:52:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0293",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-14T10:53:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0294",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-15T10:54:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0295",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-16T10:55:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0296",
+    "offerId": "OFR-010",
+    "rating": 3,
+    "reviewedAt": "2026-06-17T10:56:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0297",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-18T10:57:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0298",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-19T10:58:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0299",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-06-20T10:59:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0300",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-21T10:00:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0301",
+    "offerId": "OFR-010",
+    "rating": 3,
+    "reviewedAt": "2026-07-22T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0302",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-23T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0303",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-24T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0304",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-25T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0305",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-26T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0306",
+    "offerId": "OFR-010",
+    "rating": 3,
+    "reviewedAt": "2026-07-27T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0307",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-28T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0308",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-01T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0309",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-02T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0310",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-03T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0311",
+    "offerId": "OFR-010",
+    "rating": 3,
+    "reviewedAt": "2026-07-04T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0312",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-05T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0313",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-06T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0314",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-07T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0315",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-08T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0316",
+    "offerId": "OFR-010",
+    "rating": 3,
+    "reviewedAt": "2026-07-09T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0317",
+    "offerId": "OFR-010",
+    "rating": 4,
+    "reviewedAt": "2026-07-10T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0318",
+    "offerId": "OFR-011",
+    "rating": 5,
+    "reviewedAt": "2026-07-11T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0319",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-12T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0320",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-13T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0321",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-14T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0322",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-15T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0323",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-16T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0324",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-17T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0325",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-18T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0326",
+    "offerId": "OFR-011",
+    "rating": 4,
+    "reviewedAt": "2026-07-19T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0327",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-07-20T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0328",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-07-21T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0329",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-07-22T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0330",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-23T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0331",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-24T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0332",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-25T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0333",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-26T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0334",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-27T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0335",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-28T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0336",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-01T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0337",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-02T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0338",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-03T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0339",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-04T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0340",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-05T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0341",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-06T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+  },
+  {
+    "id": "REV-0342",
+    "offerId": "OFR-012",
+    "rating": 4,
+    "reviewedAt": "2026-08-07T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Works well; instructions could be clearer for caregivers."
+  },
+  {
+    "id": "REV-0343",
+    "offerId": "OFR-013",
+    "rating": 5,
+    "reviewedAt": "2026-08-08T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Exactly what we needed for admission; would order again."
+  },
+  {
+    "id": "REV-0344",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-09T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0345",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-10T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0346",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-11T10:46:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0347",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-12T10:47:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0348",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-13T10:48:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0349",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-14T10:49:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0350",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-15T10:50:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0351",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-16T10:51:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0352",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-17T10:52:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0353",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-18T10:53:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0354",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-19T10:54:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0355",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-20T10:55:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0356",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-21T10:56:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0357",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-22T10:57:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0358",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-23T10:58:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0359",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-08-24T10:59:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0360",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-25T10:00:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0361",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-26T10:01:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0362",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-27T10:02:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0363",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-28T10:03:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0364",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-01T10:04:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0365",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-02T10:05:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0366",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-03T10:06:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0367",
+    "offerId": "OFR-013",
+    "rating": 3,
+    "reviewedAt": "2026-06-04T10:07:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0368",
+    "offerId": "OFR-014",
+    "rating": 1,
+    "reviewedAt": "2026-06-05T10:08:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0369",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-06T10:09:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0370",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-07T10:10:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0371",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-08T10:11:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0372",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-09T10:12:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0373",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-10T10:13:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0374",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-11T10:14:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0375",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-12T10:15:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0376",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-13T10:16:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0377",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-14T10:17:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0378",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-15T10:18:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0379",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-16T10:19:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0380",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-17T10:20:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0381",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-18T10:21:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0382",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-19T10:22:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0383",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-20T10:23:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0384",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-21T10:24:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0385",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-22T10:25:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0386",
+    "offerId": "OFR-014",
+    "rating": 3,
+    "reviewedAt": "2026-06-23T10:26:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0387",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-06-24T10:27:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0388",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-06-25T10:28:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0389",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-06-26T10:29:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0390",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-07-27T10:30:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0391",
+    "offerId": "OFR-015",
+    "rating": 4,
+    "reviewedAt": "2026-07-28T10:31:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Reliable piece of equipment, minor cosmetic wear on arrival."
+  },
+  {
+    "id": "REV-0392",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-07-01T10:32:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0393",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-07-02T10:33:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0394",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-07-03T10:34:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0395",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-07-04T10:35:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0396",
+    "offerId": "OFR-015",
+    "rating": 4,
+    "reviewedAt": "2026-07-05T10:36:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Met our needs; case manager had to follow up once on ETA."
+  },
+  {
+    "id": "REV-0397",
+    "offerId": "OFR-015",
+    "rating": 3,
+    "reviewedAt": "2026-07-06T10:37:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0398",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-07T10:38:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0399",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-08T10:39:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0400",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-09T10:40:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0401",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-10T10:41:00-06:00",
+    "reviewerId": "USR-002",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0402",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-11T10:42:00-06:00",
+    "reviewerId": "USR-003",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  },
+  {
+    "id": "REV-0403",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-12T10:43:00-06:00",
+    "reviewerId": "USR-004",
+    "comment": "Acceptable but not exceptional — took two delivery attempts."
+  },
+  {
+    "id": "REV-0404",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-13T10:44:00-06:00",
+    "reviewerId": "USR-010",
+    "comment": "Functional once installed; initial delivery window was missed."
+  },
+  {
+    "id": "REV-0405",
+    "offerId": "OFR-016",
+    "rating": 3,
+    "reviewedAt": "2026-07-14T10:45:00-06:00",
+    "reviewerId": "USR-001",
+    "comment": "Average experience; family had questions the vendor could not answer quickly."
+  }
+]

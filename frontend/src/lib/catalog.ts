@@ -1,12 +1,12 @@
 /**
- * Pure helpers for the DME Catalog view: price/lead-time derivation, vendor linkage, and
- * per-patient equipment ownership. Everything here reads from src/data/db.ts — nothing is
- * invented. An item with no inventory-linked vendor simply has no vendor/lead-time data; callers
- * must render that as "vendor assigned at dispatch" rather than a fabricated number.
+ * Pure helpers for the DME Catalog view. Storefront rows come from vendor_offers.json — one card per
+ * offer, with product name, vendor, price, lead time, and image all read directly from the JSON.
+ * Joins to equipment_catalog are for FK validation only.
  */
 
-import { getVendor, inventory, orders } from '../data/db';
-import type { CatalogEntry, EquipmentCategory, Order, Patient, Vendor } from '../types/domain';
+import { getCatalogEntry, getVendor, orders, vendorOffers } from '../data/db';
+import { offerRatingSummary } from './reviews';
+import type { CatalogEntry, EquipmentCategory, OfferRatingSummary, Order, Patient, ProductReview, Vendor, VendorOffer } from '../types/domain';
 
 export interface ItemPrice {
   amount: number;
@@ -14,13 +14,13 @@ export interface ItemPrice {
   unit: '/mo' | 'one-time';
 }
 
+/** One storefront listing: a single vendor offer row from vendor_offers.json. */
 export interface CatalogProductVM {
-  entry: CatalogEntry;
+  offer: VendorOffer;
+  vendor: Vendor;
   price: ItemPrice;
-  /** Vendors known (via inventory) to carry this HCPCS code. Empty when unknown. */
-  vendors: Vendor[];
-  /** Fastest linked vendor's routine delivery lead time, in whole days. Null when unknown. */
-  leadDays: number | null;
+  /** Average star rating for this vendor SKU, from product_reviews.json. */
+  rating: OfferRatingSummary | null;
 }
 
 export const CATEGORY_LABELS: Record<EquipmentCategory, string> = {
@@ -35,6 +35,14 @@ export function moneyLabel(amount: number): string {
   return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+export function offerPrice(offer: VendorOffer): ItemPrice {
+  return {
+    amount: offer.priceUsd,
+    unit: offer.unit === 'month' ? '/mo' : 'one-time',
+  };
+}
+
+/** Medicare-allowed rate from the catalog entry (reference pricing, not the vendor offer). */
 export function itemPrice(entry: CatalogEntry): ItemPrice {
   if (entry.rental && entry.avgMonthlyAllowedUsd !== undefined) {
     return { amount: entry.avgMonthlyAllowedUsd, unit: '/mo' };
@@ -42,38 +50,25 @@ export function itemPrice(entry: CatalogEntry): ItemPrice {
   return { amount: entry.avgPurchaseAllowedUsd ?? 0, unit: 'one-time' };
 }
 
-/** Vendors with any inventory record for this HCPCS code, deduped, in vendors.json order. */
-export function vendorsForHcpcs(hcpcs: string): Vendor[] {
-  const ids = new Set(inventory.filter((u) => u.hcpcs === hcpcs).map((u) => u.vendorId));
-  const found: Vendor[] = [];
-  for (const id of ids) {
-    const v = getVendor(id);
-    if (v) found.push(v);
+/** One catalog card per vendor offer. Items with no offer are not listed. */
+export function buildCatalogItems(sessionReviews: ProductReview[] = []): CatalogProductVM[] {
+  const items: CatalogProductVM[] = [];
+  for (const offer of vendorOffers) {
+    const vendor = getVendor(offer.vendorId);
+    if (!vendor || !getCatalogEntry(offer.hcpcs)) continue;
+    items.push({
+      offer,
+      vendor,
+      price: offerPrice(offer),
+      rating: offerRatingSummary(offer.id, sessionReviews),
+    });
   }
-  return found;
+  return items;
 }
 
-export function fastestLeadDays(vendorsForItem: Vendor[]): number | null {
-  if (vendorsForItem.length === 0) return null;
-  const hours = Math.min(...vendorsForItem.map((v) => v.sla.routineDeliveryHours));
-  return Math.ceil(hours / 24);
-}
-
-export function buildCatalogItems(catalog: CatalogEntry[]): CatalogProductVM[] {
-  return catalog.map((entry) => {
-    const vendors = vendorsForHcpcs(entry.hcpcs);
-    return {
-      entry,
-      price: itemPrice(entry),
-      vendors,
-      leadDays: fastestLeadDays(vendors),
-    };
-  });
-}
-
-/** Highest price across the catalog, for the "max price" filter's upper bound. */
-export function priceCeiling(catalog: CatalogEntry[]): number {
-  const max = Math.max(0, ...catalog.map((e) => itemPrice(e).amount));
+/** Highest offer price across the storefront, for the "max price" filter's upper bound. */
+export function priceCeiling(items: CatalogProductVM[]): number {
+  const max = Math.max(0, ...items.map((it) => it.price.amount));
   return Math.max(50, Math.ceil(max / 10) * 10);
 }
 
@@ -131,6 +126,19 @@ export interface CatalogFilterState {
 
 export const CATALOG_PAGE_SIZE = 30;
 
+/** Default sidebar + sort state when the user returns to the catalog grid. */
+export function defaultCatalogFilters(priceMax: number): CatalogFilterState {
+  return {
+    category: 'All',
+    vendorIds: [],
+    speed: 'any',
+    maxPrice: priceMax,
+    sort: 'featured',
+  };
+}
+
+export const RESET_CATALOG_FILTERS_STATE = { resetCatalogFilters: true } as const;
+
 export interface CatalogPage<T> {
   items: T[];
   page: number;
@@ -140,11 +148,11 @@ export interface CatalogPage<T> {
 }
 
 /** Returns one bounded page and the 1-based range used by the catalog pagination label. */
-export function paginateCatalog<T>(items: T[], requestedPage: number): CatalogPage<T> {
-  const totalPages = Math.max(1, Math.ceil(items.length / CATALOG_PAGE_SIZE));
+export function paginateItems<T>(items: T[], requestedPage: number, pageSize: number): CatalogPage<T> {
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
   const page = Math.max(1, Math.min(totalPages, Math.floor(requestedPage)));
-  const start = (page - 1) * CATALOG_PAGE_SIZE;
-  const pageItems = items.slice(start, start + CATALOG_PAGE_SIZE);
+  const start = (page - 1) * pageSize;
+  const pageItems = items.slice(start, start + pageSize);
 
   return {
     items: pageItems,
@@ -155,14 +163,18 @@ export function paginateCatalog<T>(items: T[], requestedPage: number): CatalogPa
   };
 }
 
+export function paginateCatalog<T>(items: T[], requestedPage: number): CatalogPage<T> {
+  return paginateItems(items, requestedPage, CATALOG_PAGE_SIZE);
+}
+
 export interface CartLine {
-  hcpcs: string;
+  offerId: string;
   patientId: string;
   qty: number;
 }
 
 export interface CartLineVM {
-  hcpcs: string;
+  offerId: string;
   patientId: string;
   qty: number;
   name: string;
@@ -180,29 +192,29 @@ export interface CartGroupVM {
   lines: CartLineVM[];
 }
 
-/** Add `addQty` to an existing (hcpcs, patient) line, or append a new one. */
-export function upsertCartLine(lines: CartLine[], hcpcs: string, patientId: string, addQty: number): CartLine[] {
-  const i = lines.findIndex((l) => l.hcpcs === hcpcs && l.patientId === patientId);
+/** Add `addQty` to an existing (offer, patient) line, or append a new one. */
+export function upsertCartLine(lines: CartLine[], offerId: string, patientId: string, addQty: number): CartLine[] {
+  const i = lines.findIndex((l) => l.offerId === offerId && l.patientId === patientId);
   if (i >= 0) {
     const next = lines.slice();
     next[i] = { ...next[i], qty: Math.min(99, next[i].qty + addQty) };
     return next;
   }
-  return [...lines, { hcpcs, patientId, qty: addQty }];
+  return [...lines, { offerId, patientId, qty: addQty }];
 }
 
 /** Set a line's quantity; a quantity of 0 or less removes it. */
-export function setCartLineQty(lines: CartLine[], hcpcs: string, patientId: string, qty: number): CartLine[] {
-  if (qty <= 0) return lines.filter((l) => !(l.hcpcs === hcpcs && l.patientId === patientId));
-  return lines.map((l) => (l.hcpcs === hcpcs && l.patientId === patientId ? { ...l, qty: Math.min(99, qty) } : l));
+export function setCartLineQty(lines: CartLine[], offerId: string, patientId: string, qty: number): CartLine[] {
+  if (qty <= 0) return lines.filter((l) => !(l.offerId === offerId && l.patientId === patientId));
+  return lines.map((l) => (l.offerId === offerId && l.patientId === patientId ? { ...l, qty: Math.min(99, qty) } : l));
 }
 
 export function totalUnitsInCart(lines: CartLine[]): number {
   return lines.reduce((n, l) => n + l.qty, 0);
 }
 
-export function unitsInCartFor(lines: CartLine[], hcpcs: string): number {
-  return lines.filter((l) => l.hcpcs === hcpcs).reduce((n, l) => n + l.qty, 0);
+export function unitsInCartFor(lines: CartLine[], offerId: string): number {
+  return lines.filter((l) => l.offerId === offerId).reduce((n, l) => n + l.qty, 0);
 }
 
 /** Joins cart lines against catalog items and patients into display-ready groups, one per patient. */
@@ -213,25 +225,23 @@ export function buildCartGroups(
 ): CartGroupVM[] {
   const groups: CartGroupVM[] = [];
   for (const line of lines) {
-    const item = catalogItems.find((it) => it.entry.hcpcs === line.hcpcs);
+    const item = catalogItems.find((it) => it.offer.id === line.offerId);
     const patient = patients.find((p) => p.id === line.patientId);
-    if (!item || !patient) continue; // a broken foreign key must never blank the cart
+    if (!item || !patient) continue;
 
-    const vendorNote = item.vendors.length
-      ? item.vendors.map((v) => v.name.replace('Sample ', '')).join(', ')
-      : 'vendor at dispatch';
-    const leadNote = item.leadDays !== null ? (item.leadDays === 1 ? 'next day' : `${item.leadDays} days`) : null;
+    const { offer, vendor } = item;
+    const leadNote = offer.deliveryLeadDays === 1 ? 'next day' : `${offer.deliveryLeadDays} days`;
 
     const lineVM: CartLineVM = {
-      hcpcs: line.hcpcs,
+      offerId: line.offerId,
       patientId: line.patientId,
       qty: line.qty,
-      name: item.entry.name,
-      imagePath: item.entry.imagePath,
-      metaLine: `${item.entry.hcpcs} · ${vendorNote}${leadNote ? ` · ${leadNote}` : ''}`,
+      name: offer.productName,
+      imagePath: offer.imagePath,
+      metaLine: `${offer.hcpcs} · ${vendor.displayName} · ${leadNote}`,
       lineTotal: item.price.amount * line.qty,
       priceUnit: item.price.unit,
-      dupe: patientOwnsEquipment(line.patientId, line.hcpcs),
+      dupe: patientOwnsEquipment(line.patientId, offer.hcpcs),
     };
 
     let group = groups.find((g) => g.patientId === line.patientId);
@@ -252,26 +262,22 @@ export function buildCartGroups(
 export interface CartTotals {
   monthly: number;
   oneTime: number;
-  /** Fastest known lead time across every line, in days. Null if no line has a known vendor yet. */
-  slowestKnownLeadDays: number | null;
-  /** True if at least one line has no vendor linked yet. */
-  hasUnknownVendor: boolean;
+  /** Slowest promised lead time across every line, in days. */
+  slowestLeadDays: number | null;
 }
 
 export function cartTotals(lines: CartLine[], catalogItems: CatalogProductVM[]): CartTotals {
   let monthly = 0;
   let oneTime = 0;
-  let slowestKnownLeadDays: number | null = null;
-  let hasUnknownVendor = false;
+  let slowestLeadDays: number | null = null;
   for (const line of lines) {
-    const item = catalogItems.find((it) => it.entry.hcpcs === line.hcpcs);
+    const item = catalogItems.find((it) => it.offer.id === line.offerId);
     if (!item) continue;
     if (item.price.unit === '/mo') monthly += item.price.amount * line.qty;
     else oneTime += item.price.amount * line.qty;
-    if (item.leadDays === null) hasUnknownVendor = true;
-    else slowestKnownLeadDays = Math.max(slowestKnownLeadDays ?? 0, item.leadDays);
+    slowestLeadDays = Math.max(slowestLeadDays ?? 0, item.offer.deliveryLeadDays);
   }
-  return { monthly, oneTime, slowestKnownLeadDays, hasUnknownVendor };
+  return { monthly, oneTime, slowestLeadDays };
 }
 
 export function filterAndSortCatalog(
@@ -279,9 +285,9 @@ export function filterAndSortCatalog(
   f: CatalogFilterState,
 ): CatalogProductVM[] {
   let list = items.filter((it) => {
-    if (f.category !== 'All' && it.entry.category !== f.category) return false;
-    if (f.vendorIds.length > 0 && !it.vendors.some((v) => f.vendorIds.includes(v.id))) return false;
-    if (f.speed !== 'any' && (it.leadDays === null || it.leadDays > Number(f.speed))) return false;
+    if (f.category !== 'All' && it.offer.category !== f.category) return false;
+    if (f.vendorIds.length > 0 && !f.vendorIds.includes(it.vendor.id)) return false;
+    if (f.speed !== 'any' && it.offer.deliveryLeadDays > Number(f.speed)) return false;
     if (it.price.amount > f.maxPrice) return false;
     return true;
   });
@@ -289,11 +295,7 @@ export function filterAndSortCatalog(
   if (f.sort === 'price') {
     list = list.slice().sort((a, b) => a.price.amount - b.price.amount);
   } else if (f.sort === 'speed') {
-    list = list.slice().sort((a, b) => {
-      if (a.leadDays === null) return 1;
-      if (b.leadDays === null) return -1;
-      return a.leadDays - b.leadDays;
-    });
+    list = list.slice().sort((a, b) => a.offer.deliveryLeadDays - b.offer.deliveryLeadDays);
   }
   return list;
 }

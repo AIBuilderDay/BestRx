@@ -13,8 +13,8 @@ export function CartDrawer({
   open: boolean;
   groups: CartGroupVM[];
   totals: CartTotals;
-  onQtyChange: (hcpcs: string, patientId: string, qty: number) => void;
-  onRemove: (hcpcs: string, patientId: string) => void;
+  onQtyChange: (offerId: string, patientId: string, qty: number) => void;
+  onRemove: (offerId: string, patientId: string) => void;
   onClose: () => void;
   onPlaceOrder: () => void;
 }) {
@@ -64,7 +64,7 @@ export function CartDrawer({
                 </div>
                 <div className="mt-3 grid gap-3">
                   {g.lines.map((l) => (
-                    <div key={l.hcpcs} className="grid grid-cols-[46px_1fr_auto] items-center gap-2.5">
+                    <div key={l.offerId} className="grid grid-cols-[46px_1fr_auto] items-center gap-2.5">
                       <img
                         src={l.imagePath}
                         alt=""
@@ -81,7 +81,7 @@ export function CartDrawer({
                             <button
                               type="button"
                               aria-label="Decrease quantity"
-                              onClick={() => onQtyChange(l.hcpcs, l.patientId, l.qty - 1)}
+                              onClick={() => onQtyChange(l.offerId, l.patientId, l.qty - 1)}
                               className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               −
@@ -91,14 +91,14 @@ export function CartDrawer({
                               min={1}
                               max={99}
                               value={l.qty}
-                              onChange={(e) => onQtyChange(l.hcpcs, l.patientId, Math.max(1, parseInt(e.target.value, 10) || 1))}
+                              onChange={(e) => onQtyChange(l.offerId, l.patientId, Math.max(1, parseInt(e.target.value, 10) || 1))}
                               aria-label="Quantity"
                               className="quantity-input w-7 border-0 bg-transparent text-center font-mono text-xs tabular-nums focus:bg-hover focus:outline-none"
                             />
                             <button
                               type="button"
                               aria-label="Increase quantity"
-                              onClick={() => onQtyChange(l.hcpcs, l.patientId, l.qty + 1)}
+                              onClick={() => onQtyChange(l.offerId, l.patientId, l.qty + 1)}
                               className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               +
@@ -106,7 +106,7 @@ export function CartDrawer({
                           </span>
                           <button
                             type="button"
-                            onClick={() => onRemove(l.hcpcs, l.patientId)}
+                            onClick={() => onRemove(l.offerId, l.patientId)}
                             className="text-[11px] text-ink-3 underline decoration-1 underline-offset-2 transition-colors hover:text-ink"
                           >
                             Remove
@@ -145,9 +145,9 @@ export function CartDrawer({
           )}
           <div className="text-[11.5px] text-ink-3">
             {unitCount
-              ? totals.slowestKnownLeadDays !== null
-                ? `Longest known vendor lead time ${totals.slowestKnownLeadDays === 1 ? 'next day' : `${totals.slowestKnownLeadDays} days`}${totals.hasUnknownVendor ? ' · vendor pending on some items' : ''} · billed to hospice contract`
-                : 'Vendor to be assigned at dispatch · billed to hospice contract'
+              ? totals.slowestLeadDays !== null
+                ? `Longest vendor lead time ${totals.slowestLeadDays === 1 ? 'next day' : `${totals.slowestLeadDays} days`} · billed to hospice contract`
+                : 'Billed to hospice contract'
               : 'Add equipment to start an order.'}
           </div>
           <button

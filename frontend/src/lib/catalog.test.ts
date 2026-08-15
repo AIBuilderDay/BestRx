@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { equipmentCatalog, patients } from '../data/db';
 import {
-  fastestLeadDays,
-  filterAndSortCatalog,
   buildCatalogItems,
+  filterAndSortCatalog,
   itemPrice,
   moneyLabel,
+  offerPrice,
   ownersOf,
   paginateCatalog,
   patientOwnsEquipment,
   priceCeiling,
-  vendorsForHcpcs,
 } from './catalog';
 
 describe('itemPrice', () => {
@@ -25,36 +24,47 @@ describe('itemPrice', () => {
   });
 });
 
-describe('vendorsForHcpcs', () => {
-  it('finds vendors with an inventory record for the code, deduped', () => {
-    const ids = vendorsForHcpcs('E0250').map((v) => v.id).sort();
-    expect(ids).toEqual(['VND-001', 'VND-003']);
+describe('buildCatalogItems', () => {
+  const items = buildCatalogItems();
+
+  it('creates one storefront card per vendor offer row', () => {
+    expect(items).toHaveLength(16);
+    expect(new Set(items.map((it) => it.offer.id)).size).toBe(16);
   });
 
-  it('returns an empty list for a code with no inventory records', () => {
-    expect(vendorsForHcpcs('E0470')).toEqual([]);
+  it('lists three separate hospital beds from three vendors', () => {
+    const beds = items.filter((it) => it.offer.hcpcs === 'E0250');
+    expect(beds).toHaveLength(3);
+    expect(new Set(beds.map((it) => it.vendor.id)).size).toBe(3);
+    expect(new Set(beds.map((it) => it.offer.imagePath)).size).toBe(3);
+  });
+
+  it('reads price, vendor label, and item rating from JSON', () => {
+    const bed = items.find((it) => it.offer.id === 'OFR-001')!;
+    expect(bed.price).toEqual({ amount: 72, unit: '/mo' });
+    expect(bed.vendor.displayName).toBe('Vendor 1');
+    expect(bed.offer.deliveryLeadDays).toBe(1);
+    expect(bed.offer.productName).toBe('Hospital Bed');
+    expect(bed.rating).not.toBeNull();
+    expect(bed.rating!.count).toBeGreaterThan(0);
+    expect(bed.rating!.average).toBeGreaterThanOrEqual(1);
   });
 });
 
-describe('fastestLeadDays', () => {
-  it('takes the fastest linked vendor, rounded up to whole days', () => {
-    const vendors = vendorsForHcpcs('E0250'); // VND-001 (24h) and VND-003 (48h)
-    expect(fastestLeadDays(vendors)).toBe(1);
-  });
-
-  it('is null with no linked vendors', () => {
-    expect(fastestLeadDays([])).toBeNull();
+describe('offerPrice', () => {
+  it('maps offer unit fields to display units', () => {
+    const items = buildCatalogItems();
+    const walker = items.find((it) => it.offer.id === 'OFR-015')!;
+    expect(offerPrice(walker.offer)).toEqual({ amount: 55, unit: 'one-time' });
   });
 });
 
 describe('patientOwnsEquipment / ownersOf', () => {
   it('is true for a patient with a non-terminal order carrying that code', () => {
-    // DME-10231: PT-88421 has an ordered E0250 hospital bed.
     expect(patientOwnsEquipment('PT-88421', 'E0250')).toBe(true);
   });
 
   it('is false once the equipment has been picked back up', () => {
-    // DME-09950: PT-87602's hospital bed was already picked up.
     expect(patientOwnsEquipment('PT-87602', 'E0250')).toBe(false);
   });
 
@@ -70,17 +80,16 @@ describe('patientOwnsEquipment / ownersOf', () => {
 });
 
 describe('priceCeiling', () => {
-  it('rounds up past the most expensive item', () => {
-    expect(priceCeiling(equipmentCatalog)).toBeGreaterThanOrEqual(
-      Math.max(...equipmentCatalog.map((e) => itemPrice(e).amount)),
-    );
+  it('rounds up past the most expensive offer', () => {
+    const items = buildCatalogItems();
+    expect(priceCeiling(items)).toBeGreaterThanOrEqual(Math.max(...items.map((it) => it.price.amount)));
   });
 });
 
 describe('filterAndSortCatalog', () => {
-  const items = buildCatalogItems(equipmentCatalog);
+  const items = buildCatalogItems();
 
-  it('filters by category', () => {
+  it('filters by category from the offer row', () => {
     const result = filterAndSortCatalog(items, {
       category: 'respiratory',
       vendorIds: [],
@@ -88,11 +97,11 @@ describe('filterAndSortCatalog', () => {
       maxPrice: 10_000,
       sort: 'featured',
     });
-    expect(result.every((it) => it.entry.category === 'respiratory')).toBe(true);
+    expect(result.every((it) => it.offer.category === 'respiratory')).toBe(true);
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it('filters out items with no vendor match, including unlinked items', () => {
+  it('filters to a single vendor without lumping multiple vendors on one card', () => {
     const result = filterAndSortCatalog(items, {
       category: 'All',
       vendorIds: ['VND-001'],
@@ -100,8 +109,8 @@ describe('filterAndSortCatalog', () => {
       maxPrice: 10_000,
       sort: 'featured',
     });
-    expect(result.some((it) => it.entry.hcpcs === 'E0470')).toBe(false); // no inventory link at all
-    expect(result.every((it) => it.vendors.some((v) => v.id === 'VND-001'))).toBe(true);
+    expect(result.every((it) => it.vendor.id === 'VND-001')).toBe(true);
+    expect(result.filter((it) => it.offer.hcpcs === 'E0250')).toHaveLength(1);
   });
 
   it('sorts by price ascending', () => {
@@ -116,7 +125,7 @@ describe('filterAndSortCatalog', () => {
     expect(amounts).toEqual([...amounts].sort((a, b) => a - b));
   });
 
-  it('sorts by speed, unknown lead time last', () => {
+  it('sorts by deliveryLeadDays from the offer row', () => {
     const result = filterAndSortCatalog(items, {
       category: 'All',
       vendorIds: [],
@@ -124,8 +133,8 @@ describe('filterAndSortCatalog', () => {
       maxPrice: 10_000,
       sort: 'speed',
     });
-    const lastFew = result.slice(-3);
-    expect(lastFew.some((it) => it.leadDays === null)).toBe(true);
+    const leadDays = result.map((it) => it.offer.deliveryLeadDays);
+    expect(leadDays).toEqual([...leadDays].sort((a, b) => a - b));
   });
 });
 

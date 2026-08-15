@@ -16,6 +16,7 @@ import type {
   Order,
   OrderEvent,
   Patient,
+  ProductReview,
   User,
   Vendor,
   VendorOffer,
@@ -29,6 +30,7 @@ import inventoryJson from './inventory.json';
 import orderEventsJson from './order_events.json';
 import ordersJson from './orders.json';
 import patientsJson from './patients.json';
+import productReviewsJson from './product_reviews.json';
 import usersJson from './users.json';
 import vendorOffersJson from './vendor_offers.json';
 import vendorsJson from './vendors.json';
@@ -45,6 +47,7 @@ export const orderEvents = orderEventsJson as unknown as OrderEvent[];
 export const inventory = inventoryJson as unknown as InventoryUnit[];
 export const emrEvents = emrEventsJson as unknown as EmrEvent[];
 export const vendorOffers = vendorOffersJson as unknown as VendorOffer[];
+export const productReviews = productReviewsJson as unknown as ProductReview[];
 export const budgets = budgetsJson as unknown as Budget[];
 
 export const getOrder = (id: string): Order | undefined => orders.find((o) => o.id === id);
@@ -93,6 +96,14 @@ export const getOffersForItem = (hcpcs: string): VendorOffer[] =>
 
 export const getOffersForVendor = (vendorId: string): VendorOffer[] =>
   vendorOffers.filter((o) => o.vendorId === vendorId);
+
+export const getReviewsForOffer = (offerId: string): ProductReview[] =>
+  productReviews.filter((r) => r.offerId === offerId);
+
+export const getReviewsForVendor = (vendorId: string): ProductReview[] => {
+  const offerIds = new Set(getOffersForVendor(vendorId).map((o) => o.id));
+  return productReviews.filter((r) => offerIds.has(r.offerId));
+};
 
 export const getBudgetsForHospice = (hospiceId: string): Budget[] =>
   budgets.filter((b) => b.hospiceId === hospiceId);

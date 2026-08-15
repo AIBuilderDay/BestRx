@@ -80,7 +80,7 @@ export function CatalogFilters({
                   </span>
                 </span>
                 <span className={on ? 'text-ink' : 'text-ink-2'}>
-                  {v.name.replace('Sample ', '')}
+                  {v.displayName}
                 </span>
               </button>
             );
