@@ -40,12 +40,17 @@ const FILTERABLE: Record<string, { noun: string }> = {
  *
  * Search mode is deterministic and instant — every row comes from the in-memory snapshot through
  * `searchCommands`, which does the permission scoping so this component never decides who may see
- * what. AI mode is unchanged: order-shaped commands run the agent, everything else becomes an
- * AI-ranked catalog search. The dropdown is suppressed in AI mode, where Enter submits rather than
- * picks, so the two interaction models never overlap.
+ * what. AI mode splits on the shape of the input: an order-shaped command runs the ordering agent,
+ * and anything else is a question the ask agent answers in place, below the bar. The jump dropdown
+ * is suppressed in AI mode, where Enter submits rather than picks, so the two interaction models
+ * never overlap.
  *
- * The agent runs on the API and writes the cart there through its MCP tools, so what comes back is
- * the cart the server already holds — this component renders it rather than building one.
+ * Both agents run on the API against its own MCP tools, over the same store the REST endpoints
+ * serve — so the cart that comes back is the one the server already holds, and every record an
+ * answer cites is a row a tool actually returned. This component renders them; it derives nothing.
+ *
+ * AI is an enhancement, never a dependency: a failed call always lands the nurse on the
+ * deterministic catalog search rather than a dead end.
  */
 export function NavSearch({ user, activeSection }: { user: User; activeSection: NavSection }) {
   const navigate = useNavigate();
@@ -54,11 +59,16 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
   const urlQuery = searchParams.get('q') ?? '';
   const [query, setQuery] = useState(urlQuery);
   const [mode, setMode] = useState<Mode>(searchParams.get('ai') === '1' ? 'ai' : 'search');
-  const [thinking, setThinking] = useState(false);
+  // What the agent is doing right now, so the toast names it. Null when nothing is in flight.
+  const [thinking, setThinking] = useState<'order' | 'ask' | null>(null);
   const [focused, setFocused] = useState(false);
   const [notice, setNotice] = useState('');
   const [open, setOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  // The last answer the ask agent gave, shown where the jump dropdown sits. Null until a question
+  // is asked, and cleared the moment the query changes — a stale answer under a new question reads
+  // as an answer to that question.
+  const [ask, setAsk] = useState<AskResult | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -121,19 +131,24 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
     setActiveId(null);
   };
 
-  // A click outside dismisses the dropdown without disturbing the query or any live filtering.
+  // A click outside dismisses the dropdown or the answer without disturbing the query or any live
+  // filtering.
   useEffect(() => {
-    if (!showDropdown) return;
+    if (!showDropdown && !ask) return;
     const onPointerDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) closeDropdown();
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+        closeDropdown();
+        setAsk(null);
+      }
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [showDropdown]);
+  }, [showDropdown, ask]);
 
   const switchMode = (next: Mode) => {
     setMode(next);
     setNotice('');
+    setAsk(null);
     closeDropdown();
     inputRef.current?.focus();
   };
@@ -164,9 +179,10 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
       switchMode(mode === 'search' ? 'ai' : 'search');
       return;
     }
-    if (e.key === 'Escape' && showDropdown) {
+    if (e.key === 'Escape' && (showDropdown || ask)) {
       e.preventDefault();
       closeDropdown();
+      setAsk(null);
       return;
     }
     if (!showDropdown || walkable.length === 0) return;
@@ -179,9 +195,39 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
     }
   };
 
-  const placeAgentOrder = async (command: string) => {
-    setThinking(true);
+  /**
+   * Answer a question in place, from the store's own rows.
+   *
+   * Two ways to end up on the catalog instead: the model answered nothing, or the call failed. In
+   * both, an AI-ranked search is a better outcome for the nurse than an empty panel — so the
+   * question is never a dead end.
+   */
+  const askQuestion = async (question: string) => {
+    setThinking('ask');
     setNotice('');
+    setAsk(null);
+    try {
+      const result = await askAgent(question, user.id);
+      if (!aliveRef.current) return;
+      if (!result.answer) {
+        setNotice("Couldn't answer that — showing results instead");
+        navigate(`/catalog?q=${encodeURIComponent(question)}&ai=1`);
+        return;
+      }
+      setAsk(result);
+    } catch {
+      if (!aliveRef.current) return;
+      setNotice('AI unavailable — showing standard search');
+      navigate(`/catalog?q=${encodeURIComponent(question)}`);
+    } finally {
+      if (aliveRef.current) setThinking(null);
+    }
+  };
+
+  const placeAgentOrder = async (command: string) => {
+    setThinking('order');
+    setNotice('');
+    setAsk(null);
     try {
       const { cart, added } = await runAgentOrder(command, user.id);
       if (!aliveRef.current) return;
@@ -196,7 +242,7 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
       adoptServerCart(cart);
       setAgentAdded(added);
       setQuery('');
-      setThinking(false); // calm the bar before the comet leaves it
+      setThinking(null); // calm the bar before the comet leaves it
       navigate('/catalog');
       // The hand-off show: comet to the cart icon, burst, then the drawer opens
       // on the ringed line. Every step is defensive — worst case it's instant.
@@ -211,7 +257,7 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
       setNotice('AI unavailable — showing standard search');
       navigate(`/catalog?q=${encodeURIComponent(command)}`);
     } finally {
-      if (aliveRef.current) setThinking(false);
+      if (aliveRef.current) setThinking(null);
     }
   };
 
@@ -245,15 +291,20 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
       navigate('/catalog');
       return;
     }
+    // An order-shaped command fills the cart; anything else is a question about the operation —
+    // orders, patients, or the catalog — answered in place from the store.
     if (looksLikeOrderCommand(q)) {
       void placeAgentOrder(q);
       return;
     }
-    navigate(`/catalog?q=${encodeURIComponent(q)}&ai=1`);
+    void askQuestion(q);
   };
 
   const onChange = (value: string) => {
     setQuery(value);
+    // The answer belonged to the previous question. Leaving it up under a new one would read as an
+    // answer to that one.
+    if (ask) setAsk(null);
     // AI mode waits for Enter — each submit is a model call, so we never fire one per keystroke.
     if (mode !== 'search') return;
     setOpen(true);
@@ -369,6 +420,19 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
         </form>
       </div>
 
+      {ask && !thinking ? (
+        <AskAnswer
+          answer={ask.answer}
+          sources={ask.sources}
+          onDismiss={() => setAsk(null)}
+          onPick={(source) => {
+            setAsk(null);
+            inputRef.current?.blur();
+            navigate(source.to);
+          }}
+        />
+      ) : null}
+
       {showDropdown ? (
         <div id="command-results">
           <CommandResults
@@ -393,7 +457,13 @@ export function NavSearch({ user, activeSection }: { user: User; activeSection: 
             className="inline-flex items-center gap-1.5 rounded-control border border-line bg-surface px-2.5 py-1 text-center text-[11px] shadow-sm"
             data-testid="ai-status"
           >
-            {thinking ? <span className="ai-status">Placing the order…</span> : <span className="text-ink-2">{notice}</span>}
+            {thinking ? (
+              <span className="ai-status">
+                {thinking === 'order' ? 'Placing the order…' : 'Looking that up…'}
+              </span>
+            ) : (
+              <span className="text-ink-2">{notice}</span>
+            )}
           </span>
         </div>
       )}

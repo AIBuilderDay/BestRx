@@ -27,7 +27,7 @@ type TileKey = 'spend' | 'tokens' | 'delta' | 'budget';
 
 const NO_TOTALS: AiUsageTotals = { calls: 0, inputTokens: 0, outputTokens: 0, costUsd: 0 };
 const EMPTY_USAGE: AiUsageSummary = {
-  byFeature: { rerank: NO_TOTALS, agent_order: NO_TOTALS },
+  byFeature: { rerank: NO_TOTALS, agent_order: NO_TOTALS, ask: NO_TOTALS },
   total: NO_TOTALS,
 };
 

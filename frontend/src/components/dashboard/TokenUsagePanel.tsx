@@ -3,6 +3,7 @@ import type { AiFeature, AiUsageSummary } from '../../types/ai';
 const FEATURE_LABELS: Record<AiFeature, string> = {
   rerank: 'Search re-rank',
   agent_order: 'Agent ordering',
+  ask: 'Answering questions',
 };
 
 /** Sub-cent AI costs round to "$0.00" under the app's normal money formatter — misleading here. */
