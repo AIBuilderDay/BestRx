@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { User } from '../../types/domain';
-import { CATEGORY_LABELS, paginateItems, RESET_CATALOG_FILTERS_STATE, moneyLabel, type CatalogProductVM } from '../../lib/catalog';
+import {
+  CATEGORY_LABELS,
+  paginateItems,
+  RESET_CATALOG_FILTERS_STATE,
+  moneyLabel,
+  offerPriceFor,
+  type CatalogProductVM,
+  type PriceUnit,
+} from '../../lib/catalog';
 import {
   filterReviewsByStar,
   formatReviewDate,
@@ -15,6 +23,7 @@ import {
 import type { ProductReview } from '../../types/domain';
 import { CatalogPagination } from './CatalogPagination';
 import { ItemStarRating } from './ItemStarRating';
+import { UnitToggle } from './PricingModeToggle';
 import { DetailReveal } from '../ui/DetailReveal';
 
 const REVIEWS_PAGE_SIZE = 5;
@@ -54,12 +63,17 @@ export function EquipmentDetailView({
   product,
   user,
   sessionReviews,
+  unit,
+  onUnitChange,
   onAddReview,
   onAddToCart,
 }: {
   product: CatalogProductVM;
   user: User;
   sessionReviews: ProductReview[];
+  /** The arrangement being priced — the page mode, or this item's override. */
+  unit: PriceUnit;
+  onUnitChange: (next: PriceUnit) => void;
   onAddReview: (rating: number, comment: string) => void;
   onAddToCart: () => void;
 }) {
@@ -92,7 +106,9 @@ export function EquipmentDetailView({
   }, [starFilter, product.offer.id]);
 
   const rating = offerRatingSummary(product.offer.id, sessionReviews);
-  const { offer, price, vendor } = product;
+  const { offer, vendor } = product;
+  // Priced against this view's own unit, so an override changes the number on screen.
+  const price = offerPriceFor(offer, unit) ?? product.price;
   const inStockLabel = offer.inStock ? 'In stock' : 'Out of stock — longer lead time';
 
   const submitReview = () => {
@@ -153,6 +169,13 @@ export function EquipmentDetailView({
                 {moneyLabel(price.amount)}
                 {price.unit === '/mo' ? <span className="text-sm text-ink-3">/mo</span> : null}
               </div>
+              {product.availableUnits.length > 1 ? (
+                <UnitToggle unit={unit} onChange={onUnitChange} />
+              ) : (
+                <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-ink-3">
+                  {product.availableUnits[0] === 'purchase' ? 'Purchase only' : 'Rental only'}
+                </span>
+              )}
             </div>
             <button
               type="button"
@@ -201,7 +224,7 @@ export function EquipmentDetailView({
       <DetailReveal step={4}>
         <section className="mt-8 overflow-hidden border border-line bg-surface">
         <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
-          <h2 className="text-[13px] font-semibold tracking-tight">Reviews for this item</h2>
+          <h2 className="text-[13px] font-semibold tracking-tight">Reviews</h2>
           <p className="mt-0.5 text-xs text-ink-3">
             Ratings are for this specific listing from nurses who received it — not the vendor overall.
           </p>
@@ -240,9 +263,9 @@ export function EquipmentDetailView({
                   const stars = normalizeStarRating(review.rating);
                   return (
                     <li key={review.id} className="border-t border-line py-4 first:border-t-0">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
-                        <span className="font-medium text-ink-2">{reviewerLabel(review.reviewerId)}</span>
-                        <span className="font-mono text-ink">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-3 text-xs">
+                        <span className="truncate font-medium text-ink-2">{reviewerLabel(review.reviewerId)}</span>
+                        <span className="font-mono tracking-[0.08em] text-ink">
                           {'★'.repeat(stars)}
                           {'☆'.repeat(5 - stars)}
                         </span>
@@ -283,7 +306,7 @@ export function EquipmentDetailView({
             onChange={(e) => setDraftComment(e.target.value)}
             placeholder="Share what happened with this delivery — timing, setup, family experience."
             rows={3}
-            className="mt-2.5 w-full resize-y border border-line bg-surface px-2.5 py-2 text-[13px] text-ink outline-none focus:border-line-strong"
+            className="mt-2.5 w-full resize-none overflow-y-auto border border-line bg-surface px-2.5 py-2 text-[13px] text-ink outline-none focus:border-line-strong"
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[11px] text-ink-3">Posting as {user.name.split(' ')[0]}</span>

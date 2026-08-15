@@ -76,7 +76,7 @@
     },
     "logoPath": "/images/vendors/vendor-2.svg",
     "overallRating": 3.9,
-    "overallRatingCount": 239
+    "overallRatingCount": 249
   },
   {
     "id": "VND-003",
@@ -114,6 +114,6 @@
     },
     "logoPath": "/images/vendors/vendor-3.svg",
     "overallRating": 3.1,
-    "overallRatingCount": 153
+    "overallRatingCount": 143
   }
 ]

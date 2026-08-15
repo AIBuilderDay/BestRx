@@ -8,6 +8,7 @@
  */
 
 import { users } from '../data/db';
+import { familyMemberToUser, findFamilyMemberByEmail, getFamilyMember } from './familyMembers';
 import type { User, UserRole } from '../types/domain';
 
 export type Permission =
@@ -50,6 +51,8 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   admissions_nurse: ['storefront:purchase', 'orders:own', 'orders:own-patients', 'notes'],
   // Vendors never log in — they respond to text/email links (PROJECT_DESCRIPTION §3).
   vendor_dispatcher: [],
+  // Family members only follow their loved one — no storefront, no orders, no notes.
+  family_member: [],
 };
 
 export const ROLE_LABELS: Record<UserRole, string> = {
@@ -59,7 +62,11 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   field_nurse: 'Field Nurse',
   admissions_nurse: 'Admissions Nurse',
   vendor_dispatcher: 'Vendor Dispatcher',
+  family_member: 'Family Member',
 };
+
+/** Family members get their own read-only view, not the staff app. */
+export const isFamilyMember = (user: User | null): boolean => user?.role === 'family_member';
 
 export const permissionsFor = (user: User): Permission[] => ROLE_PERMISSIONS[user.role] ?? [];
 
@@ -70,16 +77,23 @@ export const can = (user: User | null, permission: Permission): boolean =>
 export const canViewVendorScorecard = (user: User | null): boolean => can(user, 'reporting');
 
 /**
- * Where a user starts after signing in. Reporting roles (Owner, Director of Nursing) open on the
- * cost dashboard because cost is the question they log in to answer; everyone else opens on the
- * storefront. Single source of truth for the post-login redirect and the "/" route alike.
+ * Where a user starts after signing in. Family members land on their read-only view. Reporting
+ * roles (Owner, Director of Nursing) open on the cost dashboard because cost is the question they
+ * log in to answer; everyone else opens on the storefront. Single source of truth for the
+ * post-login redirect and the "/" route alike.
  */
-export const landingPathFor = (user: User): string =>
-  can(user, 'reporting') ? '/dashboard' : '/catalog';
+export const landingPathFor = (user: User): string => {
+  if (isFamilyMember(user)) return '/family';
+  return can(user, 'reporting') ? '/dashboard' : '/catalog';
+};
 
 export const findUserByEmail = (email: string): User | undefined => {
   const needle = email.trim().toLowerCase();
-  return needle === '' ? undefined : users.find((u) => u.email.toLowerCase() === needle);
+  if (needle === '') return undefined;
+  const staff = users().find((u) => u.email.toLowerCase() === needle);
+  if (staff) return staff;
+  const family = findFamilyMemberByEmail(needle);
+  return family ? familyMemberToUser(family) : undefined;
 };
 
 /** The accounts offered as one-click sign-ins on the login page: Sample Hospice A, senior first. */
@@ -91,7 +105,11 @@ const SESSION_KEY = 'bestrx.sessionUserId';
 export const readSession = (): User | null => {
   try {
     const id = window.localStorage.getItem(SESSION_KEY);
-    return id ? (users.find((u) => u.id === id) ?? null) : null;
+    if (!id) return null;
+    const staff = users().find((u) => u.id === id);
+    if (staff) return staff;
+    const family = getFamilyMember(id);
+    return family ? (familyMemberToUser(family) ?? null) : null;
   } catch {
     return null;
   }

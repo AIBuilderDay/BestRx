@@ -83,14 +83,14 @@ describe('buildBasket', () => {
 describe('basketTotals', () => {
   it('prices the basket at each vendor', () => {
     expect(totals.perVendorUsd['VND-001']).toBeCloseTo(17786, 2);
-    expect(totals.perVendorUsd['VND-002']).toBeCloseTo(15785.5, 2);
+    expect(totals.perVendorUsd['VND-002']).toBeCloseTo(15792.5, 2);
     expect(totals.perVendorUsd['VND-003']).toBeCloseTo(14434, 2);
   });
 
   it('reports what was actually paid, each order at the vendor that took it', () => {
-    expect(totals.actualUsd).toBeCloseTo(15578, 2);
+    expect(totals.actualUsd).toBeCloseTo(15580, 2);
     expect(totals.rentalMonthlyUsd + totals.purchaseUsd).toBeCloseTo(totals.actualUsd, 2);
-    expect(totals.rentalMonthlyUsd).toBeCloseTo(1756, 2);
+    expect(totals.rentalMonthlyUsd).toBeCloseTo(1758, 2);
     expect(totals.purchaseUsd).toBeCloseTo(13822, 2);
   });
 
@@ -132,12 +132,12 @@ describe('dailySpendTrend', () => {
 
   it('matches real per-day spend exactly, computed independently from the raw orders', () => {
     // Aug 16-22, 2026 - the dataset's last real week.
-    expect(daily.map((d) => d.actualUsd)).toEqual([126, 234, 208, 997, 990.5, 1037.5, 244.5]);
+    expect(daily.map((d) => d.actualUsd)).toEqual([126, 234, 208, 997, 990.5, 1038.5, 245.5]);
   });
 
   it('sums to the real week total, not a fraction or multiple of it', () => {
     const sum = daily.reduce((a, b) => a + b.actualUsd, 0);
-    expect(sum).toBeCloseTo(3837.5, 1);
+    expect(sum).toBeCloseTo(3839.5, 1);
   });
 
   it('returns an empty series rather than throwing for a hospice with no orders', () => {

@@ -14,8 +14,8 @@ describe('buildOrderReceiptVM', () => {
 
   it('prices Vendor 2 wheelchair orders from vendor offers', () => {
     const receipt = buildOrderReceiptVM('DME-10363');
-    expect(receipt?.lines[0].unitPriceUsd).toBe(65);
-    expect(receiptTotalLabel(receipt!)).toBe('$65/mo');
+    expect(receipt?.lines[0].unitPriceUsd).toBe(66);
+    expect(receiptTotalLabel(receipt!)).toBe('$66/mo');
   });
 
   it('returns null for unknown order', () => {

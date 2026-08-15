@@ -6,11 +6,11 @@ import { OrderStatusIcon } from './OrderStatusIcon';
 export function ProductsOrderedSection({
   equipment,
   onCallVendor,
-  onNewOrder,
 }: {
   equipment: PatientEquipmentVM[];
   onCallVendor: (item: PatientEquipmentVM) => void;
-  onNewOrder: () => void;
+  // Accepted but not rendered yet — the header has no "New order" action on it so far.
+  onNewOrder?: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -18,13 +18,6 @@ export function ProductsOrderedSection({
     <section className="overflow-hidden rounded-[10px] border border-line bg-surface">
       <div className="flex items-center justify-between gap-3 border-b border-line bg-bg-subtle px-4 py-3.5">
         <h2 className="text-[13px] font-semibold tracking-tight">Products ordered</h2>
-        <button
-          type="button"
-          onClick={onNewOrder}
-          className="flex-none cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-1.5 text-[13px] font-medium whitespace-nowrap text-solid-ink transition-opacity hover:opacity-85"
-        >
-          New order
-        </button>
       </div>
 
       {equipment.length === 0 ? (

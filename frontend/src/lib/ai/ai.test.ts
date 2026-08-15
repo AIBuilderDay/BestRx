@@ -98,7 +98,7 @@ describe('looksLikeOrderCommand', () => {
 });
 
 describe('sanitizePatient', () => {
-  const patient = patients[0];
+  const patient = patients()[0];
 
   it('strips identity but keeps clinical context', () => {
     const s = sanitizePatient(patient);
@@ -114,12 +114,12 @@ describe('sanitizePatient', () => {
 
 describe('findMentionedPatients', () => {
   it('finds a patient by first name, case-insensitive', () => {
-    const target = patients[0];
-    const found = findMentionedPatients(`order a bed for ${target.firstName.toUpperCase()}`, patients);
+    const target = patients()[0];
+    const found = findMentionedPatients(`order a bed for ${target.firstName.toUpperCase()}`, patients());
     expect(found.map((p) => p.id)).toContain(target.id);
   });
   it('finds nothing in a plain search', () => {
-    expect(findMentionedPatients('low air loss mattress', patients)).toEqual([]);
+    expect(findMentionedPatients('low air loss mattress', patients())).toEqual([]);
   });
 });
 

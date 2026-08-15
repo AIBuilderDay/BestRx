@@ -509,6 +509,33 @@ button:not(:disabled) {
   }
 }
 
+/* Cart line rows: slide in on mount, collapse out of the list when removed. */
+@keyframes lineIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lineOut {
+  from {
+    opacity: 1;
+    max-height: 220px;
+  }
+  to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateX(24px);
+    padding-top: 0;
+    padding-bottom: 0;
+    border-bottom-width: 0;
+  }
+}
+
 @keyframes sheetIn {
   from {
     opacity: 0;

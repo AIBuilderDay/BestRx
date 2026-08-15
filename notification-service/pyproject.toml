@@ -1,0 +1,28 @@
+[project]
+name = "bestrx-notification-service"
+version = "0.1.0"
+description = "Queue-fronted Web Push sender for BestRx order status changes"
+requires-python = ">=3.12"
+dependencies = [
+    "pywebpush>=2.0.0",
+    # boto3 ships in the Lambda runtime, so it is not bundled — see scripts/build.sh.
+    "boto3>=1.35.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.8.0",
+    "cryptography>=43.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

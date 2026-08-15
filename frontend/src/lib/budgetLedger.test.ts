@@ -68,7 +68,7 @@ describe('accountTotals', () => {
   it('sums only rows with a real cap, and names the exclusions', () => {
     const totals = accountTotals(rows);
     expect(totals.capUsd).toBeCloseTo(6200, 2);
-    expect(totals.spentUsd).toBeCloseTo(15578, 2);
+    expect(totals.spentUsd).toBeCloseTo(15580, 2);
     expect(totals.utilizationPct).toBe(251);
     expect(totals.excludedUserIds.sort()).toEqual(['USR-002', 'USR-012', 'USR-013']);
     expect(totals.excludedReason).toContain('3 accounts excluded');

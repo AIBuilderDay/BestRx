@@ -9,10 +9,11 @@ WORKDIR /app
 
 # Copy manifests first so dependency installs cache across source changes.
 COPY package.json pnpm-lock.yaml* ./
-# The real workspace root (which whitelists esbuild's postinstall) sits outside this build context,
+# The real workspace root (which whitelists the esbuild and workerd postinstalls) sits outside this
+# build context,
 # so stand up a minimal one here. It is shadowed by the bind mount at runtime, which is fine —
 # installation happens at build time.
-RUN printf 'packages: []\nallowBuilds:\n  esbuild: true\n' > pnpm-workspace.yaml \
+RUN printf 'packages: []\nallowBuilds:\n  esbuild: true\n  workerd: true\n' > pnpm-workspace.yaml \
     && pnpm install
 
 COPY . .
@@ -32,10 +33,11 @@ WORKDIR /app
 
 # The lockfile lives at the workspace root, outside this build context, so no --frozen-lockfile.
 COPY package.json pnpm-lock.yaml* ./
-# The real workspace root (which whitelists esbuild's postinstall) sits outside this build context,
+# The real workspace root (which whitelists the esbuild and workerd postinstalls) sits outside this
+# build context,
 # so stand up a minimal one here. It is shadowed by the bind mount at runtime, which is fine —
 # installation happens at build time.
-RUN printf 'packages: []\nallowBuilds:\n  esbuild: true\n' > pnpm-workspace.yaml \
+RUN printf 'packages: []\nallowBuilds:\n  esbuild: true\n  workerd: true\n' > pnpm-workspace.yaml \
     && pnpm install
 
 COPY . .

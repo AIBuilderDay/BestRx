@@ -54,7 +54,7 @@ export function NavSearch({ user }: { user: User }) {
 
   const runAgentOrder = async (command: string) => {
     const items = buildCatalogItems();
-    const assignable = patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased');
+    const assignable = patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased');
     setThinking(true);
     setNotice('');
     try {
@@ -67,7 +67,8 @@ export function NavSearch({ user }: { user: User }) {
         return;
       }
       // Cart state first — the order is never lost to a visual effect.
-      setLines((prev) => upsertCartLine(prev, action.offerId, action.patientId, action.quantity));
+      // Rental is the catalog's default arrangement; the nurse can switch the line in the cart.
+      setLines((prev) => upsertCartLine(prev, action.offerId, action.patientId, 'month', action.quantity));
       setAgentAdded(action);
       setQuery('');
       setThinking(false); // calm the bar before the comet leaves it
@@ -154,7 +155,16 @@ export function NavSearch({ user }: { user: User }) {
             ref={inputRef}
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setQuery(value);
+              // Plain search filters live as you type. AI mode waits for Enter — each submit is a
+              // model call, so we never fire one per keystroke.
+              if (mode === 'search') {
+                const q = value.trim();
+                navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog', { replace: true });
+              }
+            }}
             placeholder={PLACEHOLDERS[mode]}
             aria-label={mode === 'ai' ? 'Ask AI or give an order command' : 'Search equipment'}
             data-testid="nav-search-input"

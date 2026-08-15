@@ -1,22 +1,29 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
+import { Link, useParams } from 'react-router-dom';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import { OrderListSection } from '../components/orders/OrderListSection';
+import { OrderReceiptDialog } from '../components/orders/OrderReceiptDialog';
+import { PatientIdentityRail } from '../components/patients/PatientIdentityRail';
+import { PatientTabs, type PatientTab } from '../components/patients/PatientTabs';
 import { PatientNotesSection } from '../components/patients/PatientNotesSection';
-import { AddressMapPreview } from '../components/patients/AddressMapPreview';
+import { FamilySection } from '../components/patients/FamilySection';
+import { FamilyRequestsSection } from '../components/patients/FamilyRequestsSection';
 import { TopNav } from '../components/layout/TopNav';
 import { DetailReveal } from '../components/ui/DetailReveal';
 import { useCart } from '../context/CartContext';
-import { patientNotes } from '../data/db';
+import { getOrdersForPatient, patientNotes } from '../data/db';
+import { moneyLabel } from '../lib/catalog';
+import { buildOrderListItemVM, type OrderListItemVM } from '../lib/orders';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
-import type { PatientEquipmentVM } from '../lib/patients';
 import type { PatientNote, User } from '../types/domain';
 
 export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
-  const navigate = useNavigate();
   const { cartCount, setCartOpen } = useCart();
 
   const [sessionNotes, setSessionNotes] = useState<PatientNote[]>([]);
+  const [tab, setTab] = useState<PatientTab>('Orders');
+  const [invoiceItem, setInvoiceItem] = useState<OrderListItemVM | null>(null);
 
   const inCaseload = patientId ? isInCaseload(patientId, user.id, user.orgId) : false;
   const vm = useMemo(
@@ -24,23 +31,20 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
     [patientId, inCaseload],
   );
 
-  const [imgBroken, setImgBroken] = useState(false);
+  // The same view-model the Orders list renders, so a patient's orders look identical there.
+  const orderItems = useMemo(
+    () => (patientId && inCaseload ? getOrdersForPatient(patientId).map(buildOrderListItemVM) : []),
+    [patientId, inCaseload],
+  );
 
-  const handleCallVendor = (item: PatientEquipmentVM) => {
+  const handleCallVendor = (item: OrderListItemVM) => {
     const digits = item.phone.replace(/\D/g, '');
     if (digits) window.location.href = `tel:${digits}`;
   };
 
-  const handleDirections = () => {
-    if (!vm) return;
-    const query = encodeURIComponent(`${vm.addressLine1}, ${vm.addressLine2}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener,noreferrer');
-  };
-
   const handleCopyAddr = () => {
     if (!vm) return;
-    const text = `${vm.addressLine1}\n${vm.addressLine2}`;
-    void navigator.clipboard?.writeText(text);
+    void navigator.clipboard?.writeText(`${vm.addressLine1}\n${vm.addressLine2}`);
   };
 
   const topNav = (
@@ -49,7 +53,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       cartCount={cartCount}
       activeSection="patients"
       onOpenCart={() => setCartOpen(true)}
-        onSignOut={onSignOut}
+      onSignOut={onSignOut}
     />
   );
 
@@ -67,8 +71,43 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
     );
   }
 
-  const { patient, fullName, addressLine1, addressLine2, equipment, facts } = vm;
-  const imagePath = patient.imagePath;
+  const { patient, fullName, addressLine1, addressLine2, railFacts } = vm;
+
+  const orderCards =
+    orderItems.length === 0 ? (
+      <div className="rounded-card border border-line px-4 py-6 text-[13px] text-ink-3">
+        No equipment orders on file for this patient.
+      </div>
+    ) : (
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold">Products ordered</h2>
+          <span className="text-[13px] text-ink-3">
+            {orderItems.length} {orderItems.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+
+        <OrderListSection
+          items={orderItems}
+          onCallVendor={handleCallVendor}
+          onDownloadReceipt={setInvoiceItem}
+        />
+
+        {vm.costTotalUsd > 0 ? (
+          <div className="flex justify-end pt-1 text-[13px] text-ink-2">
+            <span>
+              {vm.costTotalPriced ? 'Total' : 'Total so far'}{' '}
+              <span className="font-bold text-ink tabular-nums">
+                {moneyLabel(vm.costTotalUsd)}
+                {vm.costTotalUnit === '/mo' ? '/mo' : ''}
+              </span>
+              {vm.costTotalUnit === 'mixed' ? ' (mixed billing)' : ''}
+              {vm.costTotalPriced ? '' : ' — some items unpriced'}
+            </span>
+          </div>
+        ) : null}
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-bg">
@@ -85,98 +124,53 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
           </Link>
         </DetailReveal>
 
-        <DetailReveal step={1}>
-          <div className="mb-5 flex flex-wrap items-start gap-4">
-            <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
-              {imagePath && !imgBroken ? (
-                <img
-                  src={imagePath}
-                  alt={fullName}
-                  onError={() => setImgBroken(true)}
-                  className="h-full w-full object-cover"
+        <div className="grid grid-cols-1 items-start overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[340px_minmax(0,1fr)]">
+          <PatientIdentityRail
+            mrn={patient.id}
+            firstName={patient.firstName}
+            lastName={patient.lastName}
+            fullName={fullName}
+            imagePath={patient.imagePath}
+            facts={railFacts}
+            addressLine1={addressLine1}
+            addressLine2={addressLine2}
+            onCopyAddress={handleCopyAddr}
+          />
+
+          <div className="flex min-w-0 flex-col">
+            <PatientTabs active={tab} onSelect={setTab} />
+
+            <div className="flex flex-col gap-5.5 px-8 pt-6 pb-7.5">
+              {/* What the family asked for outranks the tabs: it needs a staff decision. */}
+              <FamilyRequestsSection patientId={patient.id} />
+
+              {tab === 'Orders' ? orderCards : null}
+
+              {tab === 'Notes' ? (
+                <PatientNotesSection
+                  patientId={patient.id}
+                  user={user}
+                  storedNotes={patientNotes}
+                  sessionNotes={sessionNotes}
+                  onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
+                  onSessionNotesChange={setSessionNotes}
                 />
-              ) : (
-                <div
-                  className="h-full w-full"
-                  style={{
-                    backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
-                  }}
-                />
-              )}
+              ) : null}
+
+              {tab === 'Family' ? <FamilySection patientId={patient.id} /> : null}
+
+              {tab === 'Documents' ? (
+                <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-line-strong px-4 py-10 text-ink-3">
+                  <UploadFileOutlinedIcon sx={{ fontSize: 26 }} />
+                  <span className="text-sm">No documents on file</span>
+                </div>
+              ) : null}
             </div>
-            <div className="min-w-0">
-              <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
-            </div>
-          </div>
-        </DetailReveal>
-
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col gap-5">
-            <DetailReveal step={2}>
-              <PatientNotesSection
-                patientId={patient.id}
-                user={user}
-                storedNotes={patientNotes}
-                sessionNotes={sessionNotes}
-                onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
-                onSessionNotesChange={setSessionNotes}
-              />
-            </DetailReveal>
-
-            <DetailReveal step={3}>
-              <ProductsOrderedSection
-                equipment={equipment}
-                onCallVendor={handleCallVendor}
-                onNewOrder={() => navigate('/catalog')}
-              />
-            </DetailReveal>
-          </div>
-
-          <div className="flex min-w-0 flex-col gap-5">
-            <DetailReveal step={2}>
-              <section className="rounded-[10px] border border-line bg-surface p-4">
-                <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
-                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
-                  {facts.map((f) => (
-                    <div key={f.key} className="contents">
-                      <div className="whitespace-nowrap text-ink-3">{f.key}</div>
-                      <div className="text-right tabular-nums">{f.value}</div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </DetailReveal>
-
-            <DetailReveal step={3}>
-              <section className="rounded-[10px] border border-line bg-surface p-4">
-                <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
-                <div className="text-[13px] leading-relaxed">
-                  {addressLine1}
-                  <br />
-                  {addressLine2}
-                </div>
-                <AddressMapPreview addressLine1={addressLine1} addressLine2={addressLine2} />
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={handleDirections}
-                    className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                  >
-                    Directions
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyAddr}
-                    className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                  >
-                    Copy for vendor
-                  </button>
-                </div>
-              </section>
-            </DetailReveal>
           </div>
         </div>
       </main>
+
+      <OrderReceiptDialog item={invoiceItem} onClose={() => setInvoiceItem(null)} />
     </div>
   );
 }

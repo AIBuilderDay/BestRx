@@ -93,13 +93,13 @@ function roleDefaultPpd(hospiceId: string, role: UserRole): number | null {
 }
 
 function hospiceStaff(hospiceId: string): User[] {
-  return users
+  return users()
     .filter((u) => u.orgType === 'hospice' && u.orgId === hospiceId)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 const caseloadSize = (hospiceId: string, userId: string): number =>
-  patients.filter((p) => p.hospiceId === hospiceId && p.caseManagerId === userId).length;
+  patients().filter((p) => p.hospiceId === hospiceId && p.caseManagerId === userId).length;
 
 export function effectivePpdFor(
   hospiceId: string,

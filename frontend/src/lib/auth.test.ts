@@ -4,18 +4,18 @@ import { can, DEMO_ACCOUNT_IDS, findUserByEmail, landingPathFor, permissionsFor 
 
 describe('auth', () => {
   it('gives every user a unique login email', () => {
-    const emails = users.map((u) => u.email.toLowerCase());
-    expect(new Set(emails).size).toBe(users.length);
+    const emails = users().map((u) => u.email.toLowerCase());
+    expect(new Set(emails).size).toBe(users().length);
   });
 
-  it('finds users by email, case-insensitively, and rejects unknowns', () => {
+  it('finds users() by email, case-insensitively, and rejects unknowns', () => {
     expect(findUserByEmail('  Dana@Hospice-A.example ')?.id).toBe('USR-001');
     expect(findUserByEmail('nobody@hospice-a.example')).toBeUndefined();
     expect(findUserByEmail('')).toBeUndefined();
   });
 
   it('grants permissions by role: every hospice user can act, vendors cannot log in', () => {
-    for (const user of users) {
+    for (const user of users()) {
       if (user.orgType === 'hospice') {
         expect(can(user, 'storefront:purchase'), user.id).toBe(true);
       } else {
@@ -25,7 +25,7 @@ describe('auth', () => {
   });
 
   it('scopes management permissions to senior roles only', () => {
-    for (const user of users) {
+    for (const user of users()) {
       const senior = user.role === 'hospice_admin' || user.role === 'director_of_nursing';
       expect(can(user, 'reporting'), user.id).toBe(senior);
       expect(can(user, 'vendors:manage'), user.id).toBe(user.role === 'hospice_admin');
@@ -33,18 +33,18 @@ describe('auth', () => {
   });
 
   it('opens the dashboard for reporting roles and the storefront for everyone else', () => {
-    for (const user of users.filter((u) => u.orgType === 'hospice')) {
+    for (const user of users().filter((u) => u.orgType === 'hospice')) {
       const expected = can(user, 'reporting') ? '/dashboard' : '/catalog';
       expect(landingPathFor(user), user.id).toBe(expected);
     }
-    expect(landingPathFor(users.find((u) => u.id === 'USR-013')!)).toBe('/dashboard');
-    expect(landingPathFor(users.find((u) => u.id === 'USR-012')!)).toBe('/dashboard');
-    expect(landingPathFor(users.find((u) => u.id === 'USR-001')!)).toBe('/catalog');
-    expect(landingPathFor(users.find((u) => u.id === 'USR-010')!)).toBe('/catalog');
+    expect(landingPathFor(users().find((u) => u.id === 'USR-013')!)).toBe('/dashboard');
+    expect(landingPathFor(users().find((u) => u.id === 'USR-012')!)).toBe('/dashboard');
+    expect(landingPathFor(users().find((u) => u.id === 'USR-001')!)).toBe('/catalog');
+    expect(landingPathFor(users().find((u) => u.id === 'USR-010')!)).toBe('/catalog');
   });
 
   it('offers four Sample Hospice A demo accounts on the login page', () => {
-    const demo = DEMO_ACCOUNT_IDS.map((id) => users.find((u) => u.id === id));
+    const demo = DEMO_ACCOUNT_IDS.map((id) => users().find((u) => u.id === id));
     expect(demo).toHaveLength(4);
     for (const user of demo) {
       expect(user?.orgId).toBe('HSP-001');

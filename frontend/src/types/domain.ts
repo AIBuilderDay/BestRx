@@ -27,7 +27,9 @@ export type UserRole =
   | 'field_nurse'
   | 'director_of_nursing'
   | 'hospice_admin'
-  | 'vendor_dispatcher';
+  | 'vendor_dispatcher'
+  // A patient's relative who signs in only to follow their loved one — see FamilyMember below.
+  | 'family_member';
 
 export type EquipmentCategory =
   | 'bed'
@@ -44,6 +46,8 @@ export interface EquipmentItem {
   hcpcs: string;
   name: string;
   qty: number;
+  /** Rented or bought. Absent on orders placed before the choice existed: read the offer's default. */
+  unit?: 'month' | 'purchase';
 }
 
 export interface CatalogEntry {
@@ -104,16 +108,91 @@ export interface Vendor {
   overallRatingCount: number;
 }
 
+export interface RealVendorLocation {
+  city: string;
+  state: string;
+  street1: string;
+  zip: string;
+  phone: string;
+}
+
+/**
+ * A real, publicly-listed DME supplier scraped from the vendor's own site or a directory listing.
+ *
+ * Deliberately NOT a `Vendor`. `Vendor` carries simulated operational telemetry (fleet, sla,
+ * performance30d, overallRating) that no supplier publishes; inventing those for a named real
+ * company would violate the "no invented vendor facts" rule in CLAUDE.md. Every field here is
+ * either sourced or null, and `sourceUrl` records where it came from.
+ */
+export interface RealVendor {
+  id: string;
+  name: string;
+  displayName: string;
+  scope: 'national' | 'regional';
+  market: string;
+  headquarters: {
+    street1: string | null;
+    city: string;
+    state: string;
+    zip: string | null;
+  } | null;
+  /** Null when the source does not publish hours. */
+  hours: string | null;
+  contact: {
+    dispatchPhone: string | null;
+    dispatchEmail: string | null;
+    repName: string | null;
+  };
+  /** Prose service area as stated by the source — suppliers publish this, not ZIP lists. */
+  serviceAreaDescription: string;
+  /** Null when the source states a count of states but not which ones. */
+  statesServed: string[] | null;
+  locationCount: number;
+  /** Empty when individual branch addresses are not published. */
+  locations: RealVendorLocation[];
+  /** HCPCS codes from equipment_catalog.json this vendor's published lines cover. */
+  hcpcsCarried: string[];
+  categoriesCarried: string[];
+  catalogNotes: string;
+  hospiceFocused: boolean;
+  logoPath: string | null;
+  sourceUrl: string;
+  /** ISO date the source page was read. */
+  sourceRetrieved: string;
+}
+
 export interface User {
   id: string;
   name: string;
   role: UserRole;
-  orgType: 'hospice' | 'vendor';
+  orgType: 'hospice' | 'vendor' | 'family';
+  /** Hospice or vendor id. For a family member, the hospice caring for their patient. */
   orgId: string;
   /** Login identity. Unique across users; permissions derive from `role` in lib/auth.ts. */
   email: string;
   phone: string;
   avatarPath: string;
+  /** Set only for a family_member session: the one patient this account may follow. */
+  patientId?: string;
+}
+
+/**
+ * A patient's relative, linked to exactly one patient. They can sign in to a read-only family
+ * view, and are the audience for delivery notifications (the SQS/messaging layer to come). Kept in
+ * a runtime store (lib/familyMembers.ts), not a frozen JSON table, because staff add them live.
+ */
+export interface FamilyMember {
+  id: string;
+  patientId: string;
+  name: string;
+  /** How they relate to the patient, e.g. "Daughter", "Spouse". Free text. */
+  relationship: string;
+  /** Login identity and notification address. */
+  email: string;
+  phone: string;
+  /** Whether this contact should receive delivery notifications once messaging is wired up. */
+  notify: boolean;
+  addedAt: string;
 }
 
 export interface Address {
@@ -239,7 +318,11 @@ export interface VendorOffer {
   productName: string;
   description: string;
   category: EquipmentCategory;
-  priceUsd: number;
+  /** Monthly rental rate. Absent when the item is sold outright only (walker, commode, mask). */
+  rentalPriceUsd?: number;
+  /** One-time purchase price. Absent when the vendor only rents this SKU. */
+  purchasePriceUsd?: number;
+  /** The arrangement this offer defaults to. At least one of the two prices is always present. */
   unit: 'month' | 'purchase';
   inStock: boolean;
   /** Vendor's own promise, not a measurement. Compare against vendor.performance30d. */
@@ -294,6 +377,22 @@ export interface EmrEvent {
   patientId: string;
   payload: Record<string, unknown>;
   note?: string;
+}
+
+/**
+ * A family member asking the hospice to send a piece of equipment, instead of buying it directly.
+ * Surfaces on the patient chart for staff to act on. Lives in a runtime store, like FamilyMember.
+ */
+export interface FamilyPurchaseRequest {
+  id: string;
+  patientId: string;
+  familyMemberId: string;
+  familyMemberName: string;
+  offerId: string;
+  productName: string;
+  qty: number;
+  requestedAt: string;
+  status: 'open' | 'fulfilled' | 'declined';
 }
 
 /** Care-team note pinned to one patient chart. */

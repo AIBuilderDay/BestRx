@@ -1,12 +1,21 @@
 version: '3'
 
 # BestRx - every command runs through Docker Compose so the app behaves the same for everyone.
-# The frontend is the only service today; the backend slot is commented out in docker-compose.yml.
+# Two services: the Vite frontend and the FastAPI backend. The notification service is serverless
+# and lives in AWS; it has no local container.
 
 vars:
   FRONTEND_DIR: ./frontend
   FRONTEND_SERVICE: frontend
   FRONTEND_URL: http://localhost:5173
+  BACKEND_DIR: ./backend
+  BACKEND_SERVICE: backend
+  NOTIFICATION_DIR: ./notification-service
+  BACKEND_URL: http://localhost:8000
+  INFRA_DIR: ./infra
+  AWS_REGION: us-east-2
+  AWS_PROFILE: default
+  PREFIX: bestrx
 
 tasks:
   default:
@@ -31,14 +40,20 @@ tasks:
           sleep 1
         done
         if curl -sf {{.FRONTEND_URL}} > /dev/null 2>&1; then
-          echo "BestRx is up:  {{.FRONTEND_URL}}"
+          echo "Frontend:  {{.FRONTEND_URL}}"
         else
           echo "Frontend has not answered yet. Check: task logs"
         fi
+        if curl -sf {{.BACKEND_URL}}/health > /dev/null 2>&1; then
+          echo "API:       {{.BACKEND_URL}}  (docs at {{.BACKEND_URL}}/docs)"
+        else
+          echo "API has not answered yet. Check: task backend:logs"
+        fi
         echo ""
-        echo "  task logs     tail container logs"
-        echo "  task test     typecheck and unit tests"
-        echo "  task stop     stop containers"
+        echo "  task logs           tail container logs"
+        echo "  task test           typecheck and unit tests"
+        echo "  task backend:logs   tail just the API"
+        echo "  task stop           stop containers"
 
   stop:
     desc: "Stop containers (keeps images and node_modules)"
@@ -72,11 +87,129 @@ tasks:
       - pnpm install
 
   test:
-    desc: "Typecheck and run unit tests"
+    desc: "Typecheck and run unit tests (frontend and backend)"
+    cmds:
+      - task: test:frontend
+      - task: test:backend
+      - task: test:notifications
+
+  test:frontend:
+    desc: "Typecheck and run frontend unit tests"
     dir: "{{.FRONTEND_DIR}}"
     cmds:
       - pnpm exec tsc --noEmit
       - pnpm exec vitest run
+
+  test:backend:
+    desc: "Run backend unit tests in the container"
+    cmds:
+      - docker compose exec -T {{.BACKEND_SERVICE}} python -m pytest -q
+
+  test:backend:host:
+    desc: "Run backend unit tests on the host (needs task backend:install first)"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv run --extra dev pytest -q
+
+  test:notifications:
+    desc: "Run notification service unit tests"
+    dir: "{{.NOTIFICATION_DIR}}"
+    cmds:
+      - uv run --extra dev pytest -q
+
+  # ── Backend and infrastructure ───────────────────────────────────────────────
+
+  backend:start:
+    desc: "Build and start only the API container (no frontend)"
+    aliases: [backend:up]
+    silent: true
+    cmds:
+      - task: _check_docker
+      # --no-deps so compose does not pull the frontend up alongside it.
+      - docker compose up -d --build --no-deps {{.BACKEND_SERVICE}}
+      - |
+        echo ""
+        echo "Waiting for the API to answer..."
+        for i in $(seq 1 30); do
+          if curl -sf {{.BACKEND_URL}}/health > /dev/null 2>&1; then break; fi
+          sleep 1
+        done
+        if curl -sf {{.BACKEND_URL}}/health > /dev/null 2>&1; then
+          echo "API:       {{.BACKEND_URL}}  (docs at {{.BACKEND_URL}}/docs)"
+        else
+          echo "API has not answered yet. Check: task backend:logs"
+        fi
+        echo ""
+        echo "  task backend:logs   tail the API"
+        echo "  task test:backend   pytest in the container"
+        echo "  task backend:stop   stop just the API"
+
+  backend:stop:
+    desc: "Stop only the API container"
+    aliases: [backend:down]
+    cmds:
+      - docker compose stop {{.BACKEND_SERVICE}}
+
+  backend:logs:
+    desc: "Tail the backend container logs"
+    cmds:
+      - docker compose logs -f --tail=100 {{.BACKEND_SERVICE}}
+
+  backend:shell:
+    desc: "Open a shell inside the backend container"
+    interactive: true
+    cmds:
+      - docker compose exec {{.BACKEND_SERVICE}} bash
+
+  backend:install:
+    desc: "Create a host virtualenv for editor tooling (the container needs none)"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv venv --python 3.12
+      - uv pip install -e ".[dev]"
+
+  backend:dev:
+    desc: "Run the API on the host without Docker (task start already runs it in a container)"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  infra:build:
+    desc: "Build the push Lambda deployment package"
+    dir: "{{.NOTIFICATION_DIR}}"
+    cmds:
+      - ./scripts/build.sh
+
+  infra:plan:
+    desc: "Show what Terraform would change (creates nothing)"
+    dir: "{{.INFRA_DIR}}"
+    cmds:
+      - terraform init -input=false
+      - terraform plan
+
+  infra:apply:
+    desc: "Build the push Lambda and apply the Terraform stack"
+    cmds:
+      - task: infra:build
+      - terraform -chdir={{.INFRA_DIR}} init -input=false
+      - terraform -chdir={{.INFRA_DIR}} apply
+
+  infra:render-env:
+    desc: "Print the environment variables for Render (contains a secret — do not commit)"
+    cmds:
+      - terraform -chdir={{.INFRA_DIR}} output -raw render_env
+
+  infra:vapid:
+    desc: "Generate the VAPID keypair into Secrets Manager (run once, after the first apply)"
+    dir: "{{.NOTIFICATION_DIR}}"
+    cmds:
+      - uv run python scripts/generate_vapid.py --secret-id {{.PREFIX}}/vapid --region {{.AWS_REGION}} --profile {{.AWS_PROFILE}}
+
+  infra:destroy:
+    desc: "Tear down the AWS stack (Render and Pages are deleted in their own dashboards)"
+    dir: "{{.INFRA_DIR}}"
+    cmds:
+      - terraform destroy
 
   build:
     desc: "Production build (what a Cloudflare Pages deploy would run)"
@@ -90,20 +223,19 @@ tasks:
     cmds:
       - docker compose down --remove-orphans || true
       - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist {{.FRONTEND_DIR}}/.vite node_modules
-      # Future backend: uncomment when backend/ exists
-      # - find ./backend -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
-      # - rm -rf ./backend/.venv ./backend/.pytest_cache ./backend/.ruff_cache
+      - find {{.BACKEND_DIR}} -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+      - rm -rf {{.BACKEND_DIR}}/.venv {{.BACKEND_DIR}}/.pytest_cache {{.BACKEND_DIR}}/.ruff_cache
+      - rm -rf {{.BACKEND_DIR}}/data {{.NOTIFICATION_DIR}}/build {{.NOTIFICATION_DIR}}/.venv
       - echo "Cleaned node_modules and build artifacts."
 
   clean:all:
-    desc: "clean plus Docker volumes, this project's images, and lockfiles"
+    desc: "clean plus Docker volumes and this project's images"
     silent: true
     cmds:
       - docker compose down -v --remove-orphans --rmi local || true
       - task: clean
-      - rm -rf pnpm-lock.yaml {{.FRONTEND_DIR}}/pnpm-lock.yaml
       - pnpm store prune || true
-      - echo "Removed containers, volumes, local images, dependencies, and lockfiles."
+      - echo "Removed containers, volumes, local images, and dependencies."
 
   _check_docker:
     internal: true

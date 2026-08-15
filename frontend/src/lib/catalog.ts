@@ -14,11 +14,28 @@ export interface ItemPrice {
   unit: '/mo' | 'one-time';
 }
 
+/**
+ * Which arrangement the storefront is pricing right now. Rental is the default: most capital DME
+ * (beds, wheelchairs, oxygen, CPAP/BiPAP) is rented, and renting versus buying is the PPD lever a
+ * short length of stay turns on.
+ */
+export type PricingMode = 'rent' | 'buy';
+
+/** The cart's stored unit, and the offer field each mode reads. */
+export type PriceUnit = 'month' | 'purchase';
+
+export const UNIT_FOR_MODE: Record<PricingMode, PriceUnit> = { rent: 'month', buy: 'purchase' };
+
 /** One storefront listing: a single vendor offer row from vendor_offers.json. */
 export interface CatalogProductVM {
   offer: VendorOffer;
   vendor: Vendor;
+  /** Price under the mode this VM was built for. */
   price: ItemPrice;
+  /** The unit `price` resolved to — may differ from the requested mode on a single-price offer. */
+  priceUnit: PriceUnit;
+  /** Both units when the offer can be rented or bought; one when it cannot. */
+  availableUnits: PriceUnit[];
   /** Average star rating for this vendor SKU, from product_reviews.json. */
   rating: OfferRatingSummary | null;
 }
@@ -35,11 +52,35 @@ export function moneyLabel(amount: number): string {
   return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
-export function offerPrice(offer: VendorOffer): ItemPrice {
-  return {
-    amount: offer.priceUsd,
-    unit: offer.unit === 'month' ? '/mo' : 'one-time',
-  };
+/** Which arrangements this offer actually sells. Always at least one; a row with neither is broken. */
+export function availableUnits(offer: VendorOffer): PriceUnit[] {
+  const units: PriceUnit[] = [];
+  if (offer.rentalPriceUsd !== undefined) units.push('month');
+  if (offer.purchasePriceUsd !== undefined) units.push('purchase');
+  return units;
+}
+
+/**
+ * Price this offer under `unit`, falling back to the arrangement it does sell. A walker has no
+ * rental rate, so in Rental mode it prices as the purchase it is — the card tags it rather than
+ * hiding it, because a nurse who searched for a walker should find one.
+ */
+export function offerPriceFor(offer: VendorOffer, unit: PriceUnit): ItemPrice | null {
+  const rental = offer.rentalPriceUsd;
+  const purchase = offer.purchasePriceUsd;
+  if (unit === 'month') {
+    if (rental !== undefined) return { amount: rental, unit: '/mo' };
+    if (purchase !== undefined) return { amount: purchase, unit: 'one-time' };
+    return null;
+  }
+  if (purchase !== undefined) return { amount: purchase, unit: 'one-time' };
+  if (rental !== undefined) return { amount: rental, unit: '/mo' };
+  return null;
+}
+
+/** The offer's own default arrangement, used where no mode is in play. */
+export function offerPrice(offer: VendorOffer): ItemPrice | null {
+  return offerPriceFor(offer, offer.unit);
 }
 
 /** Abbreviated money for chart axes, where a full figure would crowd the tick. */
@@ -63,26 +104,49 @@ export function itemPrice(entry: CatalogEntry): ItemPrice {
   return { amount: entry.avgPurchaseAllowedUsd ?? 0, unit: 'one-time' };
 }
 
-/** One catalog card per vendor offer. Items with no offer are not listed. */
-export function buildCatalogItems(sessionReviews: ProductReview[] = []): CatalogProductVM[] {
+/**
+ * One catalog card per vendor offer, priced for `mode`. Items with no offer, no vendor, or no
+ * price at all are not listed.
+ */
+export function buildCatalogItems(
+  sessionReviews: ProductReview[] = [],
+  mode: PricingMode = 'rent',
+): CatalogProductVM[] {
   const items: CatalogProductVM[] = [];
-  for (const offer of vendorOffers) {
+  for (const offer of vendorOffers()) {
     const vendor = getVendor(offer.vendorId);
     if (!vendor || !getCatalogEntry(offer.hcpcs)) continue;
+    const price = offerPriceFor(offer, UNIT_FOR_MODE[mode]);
+    if (!price) continue;
     items.push({
       offer,
       vendor,
-      price: offerPrice(offer),
+      price,
+      priceUnit: price.unit === '/mo' ? 'month' : 'purchase',
+      availableUnits: availableUnits(offer),
       rating: offerRatingSummary(offer.id, sessionReviews),
     });
   }
   return items;
 }
 
-/** Highest offer price across the storefront, for the "max price" filter's upper bound. */
+/**
+ * Highest price across the storefront as currently priced, for the "max price" filter's upper
+ * bound. Rental and purchase are different orders of magnitude, so the ceiling moves with the mode.
+ */
 export function priceCeiling(items: CatalogProductVM[]): number {
   const max = Math.max(0, ...items.map((it) => it.price.amount));
   return Math.max(50, Math.ceil(max / 10) * 10);
+}
+
+/**
+ * Carry a max-price filter across a mode switch. The slider's scale changes underneath the user, so
+ * "the cheap half of the catalog" stays the cheap half rather than snapping to everything or nothing.
+ */
+export function rescaleMaxPrice(maxPrice: number, fromCeiling: number, toCeiling: number): number {
+  if (fromCeiling <= 0) return toCeiling;
+  if (maxPrice >= fromCeiling) return toCeiling;
+  return Math.min(toCeiling, Math.max(1, Math.round((maxPrice / fromCeiling) * toCeiling)));
 }
 
 const HOLDS_EQUIPMENT_STATUSES = new Set<Order['status']>([
@@ -95,7 +159,7 @@ const HOLDS_EQUIPMENT_STATUSES = new Set<Order['status']>([
 
 /** True if the patient has a non-terminal order that includes this HCPCS code already. */
 export function patientOwnsEquipment(patientId: string, hcpcs: string): boolean {
-  return orders.some(
+  return orders().some(
     (o) =>
       o.patientId === patientId &&
       HOLDS_EQUIPMENT_STATUSES.has(o.status) &&
@@ -254,12 +318,16 @@ export function paginateCatalog<T>(items: T[], requestedPage: number): CatalogPa
 export interface CartLine {
   offerId: string;
   patientId: string;
+  /** Rented or bought. Part of line identity: one SKU can be on the cart both ways. */
+  unit: PriceUnit;
   qty: number;
 }
 
 export interface CartLineVM {
   offerId: string;
   patientId: string;
+  /** The arrangement this line was added under. */
+  unit: PriceUnit;
   qty: number;
   name: string;
   hcpcs: string;
@@ -283,21 +351,36 @@ export interface CartGroupVM {
   lines: CartLineVM[];
 }
 
-/** Add `addQty` to an existing (offer, patient) line, or append a new one. */
-export function upsertCartLine(lines: CartLine[], offerId: string, patientId: string, addQty: number): CartLine[] {
-  const i = lines.findIndex((l) => l.offerId === offerId && l.patientId === patientId);
+const sameLine = (l: CartLine, offerId: string, patientId: string, unit: PriceUnit): boolean =>
+  l.offerId === offerId && l.patientId === patientId && l.unit === unit;
+
+/** Add `addQty` to an existing (offer, patient, unit) line, or append a new one. */
+export function upsertCartLine(
+  lines: CartLine[],
+  offerId: string,
+  patientId: string,
+  unit: PriceUnit,
+  addQty: number,
+): CartLine[] {
+  const i = lines.findIndex((l) => sameLine(l, offerId, patientId, unit));
   if (i >= 0) {
     const next = lines.slice();
     next[i] = { ...next[i], qty: Math.min(99, next[i].qty + addQty) };
     return next;
   }
-  return [...lines, { offerId, patientId, qty: addQty }];
+  return [...lines, { offerId, patientId, unit, qty: addQty }];
 }
 
 /** Set a line's quantity; a quantity of 0 or less removes it. */
-export function setCartLineQty(lines: CartLine[], offerId: string, patientId: string, qty: number): CartLine[] {
-  if (qty <= 0) return lines.filter((l) => !(l.offerId === offerId && l.patientId === patientId));
-  return lines.map((l) => (l.offerId === offerId && l.patientId === patientId ? { ...l, qty: Math.min(99, qty) } : l));
+export function setCartLineQty(
+  lines: CartLine[],
+  offerId: string,
+  patientId: string,
+  unit: PriceUnit,
+  qty: number,
+): CartLine[] {
+  if (qty <= 0) return lines.filter((l) => !sameLine(l, offerId, patientId, unit));
+  return lines.map((l) => (sameLine(l, offerId, patientId, unit) ? { ...l, qty: Math.min(99, qty) } : l));
 }
 
 export function totalUnitsInCart(lines: CartLine[]): number {
@@ -321,11 +404,14 @@ export function buildCartGroups(
     if (!item || !patient) continue;
 
     const { offer, vendor } = item;
+    const price = offerPriceFor(offer, line.unit);
+    if (!price) continue;
     const leadNote = offer.deliveryLeadDays === 1 ? 'next day' : `${offer.deliveryLeadDays} days`;
 
     const lineVM: CartLineVM = {
       offerId: line.offerId,
       patientId: line.patientId,
+      unit: line.unit,
       qty: line.qty,
       name: offer.productName,
       hcpcs: offer.hcpcs,
@@ -334,8 +420,8 @@ export function buildCartGroups(
       categoryLabel: CATEGORY_LABELS[offer.category],
       vendorNote: vendor.displayName,
       leadDays: offer.deliveryLeadDays,
-      lineTotal: item.price.amount * line.qty,
-      priceUnit: item.price.unit,
+      lineTotal: price.amount * line.qty,
+      priceUnit: price.unit,
       dupe: patientOwnsEquipment(line.patientId, offer.hcpcs),
     };
 
@@ -361,6 +447,21 @@ export interface CartTotals {
   slowestLeadDays: number | null;
 }
 
+/**
+ * How many orders this cart will become. Mirrors the backend's checkout split — one order per
+ * (patient, vendor) — so the summary never promises a number the API then contradicts. Change one
+ * and you must change the other: `backend/app/services/carts.py::checkout`.
+ */
+export function projectedOrderCount(lines: CartLine[], catalogItems: CatalogProductVM[]): number {
+  const groups = new Set<string>();
+  for (const line of lines) {
+    const item = catalogItems.find((it) => it.offer.id === line.offerId);
+    if (!item) continue;
+    groups.add(`${line.patientId}|${item.vendor.id}`);
+  }
+  return groups.size;
+}
+
 export function cartTotals(lines: CartLine[], catalogItems: CatalogProductVM[]): CartTotals {
   let monthly = 0;
   let oneTime = 0;
@@ -368,8 +469,10 @@ export function cartTotals(lines: CartLine[], catalogItems: CatalogProductVM[]):
   for (const line of lines) {
     const item = catalogItems.find((it) => it.offer.id === line.offerId);
     if (!item) continue;
-    if (item.price.unit === '/mo') monthly += item.price.amount * line.qty;
-    else oneTime += item.price.amount * line.qty;
+    const price = offerPriceFor(item.offer, line.unit);
+    if (!price) continue;
+    if (price.unit === '/mo') monthly += price.amount * line.qty;
+    else oneTime += price.amount * line.qty;
     slowestLeadDays = Math.max(slowestLeadDays ?? 0, item.offer.deliveryLeadDays);
   }
   return { monthly, oneTime, slowestLeadDays };
@@ -389,7 +492,10 @@ function matchesCatalogFilters(
   return true;
 }
 
-/** Sidebar counts reflect every active filter except the group being counted. */
+/**
+ * Sidebar counts reflect every active filter except the group being counted. Every category and
+ * vendor stays listed even at count 0, so the sidebar doesn't reshuffle as filters narrow.
+ */
 export function catalogFilterOptions(
   items: CatalogProductVM[],
   filters: CatalogFilterState,
@@ -398,71 +504,21 @@ export function catalogFilterOptions(
   const forCategory = items.filter((it) => matchesCatalogFilters(it, filters, ['category']));
   const categories: CategoryOption[] = [
     { key: 'All', label: 'All', count: forCategory.length },
-    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[])
-      .map((key) => ({
-        key,
-        label: CATEGORY_LABELS[key],
-        count: forCategory.filter((it) => it.offer.category === key).length,
-      }))
-      .filter((c) => c.count > 0),
+    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[]).map((key) => ({
+      key,
+      label: CATEGORY_LABELS[key],
+      count: forCategory.filter((it) => it.offer.category === key).length,
+    })),
   ];
 
   const forVendor = items.filter((it) => matchesCatalogFilters(it, filters, ['vendorIds']));
-  const vendors: VendorFilterOption[] = allVendors
-    .map((v) => ({
-      id: v.id,
-      displayName: v.displayName,
-      count: forVendor.filter((it) => it.vendor.id === v.id).length,
-    }))
-    .filter((v) => v.count > 0);
+  const vendors: VendorFilterOption[] = allVendors.map((v) => ({
+    id: v.id,
+    displayName: v.displayName,
+    count: forVendor.filter((it) => it.vendor.id === v.id).length,
+  }));
 
   return { categories, vendors };
-}
-
-/**
- * Keeps category and vendor selections consistent when both change at once.
- */
-export function resolveCatalogFilters(
-  items: CatalogProductVM[],
-  current: CatalogFilterState,
-  patch: Partial<CatalogFilterState>,
-): CatalogFilterState {
-  const merged: CatalogFilterState = { ...current, ...patch };
-  const categoryChanged = 'category' in patch;
-  const vendorsChanged = 'vendorIds' in patch;
-
-  if (categoryChanged && !vendorsChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
-    const applies = items.some(
-      (item) => merged.vendorIds.includes(item.vendor.id) && item.offer.category === merged.category,
-    );
-    if (!applies) merged.category = 'All';
-  }
-
-  if (vendorsChanged && !categoryChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
-    const validIds = new Set(
-      items
-        .filter((item) => item.offer.category === merged.category)
-        .map((item) => item.vendor.id),
-    );
-    merged.vendorIds = merged.vendorIds.filter((id) => validIds.has(id));
-  }
-
-  if (categoryChanged && vendorsChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
-    const validIds = new Set(
-      items
-        .filter((item) => item.offer.category === merged.category)
-        .map((item) => item.vendor.id),
-    );
-    merged.vendorIds = merged.vendorIds.filter((id) => validIds.has(id));
-    if (merged.vendorIds.length > 0) {
-      const applies = items.some(
-        (item) => merged.vendorIds.includes(item.vendor.id) && item.offer.category === merged.category,
-      );
-      if (!applies) merged.category = 'All';
-    }
-  }
-
-  return merged;
 }
 
 /** Text search from the top-nav bar: every word must match name, vendor, or category. */
