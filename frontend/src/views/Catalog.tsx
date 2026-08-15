@@ -243,7 +243,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         onSignOut={onSignOut}
       />
 
-      <div className="grid grid-cols-1 items-start lg:grid-cols-[224px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start lg:grid-cols-[252px_minmax(0,1fr)]">
         <CatalogFilters
           filters={filters}
           categories={filterOptions.categories}

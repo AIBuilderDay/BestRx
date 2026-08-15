@@ -56,8 +56,8 @@ export function CatalogFilterControls({
                 filters.category === c.key ? 'bg-hover text-ink' : c.count === 0 ? 'text-ink-3' : 'text-ink-2'
               }`}
             >
-              <span>{c.label}</span>
-              <span className="font-mono text-xs tabular-nums text-ink-3">{c.count}</span>
+              <span className="min-w-0 truncate">{c.label}</span>
+              <span className="flex-none pl-2 font-mono text-xs tabular-nums text-ink-3">{c.count}</span>
             </button>
           ))}
         </div>
@@ -83,10 +83,13 @@ export function CatalogFilterControls({
                     ✓
                   </span>
                 </span>
-                <span className={`min-w-0 flex-1 truncate ${on ? 'text-ink' : v.count === 0 ? 'text-ink-3' : 'text-ink-2'}`}>
+                <span
+                  title={v.displayName}
+                  className={`min-w-0 flex-1 truncate ${on ? 'text-ink' : v.count === 0 ? 'text-ink-3' : 'text-ink-2'}`}
+                >
                   {v.displayName}
                 </span>
-                <span className="font-mono text-xs tabular-nums text-ink-3">{v.count}</span>
+                <span className="flex-none font-mono text-xs tabular-nums text-ink-3">{v.count}</span>
               </button>
             );
           })}
