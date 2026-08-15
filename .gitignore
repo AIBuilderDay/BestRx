@@ -39,3 +39,5 @@ infra/modules/*/.build/
 notification-service/build/
 # Fixtures copied from frontend/src/data at build time. The frontend's copy is the original.
 backend/data/
+# Browser-automation scratch output. Never part of the repo.
+.playwright-mcp/
