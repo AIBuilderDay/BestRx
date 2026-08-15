@@ -11,17 +11,16 @@ import { FamilyRequestsSection } from '../components/patients/FamilyRequestsSect
 import { TopNav } from '../components/layout/TopNav';
 import { DetailReveal } from '../components/ui/DetailReveal';
 import { useCart } from '../context/CartContext';
-import { getOrdersForPatient, patientNotes } from '../data/db';
+import { getOrdersForPatient } from '../data/db';
 import { moneyLabel } from '../lib/catalog';
 import { buildOrderListItemVM, type OrderListItemVM } from '../lib/orders';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
-import type { PatientNote, User } from '../types/domain';
+import type { User } from '../types/domain';
 
 export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const { cartCount, setCartOpen } = useCart();
 
-  const [sessionNotes, setSessionNotes] = useState<PatientNote[]>([]);
   const [tab, setTab] = useState<PatientTab>('Orders');
   const [invoiceItem, setInvoiceItem] = useState<OrderListItemVM | null>(null);
 
@@ -147,14 +146,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
               {tab === 'Orders' ? orderCards : null}
 
               {tab === 'Notes' ? (
-                <PatientNotesSection
-                  patientId={patient.id}
-                  user={user}
-                  storedNotes={patientNotes}
-                  sessionNotes={sessionNotes}
-                  onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
-                  onSessionNotesChange={setSessionNotes}
-                />
+                <PatientNotesSection patientId={patient.id} user={user} />
               ) : null}
 
               {tab === 'Family' ? <FamilySection patientId={patient.id} /> : null}

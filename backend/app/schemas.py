@@ -73,6 +73,19 @@ class CheckoutRequest(BaseModel):
     notes: str = ""
 
 
+class CreateNoteRequest(BaseModel):
+    """A care-team note being pinned to a chart. Length caps match the sticky note it renders on."""
+
+    authorId: str = Field(min_length=1)
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=2000)
+
+
+class UpdateNoteRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=2000)
+
+
 class PushSubscriptionKeys(BaseModel):
     p256dh: str = Field(min_length=1)
     auth: str = Field(min_length=1)

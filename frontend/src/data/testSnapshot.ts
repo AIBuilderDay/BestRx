@@ -15,6 +15,7 @@ import hospicesJson from './hospices.json';
 import inventoryJson from './inventory.json';
 import orderEventsJson from './order_events.json';
 import ordersJson from './orders.json';
+import patientNotesJson from './patient_notes.json';
 import patientsJson from './patients.json';
 import productReviewsJson from './product_reviews.json';
 import usersJson from './users.json';
@@ -37,6 +38,7 @@ const snapshot = {
   vendorOffers: vendorOffersJson,
   productReviews: productReviewsJson,
   budgets: budgetsJson,
+  patientNotes: patientNotesJson,
 } as unknown as Snapshot;
 
 /** Populate the store with the JSON fixtures. Call from a test's setup. */

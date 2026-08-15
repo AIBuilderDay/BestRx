@@ -58,39 +58,43 @@ function ContextualSearch({ section }: { section: Exclude<NavSection, "catalog" 
     navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path, { replace });
   };
 
+  // Same shell as the catalog's <NavSearch> so the bar looks identical section to section.
+  // Without `ai-on` the shell is just the 1.5px line-strong ring; the AI animations stay dormant.
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        runSearch(query, false);
-      }}
-      role="search"
-      className="flex w-full min-w-0 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-ink-3 transition-colors focus-within:border-ink"
-    >
-      <svg
-        width="13"
-        height="13"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
-      <input
-        type="search"
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          runSearch(e.target.value, true);
+    <div className="ai-shell w-full min-w-0">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          runSearch(query, false);
         }}
-        placeholder={placeholder}
-        aria-label={label}
-        className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
-      />
-    </form>
+        role="search"
+        className="flex w-full min-w-0 items-center gap-2 rounded-full bg-surface py-[9.5px] pl-3.5 pr-3.5 text-ink-3"
+      >
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            runSearch(e.target.value, true);
+          }}
+          placeholder={placeholder}
+          aria-label={label}
+          className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
+        />
+      </form>
+    </div>
   );
 }
 

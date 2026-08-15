@@ -261,7 +261,7 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator.svg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.png"
   },
   {
     "id": "OFR-019",
@@ -275,7 +275,7 @@
     "inStock": true,
     "deliveryEtaHours": 12,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0143-walker-vnd-002.svg"
+    "imagePath": "/images/equipment/e0143-walker.png"
   },
   {
     "id": "OFR-020",
@@ -289,7 +289,7 @@
     "inStock": true,
     "deliveryEtaHours": 12,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0163-commode-vnd-002.svg"
+    "imagePath": "/images/equipment/e0163-commode.png"
   },
   {
     "id": "OFR-021",
@@ -303,7 +303,7 @@
     "inStock": true,
     "deliveryEtaHours": 12,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0277-air-mattress.svg"
+    "imagePath": "/images/equipment/e0277-air-mattress.png"
   },
   {
     "id": "OFR-022",
@@ -317,7 +317,7 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0277-air-mattress.svg"
+    "imagePath": "/images/equipment/e0277-air-mattress.png"
   },
   {
     "id": "OFR-023",
@@ -331,7 +331,7 @@
     "inStock": true,
     "deliveryEtaHours": 7,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0601-cpap.svg"
+    "imagePath": "/images/equipment/e0601-cpap.png"
   },
   {
     "id": "OFR-024",
@@ -345,7 +345,7 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0601-cpap.svg"
+    "imagePath": "/images/equipment/e0601-cpap.png"
   },
   {
     "id": "OFR-025",
@@ -359,7 +359,7 @@
     "inStock": true,
     "deliveryEtaHours": 7,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
+    "imagePath": "/images/equipment/e0431-portable-oxygen.png"
   },
   {
     "id": "OFR-026",
@@ -373,7 +373,7 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
+    "imagePath": "/images/equipment/e0431-portable-oxygen.png"
   },
   {
     "id": "OFR-027",
@@ -387,7 +387,7 @@
     "inStock": true,
     "deliveryEtaHours": 7,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/a7030-cpap-mask.svg"
+    "imagePath": "/images/equipment/a7030-cpap-mask.png"
   },
   {
     "id": "OFR-028",
@@ -401,7 +401,7 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/a7030-cpap-mask.svg"
+    "imagePath": "/images/equipment/a7030-cpap-mask.png"
   },
   {
     "id": "OFR-029",
@@ -415,7 +415,7 @@
     "inStock": true,
     "deliveryEtaHours": 7,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0100-cane.svg"
+    "imagePath": "/images/equipment/e0100-cane.png"
   },
   {
     "id": "OFR-030",
@@ -429,7 +429,7 @@
     "inStock": true,
     "deliveryEtaHours": 12,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0100-cane.svg"
+    "imagePath": "/images/equipment/e0100-cane.png"
   },
   {
     "id": "OFR-031",
@@ -443,6 +443,6 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0100-cane.svg"
+    "imagePath": "/images/equipment/e0100-cane.png"
   }
 ]

@@ -1,7 +1,7 @@
 /**
  * Reporting periods for the cost dashboard.
  *
- * The dataset holds a single month of orders (Aug 1-22, 2026), so there is exactly one period
+ * The dataset holds a single month of orders (Aug 1-14, 2026), so there is exactly one period
  * today. COST_PERIODS stays an array anyway: adding history becomes a data change rather than a
  * rewrite, and every selector already takes a period rather than assuming "this month".
  *

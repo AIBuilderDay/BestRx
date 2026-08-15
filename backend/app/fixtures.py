@@ -111,6 +111,10 @@ def emr_events() -> list[Row]:
     return load_table("emr_events")
 
 
+def seed_patient_notes() -> list[Row]:
+    return load_table("patient_notes")
+
+
 def seed_orders() -> list[Row]:
     return load_table("orders")
 

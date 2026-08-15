@@ -13,15 +13,18 @@ deliberately withheld from the tool set below.
 from __future__ import annotations
 
 import json
+import re
 import time
 from typing import Any
 
 from fastmcp import Client
 from fastmcp.exceptions import ToolError
 
+from .. import fixtures
 from ..config import Settings
 from ..mcp_server import mcp
 from .client import get_client
+from .facts import offer_facts
 from .sanitize import find_mentioned_patients, patient_label, sanitize_patient
 from .usage import get_usage_ledger
 
@@ -41,6 +44,25 @@ ALLOWED_TOOLS = frozenset(
         "list_inventory",
         "get_cart",
         "update_cart",
+    }
+)
+
+# The tools a fully-briefed turn still needs. When the patient is already resolved here and
+# candidate offers are in the prompt, the lookup tools are dead weight: their schemas ship on every
+# turn and the model spends a round trip re-fetching what it was handed. Narrowing the set is what
+# turns a five-call order into a two-call one.
+BRIEFED_TOOLS = frozenset({"get_cart", "update_cart"})
+
+# How many candidate offers to brief. Enough that a real choice is on the table (vendor, price,
+# delivery) without pasting the storefront into the prompt.
+BRIEF_OFFER_LIMIT = 8
+
+# Words that carry no signal when matching a command against a product name.
+_STOPWORDS = frozenset(
+    {
+        "order", "please", "get", "a", "an", "the", "for", "and", "with", "to", "of",
+        "me", "we", "need", "want", "some", "new", "one", "two", "his", "her", "their",
+        "buy", "rent", "cheapest", "fastest", "best", "from", "in", "on", "at", "by",
     }
 )
 
@@ -72,10 +94,40 @@ e.g. "Added 1 Hospital Bed (Alpine Home Medical) for Harold B."
 If you could not safely resolve the patient or the product, reply with exactly NO_MATCH and
 nothing else."""
 
+# Used when the patient is already resolved and candidate offers are already in the prompt. Same
+# rules and same read-back contract — only steps 1 and 2 change, because they are already done.
+BRIEFED_SYSTEM_PROMPT = """You turn a hospice nurse's plain-English order command into cart lines,
+using the tools provided.
+
+The patient has already been resolved for you: use `patientContext.id` as the patientId. Candidate
+offers from the catalog are in `candidateOffers` — pick from those by `offerId`.
+
+Work in this order:
+1. Choose the offer in `candidateOffers` that best matches the command. Prefer in-stock offers,
+   then faster delivery, then better nurse rating, then lower price. An explicit preference in the
+   command — cheapest, a named vendor, fastest delivery — overrides those defaults. If none of the
+   candidates is what the nurse asked for, stop and report NO_MATCH.
+2. Read the nurse's current cart with `get_cart`, then call `update_cart` with the complete set of
+   lines: every line already in the cart, plus the new one. `update_cart` is a whole-cart replace,
+   so omitting an existing line deletes it.
+
+Rules:
+- Quantity defaults to 1 unless the command says otherwise. Never order more than 10 of anything.
+- Use "month" as the unit to rent and "purchase" to buy. Rent unless the command says to buy or
+  the offer is only sold outright.
+- Never invent a product, a price, a patient, or an id. Only use ids present in `candidateOffers`
+  and `patientContext`.
+- Never call a tool you were not given.
+
+When you are done, reply with a single sentence a nurse can skim to confirm what you understood,
+e.g. "Added 1 Hospital Bed (Alpine Home Medical) for Harold B."
+If you could not safely resolve the patient or the product, reply with exactly NO_MATCH and
+nothing else."""
+
 NO_MATCH = "NO_MATCH"
 
 
-async def _tool_definitions(client: Client) -> list[Row]:
+async def _tool_definitions(client: Client, allowed: frozenset[str]) -> list[Row]:
     """The allowed MCP tools, in the shape the Messages API takes."""
     return [
         {
@@ -84,17 +136,19 @@ async def _tool_definitions(client: Client) -> list[Row]:
             "input_schema": tool.inputSchema,
         }
         for tool in await client.list_tools()
-        if tool.name in ALLOWED_TOOLS
+        if tool.name in allowed
     ]
 
 
-async def _run_tool(client: Client, name: str, arguments: Row) -> tuple[str, bool]:
+async def _run_tool(
+    client: Client, name: str, arguments: Row, allowed: frozenset[str]
+) -> tuple[str, bool]:
     """Call one MCP tool. Returns (text for the model, is_error).
 
     A refused or failed tool is reported back to the model rather than raised: it can pick a
     different offer or ask a different question, which is more useful than ending the turn.
     """
-    if name not in ALLOWED_TOOLS:
+    if name not in allowed:
         return f"Tool {name} is not available.", True
     try:
         result = await client.call_tool(name, arguments)
@@ -128,6 +182,42 @@ def _find_lines(cart: Row | None, keys: set[tuple[str, str]]) -> list[Row]:
     ]
 
 
+def _candidate_offers(command: str) -> list[Row]:
+    """Offers whose name, category, or description overlaps the command, best overlap first.
+
+    A deterministic prefilter, not a ranking: it decides what the model is shown, and the model
+    still chooses. Returns [] when nothing overlaps, which the caller treats as "not briefed" and
+    falls back to the full tool loop rather than briefing the model on an empty catalog.
+    """
+    words = {
+        word
+        for word in re.split(r"[^a-z0-9]+", command.lower())
+        if len(word) > 2 and word not in _STOPWORDS
+    }
+    if not words:
+        return []
+
+    scored: list[tuple[int, int, Row]] = []
+    for index, offer in enumerate(fixtures.vendor_offers()):
+        haystack = " ".join(
+            str(offer.get(field) or "")
+            for field in ("productName", "category", "description", "hcpcs")
+        ).lower()
+        score = sum(1 for word in words if word in haystack)
+        if score:
+            # Index breaks ties so the order is stable rather than dependent on dict ordering.
+            scored.append((-score, index, offer))
+
+    scored.sort(key=lambda row: (row[0], row[1]))
+    ids = [offer["id"] for _, _, offer in scored[:BRIEF_OFFER_LIMIT]]
+    # `description` is the long marketing blurb — the model does not need it to pick between eight
+    # already-relevant offers, and it is the bulk of the payload.
+    return [
+        {key: value for key, value in fact.items() if key != "description"}
+        for fact in offer_facts(ids)
+    ]
+
+
 def _resolve_patient_context(command: str, patients: list[Row]) -> Row | None:
     """Sanitized context for the patient the command names, when it names exactly one.
 
@@ -155,19 +245,26 @@ async def run_agent_order(
     output_tokens = 0
 
     patient_context = _resolve_patient_context(command, patients)
-    # The roster the model may choose from, by label rather than full name.
-    roster = [{"id": p["id"], "label": patient_label(p)} for p in patients]
+    candidates = _candidate_offers(command)
+    # Both halves of the lookup work are already done here: the patient was matched
+    # deterministically and the offers were prefiltered from the same catalog the tools read. So
+    # brief the model instead of making it spend a round trip per lookup.
+    briefed = patient_context is not None and bool(candidates)
 
-    user_content = json.dumps(
-        {
-            "command": command,
-            "userId": user_id,
-            "patients": roster,
-            # Present only when the command named exactly one patient — extra clinical context for
-            # ranking, already stripped of anything identifying.
-            "patientContext": patient_context,
-        }
-    )
+    payload: Row = {
+        "command": command,
+        "userId": user_id,
+        # Present only when the command named exactly one patient — extra clinical context for
+        # ranking, already stripped of anything identifying.
+        "patientContext": patient_context,
+    }
+    if briefed:
+        payload["candidateOffers"] = candidates
+    else:
+        # The roster the model may choose from, by label rather than full name.
+        payload["patients"] = [{"id": p["id"], "label": patient_label(p)} for p in patients]
+
+    user_content = json.dumps(payload)
 
     messages: list[Row] = [{"role": "user", "content": user_content}]
     tool_calls: list[Row] = []
@@ -181,13 +278,18 @@ async def run_agent_order(
 
     try:
         async with Client(mcp) as mcp_client:
-            tools = await _tool_definitions(mcp_client)
+            tools = await _tool_definitions(mcp_client, BRIEFED_TOOLS if briefed else ALLOWED_TOOLS)
+            # The system prompt and tool schemas are byte-identical across every turn of every
+            # order, so mark the end of that prefix cacheable. Turns 2+ of this order, and every
+            # later order, read it from cache instead of re-sending it.
+            if tools:
+                tools[-1] = {**tools[-1], "cache_control": {"type": "ephemeral"}}
 
             for _ in range(settings.ai_max_tool_turns):
                 response = await client.messages.create(
                     model=settings.ai_model,
                     max_tokens=1500,
-                    system=SYSTEM_PROMPT,
+                    system=BRIEFED_SYSTEM_PROMPT if briefed else SYSTEM_PROMPT,
                     tools=tools,
                     messages=messages,
                 )
@@ -207,7 +309,9 @@ async def run_agent_order(
                     if block.type != "tool_use":
                         continue
                     arguments = block.input if isinstance(block.input, dict) else {}
-                    text, is_error = await _run_tool(mcp_client, block.name, arguments)
+                    text, is_error = await _run_tool(
+                        mcp_client, block.name, arguments, BRIEFED_TOOLS if briefed else ALLOWED_TOOLS
+                    )
                     tool_calls.append({"tool": block.name, "ok": not is_error})
                     # The cart the model wrote is what the frontend renders — take it from the
                     # tool result rather than refetching, so the response is a single round trip.

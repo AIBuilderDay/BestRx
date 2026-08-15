@@ -22,6 +22,7 @@ import type {
   Order,
   OrderEvent,
   Patient,
+  PatientNote,
   ProductReview,
   User,
   Vendor,
@@ -41,6 +42,7 @@ export interface Snapshot {
   vendorOffers: VendorOffer[];
   productReviews: ProductReview[];
   budgets: Budget[];
+  patientNotes: PatientNote[];
 }
 
 const EMPTY: Snapshot = {
@@ -56,6 +58,7 @@ const EMPTY: Snapshot = {
   vendorOffers: [],
   productReviews: [],
   budgets: [],
+  patientNotes: [],
 };
 
 let snapshot: Snapshot = EMPTY;
@@ -92,4 +95,24 @@ export const upsertOrder = (order: Order): void => {
 export const appendOrderEvent = (event: OrderEvent): void => {
   if (snapshot.orderEvents.some((e) => e.id === event.id)) return;
   snapshot = { ...snapshot, orderEvents: [...snapshot.orderEvents, event] };
+};
+
+/**
+ * Apply a note write the API has already accepted. The chart reads notes through `db.ts` like
+ * every other table, so a saved note has to land here for the next render to show it.
+ */
+export const upsertPatientNote = (note: PatientNote): void => {
+  const index = snapshot.patientNotes.findIndex((n) => n.id === note.id);
+  const patientNotes =
+    index === -1
+      ? [note, ...snapshot.patientNotes]
+      : snapshot.patientNotes.map((existing, i) => (i === index ? note : existing));
+  snapshot = { ...snapshot, patientNotes };
+};
+
+export const removePatientNote = (noteId: string): void => {
+  snapshot = {
+    ...snapshot,
+    patientNotes: snapshot.patientNotes.filter((note) => note.id !== noteId),
+  };
 };

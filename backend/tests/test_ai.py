@@ -519,6 +519,97 @@ def test_agent_order_stops_at_the_tool_turn_ceiling(
     assert response.json()["cart"] is None
 
 
+def test_candidate_offers_ranks_by_overlap_and_drops_the_blurb() -> None:
+    """The prefilter decides what the model sees; it must surface the asked-for product first."""
+    candidates = agent_module._candidate_offers("order a wheelchair for Harold")
+
+    assert candidates, "a catalogued product must produce candidates"
+    assert candidates[0]["product"] == "Standard Wheelchair"
+    assert len(candidates) <= agent_module.BRIEF_OFFER_LIMIT
+    # The long marketing blurb is the bulk of an offer row and earns nothing here.
+    assert "description" not in candidates[0]
+    # Everything needed to choose between offers survived the trim.
+    assert {"offerId", "rentalPriceUsd", "inStock", "vendor"} <= set(candidates[0])
+
+
+def test_candidate_offers_is_empty_when_nothing_matches() -> None:
+    """No overlap means no briefing — the caller must fall back to the full tool loop."""
+    assert agent_module._candidate_offers("order a helicopter") == []
+    assert agent_module._candidate_offers("order a for the") == []
+
+
+def test_agent_order_briefs_the_model_and_skips_the_lookup_turns(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The latency fix: a resolved patient plus prefiltered offers means no lookup round trips."""
+    line = {"offerId": "OFR-003", "patientId": "PT-88421", "qty": 1, "unit": "month"}
+    stub = _stub_model(
+        monkeypatch,
+        [
+            _Response(
+                [_ToolUseBlock("tu_1", "get_cart", {"userId": USER})], stop_reason="tool_use"
+            ),
+            _Response(
+                [_ToolUseBlock("tu_2", "update_cart", {"userId": USER, "lines": [line]})],
+                stop_reason="tool_use",
+            ),
+            _Response([_TextBlock("Added 1 Standard Wheelchair for Harold B.")]),
+        ],
+    )
+
+    response = ai_client.post(
+        "/ai/order", json={"command": "order a wheelchair for Harold", "userId": USER}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["cart"]["lines"][0]["offerId"] == "OFR-003"
+
+    first_call = stub.messages.calls[0]
+    # Only the cart tools are offered, so the model cannot spend a turn re-reading the catalog.
+    assert {tool["name"] for tool in first_call["tools"]} == set(agent_module.BRIEFED_TOOLS)
+    # The offers and the patient arrived in the prompt instead of via tool calls.
+    sent = json.loads(first_call["messages"][0]["content"])
+    assert sent["patientContext"]["label"] == "Harold B."
+    assert any(offer["offerId"] == "OFR-003" for offer in sent["candidateOffers"])
+    assert "patients" not in sent  # the full roster is redundant once the patient is resolved
+    # The static prefix is marked cacheable, so later turns re-read it instead of resending.
+    assert first_call["tools"][-1]["cache_control"] == {"type": "ephemeral"}
+
+
+def test_agent_order_falls_back_to_the_full_toolset_when_it_cannot_brief(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An unresolvable patient must still get the lookup tools — briefing is an optimisation."""
+    stub = _stub_model(monkeypatch, [_Response([_TextBlock("NO_MATCH")])])
+
+    response = ai_client.post(
+        "/ai/order", json={"command": "order a wheelchair for Zebediah", "userId": USER}
+    )
+
+    assert response.status_code == 200
+    first_call = stub.messages.calls[0]
+    assert "list_patients" in {tool["name"] for tool in first_call["tools"]}
+    sent = json.loads(first_call["messages"][0]["content"])
+    assert sent["patients"], "the roster is how an unbriefed turn resolves the patient"
+
+
+def test_agent_order_never_sends_an_identifying_field_to_the_model(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Briefing puts more in the prompt — the privacy line must hold there too."""
+    harold = next(p for p in patients() if p["firstName"] == "Harold")
+    stub = _stub_model(monkeypatch, [_Response([_TextBlock("NO_MATCH")])])
+
+    ai_client.post(
+        "/ai/order", json={"command": "order a wheelchair for Harold", "userId": USER}
+    )
+
+    sent = json.dumps(stub.messages.calls[0]["messages"])
+    assert harold["lastName"] not in sent
+    assert harold["dob"] not in sent
+    assert harold["address"]["street1"] not in sent
+
+
 def test_agent_order_404s_for_an_unknown_user(ai_client: TestClient) -> None:
     response = ai_client.post("/ai/order", json={"command": "order a bed", "userId": "USR-nope"})
 
