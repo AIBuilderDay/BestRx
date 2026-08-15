@@ -24,6 +24,7 @@ import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { MobileListToolbar } from '../components/ui/MobileListToolbar';
 import { SortSheet } from '../components/ui/SortSheet';
 import { useCart } from '../context/CartContext';
+import { useData } from '../context/DataContext';
 
 const ORDER_SORTS: { key: OrderSortKey; label: string; hint: string }[] = [
   { key: 'recent', label: 'Most recent', hint: 'Newest orders first' },
@@ -32,6 +33,8 @@ const ORDER_SORTS: { key: OrderSortKey; label: string; hint: string }[] = [
 
 export default function Orders({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
+  const { version } = useData(); // bumps when a live status change lands
+
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
   const [filters, setFilters] = useState<OrderFilterState>(defaultOrderFilters);
@@ -42,7 +45,7 @@ export default function Orders({ user, onSignOut }: { user: User; onSignOut: () 
 
   const allItems = useMemo(
     () => getVisibleOrders(user).map(buildOrderListItemVM),
-    [user],
+    [user, version],
   );
 
   const effectiveFilters = useMemo(

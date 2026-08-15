@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { Patient } from '../../types/domain';
 import { patientFullName } from '../../lib/catalog';
+import { portraitSrcSet } from '../../lib/patients';
 
 export function PatientCard({ patient }: { patient: Patient }) {
   const [imgBroken, setImgBroken] = useState(false);
@@ -15,6 +16,9 @@ export function PatientCard({ patient }: { patient: Patient }) {
           {imagePath && !imgBroken ? (
             <img
               src={imagePath}
+              srcSet={portraitSrcSet(imagePath)}
+              // Two cards per row on a phone, three at sm, then a ~236px min-width auto-fill grid.
+              sizes="(min-width: 1024px) 300px, (min-width: 640px) 33vw, 50vw"
               alt={name}
               loading="lazy"
               decoding="async"

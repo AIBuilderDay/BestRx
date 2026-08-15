@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { can, isFamilyMember } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
@@ -12,91 +12,6 @@ export type NavSection = "catalog" | "orders" | "patients" | "assignments" | "da
 
 const canViewOrders = (user: User): boolean =>
   can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
-
-/**
- * Contextual search for the non-storefront sections. The catalog uses the <NavSearch> AI bar
- * (order commands, AI ranking); everywhere else, search means "filter this list", so those
- * sections keep a plain search-in-place form that filters as you type.
- */
-const CONTEXTUAL_SEARCH: Record<
-  Exclude<NavSection, "catalog" | "dashboard">,
-  { path: string; placeholder: string; label: string }
-> = {
-  orders: {
-    path: "/orders",
-    placeholder: "Search orders, patients, or MRN…",
-    label: "Search orders",
-  },
-  patients: {
-    path: "/patients",
-    placeholder: "Search patients or MRN…",
-    label: "Search patients",
-  },
-  assignments: {
-    path: "/assignments",
-    placeholder: "Search patients or MRN…",
-    label: "Search patients",
-  },
-};
-
-function ContextualSearch({ section }: { section: Exclude<NavSection, "catalog" | "dashboard"> }) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
-  const [query, setQuery] = useState(urlQuery);
-  const { path, placeholder, label } = CONTEXTUAL_SEARCH[section];
-
-  // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
-  useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
-
-  // Push the query into the URL so the view filters. `replace` on live typing keeps the back
-  // button clean; Enter pushes a real history entry.
-  const runSearch = (raw: string, replace: boolean) => {
-    const q = raw.trim();
-    navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path, { replace });
-  };
-
-  // Same shell as the catalog's <NavSearch> so the bar looks identical section to section.
-  // Without `ai-on` the shell is just the 1.5px line-strong ring; the AI animations stay dormant.
-  return (
-    <div className="ai-shell w-full min-w-0">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          runSearch(query, false);
-        }}
-        role="search"
-        className="flex w-full min-w-0 items-center gap-2 rounded-full bg-surface py-[9.5px] pl-3.5 pr-3.5 text-ink-3"
-      >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.5-3.5" />
-        </svg>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            runSearch(e.target.value, true);
-          }}
-          placeholder={placeholder}
-          aria-label={label}
-          className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
-        />
-      </form>
-    </div>
-  );
-}
 
 /** Mobile-only hamburger. Opens a dropdown of the same section links the desktop bar shows. */
 function MobileNavMenu({
@@ -252,13 +167,13 @@ export function TopNav({
       </div>
 
       <div className="min-w-0 [grid-area:search]">
-        {activeSection === "catalog" ? (
-          <NavSearch user={user} />
-        ) : isFamilyMember(user) || activeSection === "dashboard" ? (
-          // The family home and the cost dashboard have no searchable list — leave the slot empty.
+        {/* One bar on every staff screen: it searches the catalog, jumps to patients, orders and
+            pages, and still filters the current list in place. A family member has nothing to
+            search — no permission qualifies them for any result group — so the slot stays empty. */}
+        {isFamilyMember(user) ? (
           <div aria-hidden />
         ) : (
-          <ContextualSearch section={activeSection} />
+          <NavSearch user={user} activeSection={activeSection} />
         )}
       </div>
 
