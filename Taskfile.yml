@@ -96,14 +96,13 @@ tasks:
       - echo "Cleaned node_modules and build artifacts."
 
   clean:all:
-    desc: "clean plus Docker volumes, this project's images, and lockfiles"
+    desc: "clean plus Docker volumes and this project's images"
     silent: true
     cmds:
       - docker compose down -v --remove-orphans --rmi local || true
       - task: clean
-      - rm -rf pnpm-lock.yaml {{.FRONTEND_DIR}}/pnpm-lock.yaml
       - pnpm store prune || true
-      - echo "Removed containers, volumes, local images, dependencies, and lockfiles."
+      - echo "Removed containers, volumes, local images, and dependencies."
 
   _check_docker:
     internal: true

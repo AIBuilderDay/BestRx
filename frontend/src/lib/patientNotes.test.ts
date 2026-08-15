@@ -13,10 +13,10 @@ describe('validatePatientNote', () => {
     expect(validatePatientNote('Title', '', 'PT-88612')).toMatch(/note/i);
   });
 
-  it('rejects PPI, PII, and PHI', () => {
-    expect(validatePatientNote('PPI review', 'Flagged for follow-up', 'PT-88612')).toMatch(/PPI/);
-    expect(validatePatientNote('Follow-up', 'contains pii here', 'PT-88612')).toMatch(/PPI/);
-    expect(validatePatientNote('PHI note', 'do not store PHI in notes', 'PT-88612')).toMatch(/PPI/);
+  it('allows notes mentioning PPI, PII, or PHI', () => {
+    expect(validatePatientNote('PPI review', 'Flagged for follow-up', 'PT-88612')).toBeNull();
+    expect(validatePatientNote('Follow-up', 'contains pii here', 'PT-88612')).toBeNull();
+    expect(validatePatientNote('PHI note', 'do not store PHI in notes', 'PT-88612')).toBeNull();
   });
 
   it('rejects the patient\'s first or last name', () => {

@@ -1,9 +1,6 @@
 import { getPatient, getUser } from '../data/db';
 import type { PatientNote } from '../types/domain';
 
-/** PPI, PII, PHI, and similar protected-identifier tokens. */
-const PROTECTED_ID_PATTERN = /\b(?:PPI|PII|PHI)\b/i;
-
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -16,10 +13,6 @@ function containsPatientName(body: string, firstName: string, lastName: string):
 function validateNoteText(text: string, patientId: string): string | null {
   const trimmed = text.trim();
   if (!trimmed) return null;
-
-  if (PROTECTED_ID_PATTERN.test(trimmed)) {
-    return 'Notes cannot include PPI, PII, or PHI.';
-  }
 
   const patient = getPatient(patientId);
   if (patient && containsPatientName(trimmed, patient.firstName, patient.lastName)) {

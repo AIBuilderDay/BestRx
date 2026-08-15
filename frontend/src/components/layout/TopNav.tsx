@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { can, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
@@ -6,19 +7,98 @@ import { Logo } from "../ui/Logo";
 import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
-export type NavSection = "catalog" | "orders" | "patients";
+export type NavSection = "catalog" | "orders" | "patients" | "assignments";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: "Pickups", permissions: ["pickup:trigger"] },
-  { label: "Costs", permissions: ["reporting"] },
   { label: "Vendors", permissions: ["vendors:manage"] },
 ];
 
 const canViewOrders = (user: User): boolean =>
   can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
 
-/** Sticky app header: brand, section nav, the AI search bar, cart icon, and the profile menu. */
+/**
+ * Contextual search for the non-storefront sections. The catalog uses the <NavSearch> AI bar
+ * (order commands, AI ranking); everywhere else, search means "filter this list", so those
+ * sections keep a plain search-in-place form that filters as you type.
+ */
+const CONTEXTUAL_SEARCH: Record<
+  Exclude<NavSection, "catalog">,
+  { path: string; placeholder: string; label: string }
+> = {
+  orders: {
+    path: "/orders",
+    placeholder: "Search orders, patients, or MRN…",
+    label: "Search orders",
+  },
+  patients: {
+    path: "/patients",
+    placeholder: "Search patients or MRN…",
+    label: "Search patients",
+  },
+  assignments: {
+    path: "/assignments",
+    placeholder: "Search patients or MRN…",
+    label: "Search patients",
+  },
+};
+
+function ContextualSearch({ section }: { section: Exclude<NavSection, "catalog"> }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get("q") ?? "";
+  const [query, setQuery] = useState(urlQuery);
+  const { path, placeholder, label } = CONTEXTUAL_SEARCH[section];
+
+  // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
+  useEffect(() => {
+    setQuery(urlQuery);
+  }, [urlQuery]);
+
+  // Push the query into the URL so the view filters. `replace` on live typing keeps the back
+  // button clean; Enter pushes a real history entry.
+  const runSearch = (raw: string, replace: boolean) => {
+    const q = raw.trim();
+    navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path, { replace });
+  };
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        runSearch(query, false);
+      }}
+      role="search"
+      className="flex w-full min-w-0 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-ink-3 transition-colors focus-within:border-ink"
+    >
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </svg>
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          runSearch(e.target.value, true);
+        }}
+        placeholder={placeholder}
+        aria-label={label}
+        className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
+      />
+    </form>
+  );
+}
+
+/** Sticky app header: brand, section nav, search (catalog AI bar or contextual), cart, profile. */
 export function TopNav({
   user,
   cartCount,
@@ -71,6 +151,15 @@ export function TopNav({
               Patients
             </Link>
           ) : null}
+          {can(user, "nurse-assignment") ? (
+            <Link
+              to="/assignments"
+              aria-current={activeSection === "assignments" ? "page" : undefined}
+              className={linkClass("assignments")}
+            >
+              Assignments
+            </Link>
+          ) : null}
           {GATED_SECTIONS.filter((s) =>
             s.permissions.some((p) => can(user, p)),
           ).map((s) => (
@@ -85,7 +174,11 @@ export function TopNav({
         </nav>
       </div>
 
-      <NavSearch user={user} />
+      {activeSection === "catalog" ? (
+        <NavSearch user={user} />
+      ) : (
+        <ContextualSearch section={activeSection} />
+      )}
 
       <div className="flex shrink-0 items-center gap-3 justify-self-end">
         <button
