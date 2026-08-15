@@ -8,6 +8,8 @@ vars:
   FRONTEND_SERVICE: frontend
   FRONTEND_URL: http://localhost:5173
   BACKEND_DIR: ./backend
+  BACKEND_SERVICE: backend
+  BACKEND_URL: http://localhost:8000
   INFRA_DIR: ./infra
   AWS_REGION: us-east-2
   AWS_PROFILE: default
@@ -36,14 +38,20 @@ tasks:
           sleep 1
         done
         if curl -sf {{.FRONTEND_URL}} > /dev/null 2>&1; then
-          echo "BestRx is up:  {{.FRONTEND_URL}}"
+          echo "Frontend:  {{.FRONTEND_URL}}"
         else
           echo "Frontend has not answered yet. Check: task logs"
         fi
+        if curl -sf {{.BACKEND_URL}}/health > /dev/null 2>&1; then
+          echo "API:       {{.BACKEND_URL}}  (docs at {{.BACKEND_URL}}/docs)"
+        else
+          echo "API has not answered yet. Check: task backend:logs"
+        fi
         echo ""
-        echo "  task logs     tail container logs"
-        echo "  task test     typecheck and unit tests"
-        echo "  task stop     stop containers"
+        echo "  task logs           tail container logs"
+        echo "  task test           typecheck and unit tests"
+        echo "  task backend:logs   tail just the API"
+        echo "  task stop           stop containers"
 
   stop:
     desc: "Stop containers (keeps images and node_modules)"
@@ -90,22 +98,38 @@ tasks:
       - pnpm exec vitest run
 
   test:backend:
-    desc: "Run backend unit tests"
+    desc: "Run backend unit tests in the container"
+    cmds:
+      - docker compose exec -T {{.BACKEND_SERVICE}} python -m pytest -q
+
+  test:backend:host:
+    desc: "Run backend unit tests on the host (needs task backend:install first)"
     dir: "{{.BACKEND_DIR}}"
     cmds:
       - uv run --extra dev --extra push pytest -q
 
   # ── Backend and infrastructure ───────────────────────────────────────────────
 
+  backend:logs:
+    desc: "Tail the backend container logs"
+    cmds:
+      - docker compose logs -f --tail=100 {{.BACKEND_SERVICE}}
+
+  backend:shell:
+    desc: "Open a shell inside the backend container"
+    interactive: true
+    cmds:
+      - docker compose exec {{.BACKEND_SERVICE}} bash
+
   backend:install:
-    desc: "Create the backend virtualenv and install dependencies"
+    desc: "Create a host virtualenv for editor tooling (the container needs none)"
     dir: "{{.BACKEND_DIR}}"
     cmds:
       - uv venv --python 3.12
       - uv pip install -e ".[dev,push]"
 
   backend:dev:
-    desc: "Run the API locally on :8000, serving JSON fixtures (no AWS needed)"
+    desc: "Run the API on the host without Docker (task start already runs it in a container)"
     dir: "{{.BACKEND_DIR}}"
     cmds:
       - uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
@@ -166,9 +190,9 @@ tasks:
     cmds:
       - docker compose down --remove-orphans || true
       - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist {{.FRONTEND_DIR}}/.vite node_modules
-      # Future backend: uncomment when backend/ exists
-      # - find ./backend -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
-      # - rm -rf ./backend/.venv ./backend/.pytest_cache ./backend/.ruff_cache
+      - find {{.BACKEND_DIR}} -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+      - rm -rf {{.BACKEND_DIR}}/.venv {{.BACKEND_DIR}}/.pytest_cache {{.BACKEND_DIR}}/.ruff_cache
+      - rm -rf {{.BACKEND_DIR}}/build {{.BACKEND_DIR}}/data {{.BACKEND_DIR}}/lambdas/sse/node_modules {{.BACKEND_DIR}}/lambdas/sse/dist
       - echo "Cleaned node_modules and build artifacts."
 
   clean:all:

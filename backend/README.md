@@ -3,6 +3,7 @@
 FastAPI service plus the two notification Lambdas. Deployed by [`infra/`](../infra/).
 
 ```
+Dockerfile          dev and prod stages; built from the repo root (see below)
 app/                the API
 ├── main.py         FastAPI app + Mangum handler
 ├── config.py       environment-driven settings
@@ -20,16 +21,40 @@ scripts/            build, seed, VAPID generation
 tests/              pytest
 ```
 
+The Dockerfile builds from the **repo root**, not `./backend` — the JSON fixtures live in
+`frontend/src/data/` and Docker cannot copy from outside its build context. `docker-compose.yml`
+sets `context: .` accordingly.
+
+Its `prod` stage is not how this deploys: AWS runs the Lambda package from `scripts/build.sh`. The
+stage exists so the container runs the same way anywhere and so packaging problems surface locally.
+
 ## Running locally
 
 ```bash
-task backend:install
-task backend:dev        # http://localhost:8000, docs at /docs
+task start              # frontend on :5173, API on :8000, docs at :8000/docs
 ```
 
-With no environment configured the API serves the JSON fixtures from `frontend/src/data/` and keeps
-writes in memory. No AWS account, no credentials, no DynamoDB. Writes vanish on restart, which is
-fine for local work.
+Both run in Docker. The frontend waits for the API's healthcheck before starting, so it never comes
+up pointing at a backend that is not ready.
+
+With no environment configured the API serves the JSON fixtures from `frontend/src/data/` (mounted
+read-only) and keeps writes in memory. No AWS account, no credentials, no DynamoDB. Writes vanish on
+restart, which is fine for local work.
+
+```bash
+task backend:logs       # tail just the API
+task backend:shell      # a shell inside the container
+task test:backend       # pytest inside the container
+```
+
+Editing anything under `backend/app/` reloads the running server through the bind mount.
+
+**Without Docker**, if you want the API on the host:
+
+```bash
+task backend:install    # creates .venv, also what editor tooling reads
+task backend:dev
+```
 
 `GET /health` reports which mode it is in:
 

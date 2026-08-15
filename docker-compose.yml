@@ -12,27 +12,54 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      # Points the app at the backend container. Set to an empty string (or drop the line) to run
+      # the frontend against its JSON fixtures alone — it works either way.
+      # Read by the browser, so it is localhost from the host's perspective, not the service name.
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL-http://localhost:8000}
+    depends_on:
+      backend:
+        condition: service_healthy
     command: node_modules/.bin/vite --host 0.0.0.0 --port 5173
 
   # ── Backend ─────────────────────────────────────────────────────────────────
-  # FastAPI. Lives in ./backend and deploys to Lambda via ./infra.
+  # FastAPI on :8000. Deploys to Lambda via ./infra, but runs here as a plain container.
   #
-  # Uncommented it is optional: with no VITE_API_BASE_URL set, the frontend reads the JSON fixtures
-  # in frontend/src/data/ and behaves exactly as it did before a backend existed.
-  #
-  # With no AWS environment configured the API serves those same fixtures and keeps writes in
-  # memory, so this needs no credentials to run.
-  #
-  # backend:
-  #   build:
-  #     context: ./backend
-  #   container_name: bestrx-backend
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./backend:/app
-  #   command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-  #
-  # And set this on the frontend service so it calls the API instead of the fixtures:
-  #   environment:
-  #     - VITE_API_BASE_URL=http://localhost:8000
+  # No AWS account or credentials needed: with no table names configured the API serves the same
+  # JSON fixtures the frontend reads and keeps writes in memory.
+  backend:
+    build:
+      # The repo root, not ./backend — the fixtures live in frontend/src/data and Docker cannot
+      # copy from outside the build context.
+      context: .
+      dockerfile: backend/Dockerfile
+      target: dev
+    container_name: bestrx-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mount the source so --reload picks up edits.
+      - ./backend/app:/app/app
+      - ./backend/lambdas:/app/lambdas
+      - ./backend/tests:/app/tests
+      # The frontend's data directory is the one copy of the fixtures under version control.
+      - ./frontend/src/data:/app/data:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Uncomment to point the container at real AWS resources instead of the in-memory store.
+      # Requires credentials mounted or passed in.
+      # - ORDERS_TABLE=bestrx-orders
+      # - ORDER_EVENTS_TABLE=bestrx-order-events
+      # - PUSH_SUBSCRIPTIONS_TABLE=bestrx-push-subscriptions
+      # - PUSH_QUEUE_URL=
+      # - AWS_REGION=us-east-2
+      - CORS_ORIGINS=http://localhost:5173
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s

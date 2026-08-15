@@ -169,12 +169,23 @@ everyone.
 
 ```bash
 task              # list every task
-task start        # build + start everything (frontend on http://localhost:5173)
+task start        # build + start everything (frontend :5173, API :8000)
 task logs         # tail container logs
 task restart      # clean:all, reinstall, start again
-task test         # typecheck + unit tests
+task test         # typecheck + unit tests, both sides
 task clean        # stop containers, drop node_modules
 task clean:all    # clean + docker volumes/images + build artifacts
+```
+
+Both services run in Docker. The frontend waits for the API's healthcheck, so it never starts
+pointing at a backend that is not ready. The API needs no AWS account — with no tables configured it
+serves the same JSON fixtures the frontend reads.
+
+```bash
+task backend:logs    # tail just the API
+task backend:shell   # a shell inside the API container
+task test:backend    # pytest inside the container
+task infra:plan      # what Terraform would change (creates nothing)
 ```
 
 Run pnpm directly (from `frontend/`) only when you need something task doesn't cover — adding a
