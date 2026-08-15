@@ -4,7 +4,7 @@ import { can, permissionsFor, ROLE_LABELS, type Permission } from '../../lib/aut
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
 
-export type NavSection = 'catalog' | 'patients';
+export type NavSection = 'catalog' | 'patients' | 'settings';
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permission: Permission }[] = [
@@ -61,6 +61,13 @@ export function TopNav({
             {s.label}
           </span>
         ))}
+        <Link
+          to="/settings"
+          aria-current={activeSection === 'settings' ? 'page' : undefined}
+          className={linkClass('settings')}
+        >
+          Settings
+        </Link>
       </nav>
 
       <div className="flex items-center gap-4.5">
