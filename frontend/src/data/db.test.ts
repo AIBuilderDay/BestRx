@@ -110,7 +110,10 @@ describe('mock database integrity', () => {
     for (const note of patientNotes) {
       expect(getPatient(note.patientId), note.id).toBeDefined();
       expect(users.some((u) => u.id === note.authorId), note.id).toBe(true);
+      expect(note.title.trim().length, note.id).toBeGreaterThan(0);
       expect(note.body.trim().length, note.id).toBeGreaterThan(0);
+      expect(note.date, note.id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(note.createdAt.slice(0, 10), note.id).toBe(note.date);
     }
   });
 

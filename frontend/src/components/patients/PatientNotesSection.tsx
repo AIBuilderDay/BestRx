@@ -1,97 +1,116 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { PatientNote, User } from '../../types/domain';
 import {
+  createDraftPatientNote,
   createSessionPatientNote,
-  formatNoteTimestamp,
-  noteAuthorLabel,
   notesForPatient,
-  validatePatientNote,
 } from '../../lib/patientNotes';
+import { PatientStickyNote } from './PatientStickyNote';
+import { PatientStickyNoteOverlay } from './PatientStickyNoteOverlay';
 
-/** Google Keep-style sticky notes for the patient chart. */
+type NoteOverlayState = {
+  note: PatientNote;
+  mode: 'view' | 'compose';
+};
+
+/** Folded sticky-note cards for the patient chart. */
 export function PatientNotesSection({
   patientId,
   user,
   storedNotes,
   sessionNotes,
   onAddNote,
+  onSessionNotesChange,
 }: {
   patientId: string;
   user: User;
   storedNotes: PatientNote[];
   sessionNotes: PatientNote[];
   onAddNote: (note: PatientNote) => void;
+  onSessionNotesChange: (notes: PatientNote[]) => void;
 }) {
-  const [draft, setDraft] = useState('');
-  const [error, setError] = useState('');
-  const notes = notesForPatient(patientId, storedNotes, sessionNotes);
+  const [deletedIds, setDeletedIds] = useState<string[]>([]);
+  const [editedNotes, setEditedNotes] = useState<Record<string, PatientNote>>({});
+  const [overlay, setOverlay] = useState<NoteOverlayState | null>(null);
 
-  const submit = () => {
-    const body = draft.trim();
-    const validationError = validatePatientNote(body, patientId);
-    if (validationError) {
-      setError(validationError);
+  const notes = useMemo(() => {
+    const merged = notesForPatient(patientId, storedNotes, sessionNotes)
+      .filter((note) => !deletedIds.includes(note.id))
+      .map((note) => editedNotes[note.id] ?? note);
+    return merged;
+  }, [patientId, storedNotes, sessionNotes, deletedIds, editedNotes]);
+
+  const saveNote = (updated: PatientNote) => {
+    if (updated.id === 'draft') {
+      onAddNote(createSessionPatientNote(patientId, user.id, updated.title, updated.body));
       return;
     }
-    onAddNote(createSessionPatientNote(patientId, user.id, body));
-    setDraft('');
-    setError('');
+
+    if (updated.id.startsWith('PN-S-')) {
+      onSessionNotesChange(sessionNotes.map((note) => (note.id === updated.id ? updated : note)));
+    } else {
+      setEditedNotes((prev) => ({ ...prev, [updated.id]: updated }));
+    }
+    setOverlay((prev) => (prev?.note.id === updated.id ? { ...prev, note: updated } : prev));
+  };
+
+  const deleteNote = (noteId: string) => {
+    if (noteId.startsWith('PN-S-')) {
+      onSessionNotesChange(sessionNotes.filter((note) => note.id !== noteId));
+    } else {
+      setDeletedIds((prev) => [...prev, noteId]);
+    }
   };
 
   return (
     <section className="overflow-hidden border border-line bg-surface">
-      <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
+      <div className="flex items-center justify-between gap-3 border-b border-line bg-bg-subtle px-4 py-3.5">
         <h2 className="text-[13px] font-semibold tracking-tight">Notes</h2>
+        <button
+          type="button"
+          data-testid="add-patient-note"
+          onClick={() =>
+            setOverlay({
+              note: createDraftPatientNote(patientId, user.id),
+              mode: 'compose',
+            })
+          }
+          className="cursor-pointer border border-solid-bg bg-solid-bg px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-solid-ink transition-opacity hover:opacity-85"
+        >
+          Add note
+        </button>
       </div>
 
       <div className="p-4">
-        <div className="border border-line bg-bg-subtle p-3">
-          <textarea
-            value={draft}
-            onChange={(e) => {
-              setDraft(e.target.value);
-              if (error) setError('');
-            }}
-            placeholder="Add a note for this patient — visible to the care team."
-            rows={2}
-            className="w-full resize-y border-0 bg-transparent text-[13px] text-ink outline-none placeholder:text-ink-3"
-          />
-          <div className="mt-2 flex items-center justify-end gap-3">
-            {error ? (
-              <p role="alert" className="text-right text-xs text-risk">
-                {error}
-              </p>
-            ) : null}
-            <button
-              type="button"
-              onClick={submit}
-              disabled={!draft.trim()}
-              className="shrink-0 cursor-pointer border border-solid-bg bg-solid-bg px-3 py-1.5 text-[11px] uppercase tracking-[0.08em] text-solid-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              Add note
-            </button>
-          </div>
-        </div>
-
         {notes.length === 0 ? (
-          <p className="mt-4 text-[13px] text-ink-3">No notes yet — pin the first one above.</p>
+          <p className="text-[13px] text-ink-3">No notes yet — add the first one above.</p>
         ) : (
-          <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
             {notes.map((note) => (
-              <article
+              <PatientStickyNote
                 key={note.id}
-                className="flex min-h-[132px] flex-col border border-line bg-surface p-3"
-              >
-                <p className="flex-1 text-[13px] leading-relaxed text-pretty text-ink">{note.body}</p>
-                <div className="mt-3 border-t border-line/70 pt-2 text-[11px] text-ink-3">
-                  <div className="font-medium text-ink-2">{noteAuthorLabel(note.authorId)}</div>
-                  <div className="mt-0.5 tabular-nums">{formatNoteTimestamp(note.createdAt)}</div>
-                </div>
-              </article>
+                note={note}
+                hidden={overlay?.mode === 'view' && overlay.note.id === note.id}
+                onOpen={(selected) => setOverlay({ note: selected, mode: 'view' })}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {overlay
+        ? createPortal(
+            <PatientStickyNoteOverlay
+              note={overlay.note}
+              mode={overlay.mode}
+              onClose={() => setOverlay(null)}
+              onDelete={overlay.mode === 'view' ? deleteNote : undefined}
+              onSave={saveNote}
+            />,
+            document.body,
+          )
+        : null}
     </section>
   );
 }

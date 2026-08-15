@@ -54,7 +54,7 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
             {filtered.map((patient, i) => (
               <div
                 key={patient.id}
-                className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                className="h-full min-w-0 animate-card-in motion-reduce:animate-none"
                 style={{ animationDelay: `${i * 0.045}s` }}
               >
                 <PatientCard patient={patient} />

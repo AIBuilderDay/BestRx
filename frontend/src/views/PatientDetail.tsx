@@ -4,6 +4,7 @@ import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSe
 import { PatientNotesSection } from '../components/patients/PatientNotesSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
+import { DetailReveal } from '../components/ui/DetailReveal';
 import { useCart } from '../context/CartContext';
 import { patientNotes } from '../data/db';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
@@ -74,92 +75,105 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       {topNav}
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-5.5">
-        <Link
-          to="/patients"
-          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
-        >
-          <span className="text-sm leading-none">←</span>
-          <span>All my patients</span>
-        </Link>
+        <DetailReveal step={0}>
+          <Link
+            to="/patients"
+            className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
+          >
+            <span className="text-sm leading-none">←</span>
+            <span>All my patients</span>
+          </Link>
+        </DetailReveal>
 
-        <div className="mb-5 flex flex-wrap items-start gap-4">
-          <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
-            {imagePath && !imgBroken ? (
-              <img
-                src={imagePath}
-                alt={fullName}
-                onError={() => setImgBroken(true)}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div
-                className="h-full w-full"
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
-                }}
-              />
-            )}
+        <DetailReveal step={1}>
+          <div className="mb-5 flex flex-wrap items-start gap-4">
+            <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
+              {imagePath && !imgBroken ? (
+                <img
+                  src={imagePath}
+                  alt={fullName}
+                  onError={() => setImgBroken(true)}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div
+                  className="h-full w-full"
+                  style={{
+                    backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
+                  }}
+                />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
-          </div>
-        </div>
+        </DetailReveal>
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
           <div className="flex min-w-0 flex-col gap-5">
-            <ProductsOrderedSection
-              equipment={equipment}
-              onCallVendor={handleCallVendor}
-              onNewOrder={() => navigate('/catalog')}
-            />
+            <DetailReveal step={2}>
+              <PatientNotesSection
+                patientId={patient.id}
+                user={user}
+                storedNotes={patientNotes}
+                sessionNotes={sessionNotes}
+                onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
+                onSessionNotesChange={setSessionNotes}
+              />
+            </DetailReveal>
 
-            <PatientNotesSection
-              patientId={patient.id}
-              user={user}
-              storedNotes={patientNotes}
-              sessionNotes={sessionNotes}
-              onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
-            />
+            <DetailReveal step={3}>
+              <ProductsOrderedSection
+                equipment={equipment}
+                onCallVendor={handleCallVendor}
+                onNewOrder={() => navigate('/catalog')}
+              />
+            </DetailReveal>
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">
-            <section className="rounded-[10px] border border-line bg-surface p-4">
-              <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
-                {facts.map((f) => (
-                  <div key={f.key} className="contents">
-                    <div className="whitespace-nowrap text-ink-3">{f.key}</div>
-                    <div className="text-right tabular-nums">{f.value}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <DetailReveal step={2}>
+              <section className="rounded-[10px] border border-line bg-surface p-4">
+                <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
+                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
+                  {facts.map((f) => (
+                    <div key={f.key} className="contents">
+                      <div className="whitespace-nowrap text-ink-3">{f.key}</div>
+                      <div className="text-right tabular-nums">{f.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </DetailReveal>
 
-            <section className="rounded-[10px] border border-line bg-surface p-4">
-              <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
-              <div className="text-[13px] leading-relaxed">
-                {addressLine1}
-                <br />
-                {addressLine2}
-              </div>
-              <AddressMapPreview addressLine1={addressLine1} addressLine2={addressLine2} />
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleDirections}
-                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                >
-                  Directions
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyAddr}
-                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                >
-                  Copy for vendor
-                </button>
-              </div>
-            </section>
+            <DetailReveal step={3}>
+              <section className="rounded-[10px] border border-line bg-surface p-4">
+                <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
+                <div className="text-[13px] leading-relaxed">
+                  {addressLine1}
+                  <br />
+                  {addressLine2}
+                </div>
+                <AddressMapPreview addressLine1={addressLine1} addressLine2={addressLine2} />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDirections}
+                    className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
+                  >
+                    Directions
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyAddr}
+                    className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
+                  >
+                    Copy for vendor
+                  </button>
+                </div>
+              </section>
+            </DetailReveal>
           </div>
         </div>
       </main>

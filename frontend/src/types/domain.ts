@@ -296,6 +296,9 @@ export interface PatientNote {
   id: string;
   patientId: string;
   authorId: string;
+  title: string;
   body: string;
+  /** Calendar date shown on the sticky-note footer (YYYY-MM-DD). */
+  date: string;
   createdAt: string;
 }

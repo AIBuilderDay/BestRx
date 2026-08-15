@@ -240,7 +240,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                   {catalogPage.items.map((item, i) => (
                     <div
                       key={item.offer.id}
-                      className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                      className="h-full min-w-0 animate-card-in motion-reduce:animate-none"
                       style={{ animationDelay: `${i * 0.045}s` }}
                     >
                       <ProductCard item={item} onOrderNow={() => openCartSheet(item.offer.id)} />

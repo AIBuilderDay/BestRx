@@ -132,4 +132,10 @@
   --radius-control: 7px;
   --radius-card: 10px;
   --radius-panel: 12px;
+
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-card-in: cardIn 0.5s var(--ease-smooth) both;
+  --animate-detail-in: detailIn 0.5s var(--ease-smooth) both;
+  --animate-chip-in: chipIn 0.35s var(--ease-smooth) both;
+  --animate-sheet-in: sheetIn 0.45s var(--ease-smooth) both;
 }

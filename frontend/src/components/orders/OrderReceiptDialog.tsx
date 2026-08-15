@@ -27,7 +27,7 @@ export function OrderReceiptDialog({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="flex w-full max-w-[520px] animate-[sheetIn_0.45s_cubic-bezier(0.2,0.7,0.2,1)_both] flex-col overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg"
+        className="flex w-full max-w-[520px] animate-sheet-in motion-reduce:animate-none flex-col overflow-hidden rounded-[14px] border border-line bg-surface shadow-lg"
         role="dialog"
         aria-labelledby="order-receipt-title"
       >

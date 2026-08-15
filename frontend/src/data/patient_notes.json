@@ -3,56 +3,72 @@
     "id": "PN-0001",
     "patientId": "PT-88612",
     "authorId": "USR-010",
+    "title": "Delivery preference",
     "body": "Daughter prefers deliveries before 2 PM — she meets the vendor at the side door.",
+    "date": "2026-08-10",
     "createdAt": "2026-08-10T09:15:00-06:00"
   },
   {
     "id": "PN-0002",
     "patientId": "PT-88612",
     "authorId": "USR-010",
+    "title": "O2 filter check",
     "body": "O2 concentrator running louder than usual last visit. Flagged vendor for filter check on next route.",
+    "date": "2026-08-12",
     "createdAt": "2026-08-12T14:40:00-06:00"
   },
   {
     "id": "PN-0004",
     "patientId": "PT-88611",
     "authorId": "USR-010",
+    "title": "Discharge pickup",
     "body": "Discharge window is tight Saturday morning. Confirm hospital bed pickup is scheduled after family leaves.",
+    "date": "2026-08-13",
     "createdAt": "2026-08-13T16:20:00-06:00"
   },
   {
     "id": "PN-0005",
     "patientId": "PT-88611",
     "authorId": "USR-010",
+    "title": "Commode placement",
     "body": "Family asked for a commode closer to the recliner — consider second unit if mobility worsens.",
+    "date": "2026-08-11",
     "createdAt": "2026-08-11T10:30:00-06:00"
   },
   {
     "id": "PN-0006",
     "patientId": "PT-88614",
     "authorId": "USR-010",
+    "title": "Bed alarm",
     "body": "Wandering risk increased — ensure bed alarm pad stays plugged in after vendor visits.",
+    "date": "2026-08-12",
     "createdAt": "2026-08-12T08:45:00-06:00"
   },
   {
     "id": "PN-0008",
     "patientId": "PT-88615",
     "authorId": "USR-010",
+    "title": "Dialysis schedule",
     "body": "Dialysis days are Tue/Thu/Sat — avoid scheduling DME deliveries those mornings if possible.",
+    "date": "2026-08-09",
     "createdAt": "2026-08-09T13:00:00-06:00"
   },
   {
     "id": "PN-0009",
     "patientId": "PT-88617",
     "authorId": "USR-010",
+    "title": "Mobility staging",
     "body": "Stroke recovery — left-side weakness. All mobility aids should stay on patient's right when staging equipment.",
+    "date": "2026-08-08",
     "createdAt": "2026-08-08T15:25:00-06:00"
   },
   {
     "id": "PN-0010",
     "patientId": "PT-88617",
     "authorId": "USR-010",
+    "title": "Monday discharge",
     "body": "Discharge Monday 8 AM. Pre-stage pickup for wheelchair and concentrator Sunday evening if vendor can.",
+    "date": "2026-08-14",
     "createdAt": "2026-08-14T09:10:00-06:00"
   }
 ]
