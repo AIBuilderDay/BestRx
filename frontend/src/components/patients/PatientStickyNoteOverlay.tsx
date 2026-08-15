@@ -95,7 +95,7 @@ export function PatientStickyNoteOverlay({
     <div className="fixed inset-0 z-[70]" role="presentation" data-testid="patient-note-overlay">
       <button
         type="button"
-        className="absolute inset-0 cursor-pointer border-0 bg-black/25"
+        className="absolute inset-0 cursor-pointer border-0 bg-black/25 animate-note-backdrop-in motion-reduce:animate-none"
         aria-label="Close note"
         onClick={close}
       />
@@ -120,7 +120,7 @@ export function PatientStickyNoteOverlay({
             if (editError) setEditError('');
           }}
           onClose={dismiss}
-          className="pointer-events-auto patient-sticky-note--overlay"
+          className="pointer-events-auto animate-sticky-note-in motion-reduce:animate-none"
           style={{ width: EXPANDED_NOTE_WIDTH }}
           actions={
             <div className="patient-sticky-note-action-row">

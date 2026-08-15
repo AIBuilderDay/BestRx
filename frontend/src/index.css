@@ -150,6 +150,27 @@ button:not(:disabled) {
   }
 }
 
+/* Sticky note lifts off the board and settles flat as it expands. */
+@keyframes stickyNoteIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.9) rotate(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes noteBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
