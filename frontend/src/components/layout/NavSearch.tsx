@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { patients } from '../../data/db';
 import { buildCatalogItems, upsertCartLine } from '../../lib/catalog';
 import { looksLikeOrderCommand, parseAgentOrder } from '../../lib/ai/agentOrder';
+import { burstAtCart, flyCometToCart } from '../../lib/fx/agentComet';
 import type { User } from '../../types/domain';
 import { useCart } from '../../context/CartContext';
 
@@ -29,6 +30,7 @@ export function NavSearch({ user }: { user: User }) {
   const [thinking, setThinking] = useState(false);
   const [notice, setNotice] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
   const aliveRef = useRef(true);
   const { setLines, setCartOpen, setAgentAdded } = useCart();
 
@@ -64,10 +66,18 @@ export function NavSearch({ user }: { user: User }) {
         navigate(`/catalog?q=${encodeURIComponent(command)}&ai=1`);
         return;
       }
+      // Cart state first — the order is never lost to a visual effect.
       setLines((prev) => upsertCartLine(prev, action.offerId, action.patientId, action.quantity));
       setAgentAdded(action);
       setQuery('');
+      setThinking(false); // calm the bar before the comet leaves it
       navigate('/catalog');
+      // The hand-off show: comet to the cart icon, burst, then the drawer opens
+      // on the ringed line. Every step is defensive — worst case it's instant.
+      await flyCometToCart(shellRef.current);
+      burstAtCart();
+      await new Promise((r) => setTimeout(r, 350));
+      if (!aliveRef.current) return;
       setCartOpen(true);
     } catch {
       if (!aliveRef.current) return;
@@ -100,7 +110,7 @@ export function NavSearch({ user }: { user: User }) {
 
   return (
     <div className="w-full min-w-0">
-      <div className={`ai-shell ${mode === 'ai' ? 'ai-on' : ''} ${thinking ? 'ai-thinking' : ''}`}>
+      <div ref={shellRef} className={`ai-shell ${mode === 'ai' ? 'ai-on' : ''} ${thinking ? 'ai-thinking' : ''}`}>
         <form
           onSubmit={submit}
           role="search"

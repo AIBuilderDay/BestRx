@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BestRx — Agent → Cart hand-off, three options</title>
+<title>BestRx — Agent → Cart hand-off, final</title>
 <!--
-  DECIDING: what happens AFTER the AI search agent finishes.
-  Pairs with mockups/enhanced-search.html — that file decided the bar (Option C
-  Search / ✦ AI switch) and the thinking animation (Variant 1 "Ocean sweep").
-  This file decides the hand-off: agent finishes → cart drawer auto-opens →
-  the agent-added line item is unmistakably highlighted among existing items.
-  Three options, each with a "Run the sequence" button that plays the whole
-  flow: typing → ocean-sweep thinking → drawer opens → item lands.
-  Tokens copied from cart.html / frontend/src/styles/tokens.css; the AI blue
-  ramp copied from enhanced-search.html (blues only, no purple).
+  DECIDED. Replaces agent-cart-options.html (A/B/C) and the two-cut final round.
+  The hand-off is Option C's comet + Option B's landing, flashy cut: a streaking
+  comet (glowing tail + ember trail) arcs from the bar to the cart icon, the icon
+  bounces with a double-ring burst and sparks, the drawer opens, and the item
+  scales in wearing the flowing gradient ring before settling. Comet slowed and
+  the landing ring extended per review. Implemented for real in the app
+  (src/lib/fx/agentComet.ts + the .agent-added treatment in index.css).
+  Pairs with mockups/enhanced-search.html (the decided bar + Ocean sweep).
+  Tokens copied from frontend/src/styles/tokens.css; AI blues from
+  enhanced-search.html (blues only, no purple).
 -->
 <style>
   :root {
@@ -32,10 +33,6 @@
     --ai-glow-opacity: 0.45;
     --ai-wash: color-mix(in srgb, var(--ai-sky) 13%, var(--surface));
     --ai-wave: linear-gradient(90deg,
-      var(--ai-royal), var(--ai-indigo), var(--ai-royal), var(--ai-sky),
-      var(--ai-bright), var(--ai-crest), var(--ai-bright), var(--ai-sky),
-      var(--ai-royal), var(--ai-indigo), var(--ai-royal));
-    --ai-wave-y: linear-gradient(180deg,
       var(--ai-royal), var(--ai-indigo), var(--ai-royal), var(--ai-sky),
       var(--ai-bright), var(--ai-crest), var(--ai-bright), var(--ai-sky),
       var(--ai-royal), var(--ai-indigo), var(--ai-royal));
@@ -208,7 +205,7 @@
   @keyframes sweep  { from { background-position: 150% 50%; } to { background-position: 450% 50%; } }
   .shell.thinking, .shell.thinking::before { animation-duration: 0.9s, 2.2s; }
 
-  /* ── Cart drawer (structure from cart.html Option B) ─────────────────── */
+  /* ── Cart drawer ─────────────────────────────────────────────────────── */
   .scrim {
     position: absolute; inset: 0; background: rgba(0,0,0,.28);
     opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 4;
@@ -265,72 +262,48 @@
     border-radius: var(--radius-control); padding: 12px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
   .primary:hover { opacity: .85; }
 
-  /* the agent-added item: hidden until the sequence lands it */
-  .ringwrap { border-radius: 11px; }
-  .ringwrap.hidden { display: none; }
-  .newitem { border-bottom: 1px solid var(--line); background: var(--surface); }
-
-  /* shared blue wash on landing — fades back to the normal surface */
-  .land .newitem { animation: wash 2s ease-out forwards; }
-  @keyframes wash { from { background: var(--ai-wash); } to { background: var(--surface); } }
-
-  /* ══ OPTION A — Wave hand-off ══════════════════════════════════════════ */
-  .oA .land .newitem { animation: slideland 0.5s cubic-bezier(0.22,1,0.36,1), wash 2s ease-out forwards; }
-  @keyframes slideland { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: none; } }
-  .edge {
-    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: var(--ai-wave-y); background-size: 100% 300%;
-    opacity: 0; transition: opacity 0.45s; pointer-events: none; z-index: 6;
-  }
-  .edge::before {
-    content: ''; position: absolute; inset: 0 auto 0 -3px; width: 10px;
-    background: var(--ai-wave-y); background-size: 100% 300%;
-    filter: blur(8px); opacity: var(--ai-glow-opacity);
-  }
-  .edge.lit { opacity: 1; animation: sweepY 1.5s linear; }
-  .edge.lit::before { animation: sweepY 1.5s linear; }
-  @keyframes sweepY { from { background-position: 50% 0%; } to { background-position: 50% 200%; } }
-
-  /* ══ OPTION B — Ocean flood ════════════════════════════════════════════ */
-  .flood {
-    position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 3;
-    background: radial-gradient(130% 55% at 50% 0%,
-      color-mix(in srgb, var(--ai-sky) 34%, transparent),
-      color-mix(in srgb, var(--ai-crest) 12%, transparent) 55%, transparent 78%);
-  }
-  .flood.run { animation: floodrun 1.2s ease-out forwards; }
-  @keyframes floodrun {
-    0%   { opacity: 0; transform: translateY(-45%); }
-    30%  { opacity: 1; }
-    100% { opacity: 0; transform: translateY(75%); }
-  }
-  .oB .ringwrap {
+  /* ── The landing (Option B's ending, both finals) ────────────────────── */
+  .ringwrap {
     position: relative; isolation: isolate;
     padding: 1.5px; margin: 4px 0;
     background: var(--line); border-radius: 11px;
   }
-  .oB .ringwrap .newitem { border-radius: 10px; border-bottom: 0; margin: 0; padding: 13px 10px; }
-  .oB .ringwrap::before {
+  .ringwrap.hidden { display: none; }
+  .ringwrap .newitem { border-radius: 10px; border-bottom: 0; margin: 0; padding: 13px 10px; background: var(--surface); }
+  .ringwrap::before {
     content: ''; position: absolute; inset: -3px; border-radius: inherit; z-index: -1;
     background: var(--ai-wave); background-size: 300% 100%;
     filter: blur(10px); opacity: 0; transition: opacity 0.6s;
   }
-  .oB .land.ringwrap {
+  .land.ringwrap {
     background: var(--ai-wave); background-size: 300% 100%;
     animation: sweep 2.2s linear infinite;
   }
-  .oB .land.ringwrap::before { opacity: var(--ai-glow-opacity); animation: sweep 2.8s linear infinite; }
-  .oB .land.ringwrap.settled { background: var(--line); animation: none; }
-  .oB .land.ringwrap.settled::before { opacity: 0; animation: none; }
-  .oB .land .newitem { animation: scalein 0.5s cubic-bezier(0.22,1,0.36,1), wash 2s ease-out forwards; }
+  .land.ringwrap::before { opacity: var(--ai-glow-opacity); animation: sweep 2.8s linear infinite; }
+  .land.ringwrap.settled { background: var(--line); animation: none; }
+  .land.ringwrap.settled::before { opacity: 0; animation: none; }
+  .land .newitem { animation: scalein 0.5s cubic-bezier(0.22,1,0.36,1), wash 2s ease-out forwards; }
   @keyframes scalein { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-  .cartwrap.pulse { color: var(--ai-ink); animation: cartpulse 1.1s ease-out; }
-  @keyframes cartpulse {
-    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-sky) 55%, transparent); }
-    100% { box-shadow: 0 0 0 14px transparent; }
+  @keyframes wash { from { background: var(--ai-wash); } to { background: var(--surface); } }
+
+  /* Final 2: hotter ring — faster sweep, stronger glow, and an arrival pop */
+  .o2 .land.ringwrap { animation-duration: 1.4s; }
+  .o2 .land.ringwrap::before {
+    opacity: calc(var(--ai-glow-opacity) + 0.2); animation-duration: 1.8s;
+    filter: blur(13px);
+  }
+  .o2 .land.ringwrap:not(.settled)::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 1;
+    pointer-events: none;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 65%, transparent);
+    animation: ringpop 0.9s ease-out forwards;
+  }
+  @keyframes ringpop {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 65%, transparent); }
+    100% { box-shadow: 0 0 0 18px transparent; }
   }
 
-  /* ══ OPTION C — Comet ══════════════════════════════════════════════════ */
+  /* ── The comet (both finals) ─────────────────────────────────────────── */
   .comet {
     position: absolute; left: 0; top: 0; width: 10px; height: 10px; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, var(--ai-crest), var(--ai-royal));
@@ -338,14 +311,58 @@
                 0 0 3px 1px var(--ai-crest);
     z-index: 10; pointer-events: none;
   }
+  /* Final 2: bigger head + a streaking tail behind the direction of travel */
+  .comet.big {
+    width: 15px; height: 15px;
+    box-shadow: 0 0 22px 8px color-mix(in srgb, var(--ai-bright) 75%, transparent),
+                0 0 5px 2px var(--ai-crest);
+  }
+  .comet.big .tail {
+    position: absolute; right: 55%; top: 50%;
+    width: 74px; height: 7px; transform: translateY(-50%);
+    border-radius: 999px;
+    background: linear-gradient(270deg,
+      color-mix(in srgb, var(--ai-crest) 90%, transparent),
+      color-mix(in srgb, var(--ai-bright) 55%, transparent) 40%,
+      transparent);
+    filter: blur(1.5px);
+    pointer-events: none;
+  }
+  .trail {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ai-bright);
+    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--ai-bright) 60%, transparent);
+    z-index: 9; pointer-events: none;
+    animation: trailfade 0.5s ease-out forwards;
+  }
+  @keyframes trailfade { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(0.3); } }
+
+  /* ── Cart arrival ────────────────────────────────────────────────────── */
   .cartwrap.flash { color: var(--ai-ink); animation: cartpulse 0.9s ease-out; }
-  .oC .land .newitem { animation: droponin 0.5s cubic-bezier(0.22,1,0.36,1), wash 2s ease-out forwards; }
-  @keyframes droponin { from { opacity: 0; transform: translateY(-18px) scale(0.98); } to { opacity: 1; transform: none; } }
+  @keyframes cartpulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-sky) 55%, transparent); }
+    100% { box-shadow: 0 0 0 14px transparent; }
+  }
+  /* Final 2: brighter double-ring pop + a little bounce */
+  .cartwrap.boom { color: var(--ai-ink); animation: cartboom 1s ease-out; }
+  .cartwrap.boom svg { animation: cartjolt 0.5s cubic-bezier(0.34, 1.6, 0.64, 1); }
+  @keyframes cartboom {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 75%, transparent),
+                       0 0 0 0 color-mix(in srgb, var(--ai-crest) 55%, transparent); }
+    100% { box-shadow: 0 0 0 16px transparent, 0 0 0 26px transparent; }
+  }
+  @keyframes cartjolt { 0% { transform: scale(1); } 35% { transform: scale(1.22); } 100% { transform: scale(1); } }
+  .spark-bit {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--ai-crest);
+    box-shadow: 0 0 6px 1px color-mix(in srgb, var(--ai-bright) 70%, transparent);
+    z-index: 10; pointer-events: none;
+  }
 
   /* accessibility: no motion — every state lands instantly */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
-    .land .newitem, .oA .land .newitem, .oB .land .newitem, .oC .land .newitem { background: var(--ai-wash); }
+    .land .newitem { background: var(--ai-wash); }
   }
 </style>
 </head>
@@ -364,13 +381,11 @@
 
 <div class="chrome-head">
   <div>
-    <h1>AI agent → cart hand-off — three options</h1>
-    <p><strong>Deciding:</strong> what the nurse sees between "the agent understood me" and "the item
-    is in my cart". Pairs with <strong>mockups/enhanced-search.html</strong>, which decided the bar
-    (Search / ✦ AI switch) and the thinking animation (Ocean sweep, blues only). Each option below
-    plays the full sequence — typing, ~2.5s of agent thinking, then the drawer auto-opens with the
-    agent-added item highlighted among existing items. Hit <strong>Run the sequence</strong> under
-    each frame; flip the theme and run it again.</p>
+    <h1>AI agent → cart hand-off — decided</h1>
+    <p><strong>The decided hand-off:</strong> a streaking comet carries the order from the bar to
+    the cart icon (glowing tail + ember trail), the icon bounces with a double-ring burst and
+    sparks, the drawer opens, and the item scales in wearing the flowing gradient ring before
+    settling. Hit <strong>Run the sequence</strong>; flip the theme and run it again.</p>
   </div>
   <button class="theme-flip" onclick="flip()">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
@@ -378,46 +393,17 @@
   </button>
 </div>
 
-<!-- ════════════════ OPTION A — WAVE HAND-OFF ════════════════ -->
-<div class="option oA" id="optA">
-  <div class="option-label">Option A <span class="rec">Recommended</span></div>
-  <div class="option-title">Wave hand-off — the light leaves the bar and arrives at the drawer</div>
-  <div class="option-note">When the agent finishes, the ocean-sweep glow dies in the search bar and
-  the same flowing blue gradient runs down the drawer's left edge for ~1.5s — one light, handed from
-  the bar to the cart. The new line item slides in from the top with a blue wash that fades over ~2s,
-  and a small "✦ Added by AI" chip stays for auditability. <strong>Recommended</strong> because it
-  reuses exactly one already-decided visual (the wave) at drawer scale — a continuous, quiet
-  hand-off that reads premium, while B floods the whole panel and C animates a literal projectile.</div>
+<!-- ════════════════ THE DECIDED HAND-OFF — STREAKING COMET + BURST ════════════════ -->
+<div class="option o2" id="opt2">
+  <div class="option-label">Decided <span class="rec">Shipping</span></div>
+  <div class="option-title">Streaking comet + burst + gradient-ring landing</div>
+  <div class="option-note">The comet is big and streaks — a glowing tail plus a trail of fading
+  embers behind it. On impact the cart icon bounces with a bright double-ring burst and a few
+  sparks fly. The landing ring sweeps fast and glows hot with a quick arrival pop, holds for a
+  few seconds, then settles. Still blues-only, still ends quiet.</div>
   <div class="frame"><div class="stage" data-stage></div></div>
-  <div class="demo-note"><button class="runbtn" onclick="run('A', this)">▶ Run the sequence</button>
-  typing → ocean-sweep thinking → drawer edge lights up → item slides in with the blue wash.</div>
-</div>
-
-<!-- ════════════════ OPTION B — OCEAN FLOOD ════════════════ -->
-<div class="option oB" id="optB">
-  <div class="option-label">Option B</div>
-  <div class="option-title">Ocean flood — the drawer opens on a wave</div>
-  <div class="option-note">The cart icon pulses a blue ring as the count ticks up, the drawer slides
-  open, and a soft aurora halo washes down the whole panel (~1.2s, then gone). The new item scales in
-  wearing the flowing gradient as its border ring for ~3s before settling to a normal border; the
-  "✦ Added by AI" chip stays. The loudest of the three — great demo energy, but the full-panel wash
-  touches items the agent didn't add.</div>
-  <div class="frame"><div class="stage" data-stage></div></div>
-  <div class="demo-note"><button class="runbtn" onclick="run('B', this)">▶ Run the sequence</button>
-  typing → thinking → cart icon pulses + count ticks → drawer floods → item scales in with a gradient ring.</div>
-</div>
-
-<!-- ════════════════ OPTION C — COMET ════════════════ -->
-<div class="option oC" id="optC">
-  <div class="option-label">Option C</div>
-  <div class="option-title">Comet — the item visibly travels from the bar to the cart</div>
-  <div class="option-note">A glowing blue comet arcs from the search bar to the cart icon, the icon
-  flashes and the count ticks up, then the drawer opens and the item drops in with the blue wash and
-  chip. The most literal "your order traveled to the cart" — instantly legible for a brand-new user,
-  but the projectile is the most gimmicky of the three and competes with the drawer for attention.</div>
-  <div class="frame"><div class="stage" data-stage></div></div>
-  <div class="demo-note"><button class="runbtn" onclick="run('C', this)">▶ Run the sequence</button>
-  typing → thinking → comet arcs to the cart → icon flashes + count ticks → drawer opens, item drops in.</div>
+  <div class="demo-note"><button class="runbtn" onclick="run('2', this)">▶ Run the sequence</button>
+  typing → thinking → streaking comet → burst + bounce at the cart → drawer opens → hot ring landing with a pop.</div>
 </div>
 
 <script>
@@ -477,7 +463,6 @@
     </div>
     <div class="scrim" data-scrim></div>
     <aside class="drawer" data-drawer>
-      <div class="edge" data-edge></div>
       <div class="d-head">
         <div>
           <div class="k">Cart</div>
@@ -487,7 +472,6 @@
         <button class="d-x" data-close aria-label="Close cart">✕</button>
       </div>
       <div class="d-body">
-        <div class="flood" data-flood></div>
         <div class="ringwrap hidden" data-newwrap>
           <div class="item newitem">
             <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></span>
@@ -529,7 +513,7 @@
     </aside>`;
 
   const state = {};
-  for (const id of ['A', 'B', 'C']) {
+  for (const id of ['2']) {
     const stage = document.querySelector('#opt' + id + ' [data-stage]');
     stage.innerHTML = stageHTML;
     const q = s => stage.querySelector(s);
@@ -538,7 +522,7 @@
       shell: q('[data-bar]'), input: q('[data-input]'), status: q('[data-status]'),
       btnSearch: q('[data-search]'), btnAI: q('[data-ai]'),
       cart: q('[data-cart]'), count: q('[data-count]'),
-      drawer: q('[data-drawer]'), edge: q('[data-edge]'), flood: q('[data-flood]'),
+      drawer: q('[data-drawer]'),
       newwrap: q('[data-newwrap]'), title: q('[data-title]'), total: q('[data-total]'),
       ppd: q('[data-ppd]'), running: false,
     };
@@ -571,9 +555,7 @@
     o.input.value = '';
     o.newwrap.classList.add('hidden');
     o.newwrap.classList.remove('land', 'settled');
-    o.edge.classList.remove('lit');
-    o.flood.classList.remove('run');
-    o.cart.classList.remove('pulse', 'flash');
+    o.cart.classList.remove('flash', 'boom');
     o.count.textContent = '2';
     o.title.textContent = '2 items · 2 patients';
     o.total.textContent = '$135.02/mo';
@@ -595,36 +577,89 @@
     o.ppd.textContent = 'Adds ≈ $0.05 to DME PPD across the census · figures derived from sample data';
   }
 
-  function cometFly(o) {
+  /* The comet: manual rAF flight along a quadratic arc so Final 2 can rotate
+     its tail along the velocity and drop ember trail dots as it goes. */
+  function cometFly(o, flashy) {
     return new Promise(resolve => {
+      if (RM) { resolve(); return; }
       const sr = o.shell.getBoundingClientRect();
       const cr = o.cart.getBoundingClientRect();
       const gr = o.stage.getBoundingClientRect();
       const x0 = sr.right - gr.left - 14, y0 = sr.top - gr.top + sr.height / 2;
       const x1 = cr.left - gr.left + cr.width / 2, y1 = cr.top - gr.top + cr.height / 2;
+      const cx = (x0 + x1) / 2, cy = Math.min(y0, y1) - (flashy ? 36 : 28);
+
       const c = document.createElement('div');
-      c.className = 'comet';
+      c.className = 'comet' + (flashy ? ' big' : '');
+      if (flashy) c.innerHTML = '<div class="tail"></div>';
       o.stage.appendChild(c);
-      if (RM) { c.remove(); resolve(); return; }
-      // quadratic arc: control point above the midpoint
-      const cx = (x0 + x1) / 2, cy = Math.min(y0, y1) - 28;
-      const pts = [];
-      for (let i = 0; i <= 10; i++) {
-        const t = i / 10, u = 1 - t;
-        const x = u * u * x0 + 2 * u * t * cx + t * t * x1;
-        const y = u * u * y0 + 2 * u * t * cy + t * t * y1;
-        const s = 1 - 0.45 * t;
-        pts.push({ transform: `translate(${x - 5}px, ${y - 5}px) scale(${s})`, opacity: t > 0.92 ? 0 : 1 });
+
+      const D = 1100;   /* slowed per review — let the eye follow it */
+      const half = (flashy ? 15 : 10) / 2;
+      let start = null, lastTrail = 0;
+      const bez = t => {
+        const u = 1 - t;
+        return {
+          x: u * u * x0 + 2 * u * t * cx + t * t * x1,
+          y: u * u * y0 + 2 * u * t * cy + t * t * y1,
+        };
+      };
+      function frame(ts) {
+        if (start === null) start = ts;
+        const raw = (ts - start) / D;
+        const t = Math.min(1, raw);
+        const e = 1 - Math.pow(1 - t, 2.2);    // ease-out along the arc
+        const p = bez(e);
+        const ahead = bez(Math.min(1, e + 0.02));
+        const angle = Math.atan2(ahead.y - p.y, ahead.x - p.x) * 180 / Math.PI;
+        const s = 1 - (flashy ? 0.3 : 0.45) * e;
+        c.style.transform = `translate(${p.x - half}px, ${p.y - half}px) rotate(${angle}deg) scale(${s})`;
+        c.style.opacity = e > 0.94 ? 0 : 1;
+        if (flashy && ts - lastTrail > 36 && e < 0.9) {
+          lastTrail = ts;
+          const d = document.createElement('div');
+          d.className = 'trail';
+          d.style.left = (p.x - 2.5) + 'px';
+          d.style.top = (p.y - 2.5) + 'px';
+          o.stage.appendChild(d);
+          setTimeout(() => d.remove(), 550);
+        }
+        if (t < 1) requestAnimationFrame(frame);
+        else { c.remove(); resolve(); }
       }
-      const anim = c.animate(pts, { duration: 700, easing: 'cubic-bezier(0.4, 0, 0.7, 1)' });
-      anim.onfinish = () => { c.remove(); resolve(); };
+      requestAnimationFrame(frame);
     });
+  }
+
+  /* Final 2 impact: a few sparks fly out from the cart icon. */
+  function sparkBurst(o) {
+    if (RM) return;
+    const cr = o.cart.getBoundingClientRect();
+    const gr = o.stage.getBoundingClientRect();
+    const x = cr.left - gr.left + cr.width / 2, y = cr.top - gr.top + cr.height / 2;
+    for (let i = 0; i < 7; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark-bit';
+      s.style.left = (x - 2) + 'px';
+      s.style.top = (y - 2) + 'px';
+      o.stage.appendChild(s);
+      const a = (Math.PI * 2 * i) / 7 - Math.PI / 2 + (i % 2 ? 0.3 : -0.2);
+      const r = 20 + (i % 3) * 8;
+      s.animate(
+        [
+          { transform: 'translate(0,0) scale(1)', opacity: 1 },
+          { transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px) scale(0.2)`, opacity: 0 },
+        ],
+        { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+      ).onfinish = () => s.remove();
+    }
   }
 
   async function run(id, btn) {
     const o = state[id];
     if (o.running) return;
     o.running = true; btn.disabled = true;
+    const flashy = id === '2';
     try {
       reset(o);
       await wait(350);
@@ -637,33 +672,20 @@
       o.shell.classList.remove('thinking');
       setAI(o, false);                                    // the glow leaves the bar
 
-      if (id === 'A') {
-        o.stage.classList.add('open');
-        await wait(320);
-        o.edge.classList.add('lit');                      // the wave arrives at the drawer
-        land(o);
-        setTimeout(() => o.edge.classList.remove('lit'), RM ? 0 : 1600);
-      } else if (id === 'B') {
-        o.cart.classList.add('pulse');
-        o.count.textContent = '3';
-        o.stage.classList.add('open');
-        await wait(300);
-        o.flood.classList.remove('run');
-        void o.flood.offsetWidth;
-        o.flood.classList.add('run');                     // aurora washes down the panel
-        land(o);
-        setTimeout(() => o.newwrap.classList.add('settled'), RM ? 0 : 3200);
-        setTimeout(() => o.cart.classList.remove('pulse'), RM ? 0 : 1200);
+      await cometFly(o, flashy);                          // the order travels to the cart
+      if (flashy) {
+        o.cart.classList.add('boom');
+        sparkBurst(o);
       } else {
-        await cometFly(o);                                // the item travels to the cart
         o.cart.classList.add('flash');
-        o.count.textContent = '3';
-        await wait(300);
-        o.stage.classList.add('open');
-        await wait(350);
-        land(o);
-        setTimeout(() => o.cart.classList.remove('flash'), RM ? 0 : 1000);
       }
+      o.count.textContent = '3';
+      await wait(flashy ? 380 : 300);
+      o.stage.classList.add('open');
+      await wait(350);
+      land(o);                                            // B's gradient-ring arrival
+      setTimeout(() => o.newwrap.classList.add('settled'), RM ? 0 : 4200);  /* longer hold per review */
+      setTimeout(() => o.cart.classList.remove('flash', 'boom'), RM ? 0 : 1100);
       await wait(2200);
     } finally {
       o.running = false; btn.disabled = false;

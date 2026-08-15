@@ -70,7 +70,10 @@ export function CartDrawer({
                 </div>
                 <div className="mt-3 grid gap-3">
                   {g.lines.map((l) => {
+                    // Gate on `open` so the ring animation starts when the drawer is
+                    // actually visible — the drawer stays mounted while closed.
                     const byAgent =
+                      open &&
                       agentAdded !== null &&
                       agentAdded.offerId === l.offerId &&
                       agentAdded.patientId === l.patientId;

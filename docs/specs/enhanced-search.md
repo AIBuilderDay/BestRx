@@ -1,9 +1,10 @@
 # Enhanced Search (AI) — working plan
 
-**Status: IN BUILD.** UI + Anthropic wiring implemented on `feat/enhanced-search`
-(see "How it's built" below). Remaining: live Haiku testing (needs the API key in
-`frontend/.env`), cart-animation polish after the mockup pick, and the open questions
-at the bottom.
+**Status: BUILT & LIVE-TESTED.** UI + Anthropic wiring + the comet cart hand-off shipped on
+`feat/enhanced-search` (PR #15). Verified against the real API with Playwright: re-rank picks
+the clinically right item first, agent orders resolve the correct offer + patient in ~1.5–3.6s,
+unknown patients safely fall back to search, and the token ledger records every call. Remaining:
+the open questions at the bottom.
 
 ## What we're building
 
@@ -188,7 +189,9 @@ Signal requirements regardless of which option wins:
    owns the cost dashboard so the shape matches their screen.
 8. **When re-rank uses patient context.** Built: only when the query names exactly one patient
    (matched client-side). A future global "working patient" selector could feed it instead.
-9. **Cart animation.** Pick from `mockups/agent-cart-options.html`, then polish the in-app
-   version (current in-app treatment: blue wash + "Added by AI" chip).
+9. ~~Cart animation~~ — **✅ decided & built: streaking comet + burst + gradient-ring landing**
+   (`mockups/agent-cart-handoff.html`). In-app: `src/lib/fx/agentComet.ts` flies the comet from
+   the bar to the cart icon and fires the burst; the `.agent-added` line in the drawer wears the
+   sweeping gradient ring + glow for ~4.8s, then settles (CSS in `index.css`).
 10. **Patient doctor's-notes field.** The data model has no free-text clinical notes yet — adding
    one would showcase the re-rank's real advantage over filters.
