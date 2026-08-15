@@ -44,8 +44,8 @@ export function CatalogPagination({
             onClick={() => onPageChange(pageNumber)}
             className={`h-8 min-w-8 border px-2 font-mono text-xs tabular-nums transition-colors ${
               pageNumber === page
-                ? 'border-[var(--color-ink)] bg-[var(--color-ink)] text-white'
-                : 'border-[var(--color-line-strong)] bg-white hover:border-[var(--color-ink)]'
+                ? 'border-solid-bg bg-solid-bg text-solid-ink'
+                : 'border-[var(--color-line-strong)] bg-surface hover:border-[var(--color-ink)]'
             }`}
           >
             {pageNumber}

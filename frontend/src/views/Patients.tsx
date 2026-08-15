@@ -43,7 +43,7 @@ export default function Patients({ user }: { user: User }) {
             placeholder="Search patients or MRN"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-[250px] rounded-lg border border-[var(--color-line-strong)] bg-white px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-ink)]"
+            className="w-[250px] rounded-lg border border-[var(--color-line-strong)] bg-surface px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-ink)]"
           />
         </div>
 

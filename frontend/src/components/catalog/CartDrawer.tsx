@@ -30,7 +30,7 @@ export function CartDrawer({
         }`}
       />
       <section
-        className={`fixed inset-y-0 right-0 z-50 flex w-98 max-w-[92vw] flex-col border-l border-[var(--color-line)] bg-white shadow-2xl transition-transform duration-500 ${
+        className={`fixed inset-y-0 right-0 z-50 flex w-98 max-w-[92vw] flex-col border-l border-[var(--color-line)] bg-surface shadow-2xl transition-transform duration-500 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -68,7 +68,7 @@ export function CartDrawer({
                       <img
                         src={l.imagePath}
                         alt=""
-                        className="aspect-[3/4] w-full border border-[var(--color-line)] bg-neutral-50 object-cover"
+                        className="aspect-[3/4] w-full border border-[var(--color-line)] bg-bg-subtle object-cover"
                       />
                       <div className="min-w-0">
                         <div className="text-[12.5px]">{l.name}</div>
@@ -82,7 +82,7 @@ export function CartDrawer({
                               type="button"
                               aria-label="Decrease quantity"
                               onClick={() => onQtyChange(l.hcpcs, l.patientId, l.qty - 1)}
-                              className="h-6.5 w-6.5 leading-none transition-colors hover:bg-[var(--color-ink)] hover:text-white"
+                              className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               −
                             </button>
@@ -93,13 +93,13 @@ export function CartDrawer({
                               value={l.qty}
                               onChange={(e) => onQtyChange(l.hcpcs, l.patientId, Math.max(1, parseInt(e.target.value, 10) || 1))}
                               aria-label="Quantity"
-                              className="quantity-input w-7 border-0 bg-transparent text-center font-mono text-xs tabular-nums focus:bg-neutral-100 focus:outline-none"
+                              className="quantity-input w-7 border-0 bg-transparent text-center font-mono text-xs tabular-nums focus:bg-hover focus:outline-none"
                             />
                             <button
                               type="button"
                               aria-label="Increase quantity"
                               onClick={() => onQtyChange(l.hcpcs, l.patientId, l.qty + 1)}
-                              className="h-6.5 w-6.5 leading-none transition-colors hover:bg-[var(--color-ink)] hover:text-white"
+                              className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               +
                             </button>
@@ -153,7 +153,7 @@ export function CartDrawer({
           <button
             type="button"
             onClick={onPlaceOrder}
-            className="mt-1 w-full border border-[var(--color-ink)] bg-[var(--color-ink)] px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-white transition-opacity hover:opacity-85"
+            className="mt-1 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
           >
             Place order
           </button>

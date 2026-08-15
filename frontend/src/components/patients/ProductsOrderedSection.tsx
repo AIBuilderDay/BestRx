@@ -13,7 +13,7 @@ export function ProductsOrderedSection({
   const [openId, setOpenId] = useState<string | null>(null);
 
   return (
-    <section className="overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-white">
+    <section className="overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-surface">
       <div className="border-b border-[var(--color-line)] bg-[var(--color-bg-subtle)] px-4 py-3.5">
         <h2 className="text-[13px] font-semibold tracking-tight">Products ordered</h2>
       </div>
@@ -57,7 +57,7 @@ export function ProductsOrderedSection({
                     <button
                       type="button"
                       onClick={() => onCallVendor(item)}
-                      className="shrink-0 cursor-pointer self-end rounded-[7px] border border-[var(--color-line-strong)] bg-white px-2.5 py-1.5 text-xs whitespace-nowrap transition-colors hover:bg-[var(--color-hover)] sm:self-center"
+                      className="shrink-0 cursor-pointer self-end rounded-[7px] border border-[var(--color-line-strong)] bg-surface px-2.5 py-1.5 text-xs whitespace-nowrap transition-colors hover:bg-hover sm:self-center"
                     >
                       Call vendor
                     </button>

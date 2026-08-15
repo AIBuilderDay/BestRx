@@ -89,7 +89,7 @@ export default function PatientDetail({ user }: { user: User }) {
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-5.5">
         <Link
           to="/patients"
-          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-[var(--color-line-strong)] bg-white px-3 py-1.5 text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-[var(--color-line-strong)] bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
         >
           <span className="text-sm leading-none">←</span>
           <span>All my patients</span>
@@ -119,7 +119,7 @@ export default function PatientDetail({ user }: { user: User }) {
           <button
             type="button"
             onClick={() => navigate('/catalog')}
-            className="ml-auto flex-none cursor-pointer rounded-[7px] border border-[var(--color-ink)] bg-[var(--color-ink)] px-3.5 py-2 text-[13px] font-medium whitespace-nowrap text-white transition-opacity hover:opacity-85"
+            className="ml-auto flex-none cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-2 text-[13px] font-medium whitespace-nowrap text-solid-ink transition-opacity hover:opacity-85"
           >
             New order
           </button>
@@ -129,7 +129,7 @@ export default function PatientDetail({ user }: { user: User }) {
           <div className="flex min-w-0 flex-col gap-5">
             <ProductsOrderedSection equipment={equipment} onCallVendor={handleCallVendor} />
 
-            <section className="overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-white">
+            <section className="overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-surface">
               <div className="border-b border-[var(--color-line)] bg-[var(--color-bg-subtle)] px-4 py-3.5">
                 <h2 className="text-[13px] font-semibold tracking-tight">Notes</h2>
               </div>
@@ -145,7 +145,7 @@ export default function PatientDetail({ user }: { user: User }) {
                   <button
                     type="button"
                     onClick={handleAddNote}
-                    className="cursor-pointer rounded-[7px] border border-[var(--color-ink)] bg-[var(--color-ink)] px-3.5 py-1.5 text-[13px] font-medium text-white transition-opacity hover:opacity-85"
+                    className="cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-1.5 text-[13px] font-medium text-solid-ink transition-opacity hover:opacity-85"
                   >
                     Add note
                   </button>
@@ -163,7 +163,7 @@ export default function PatientDetail({ user }: { user: User }) {
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">
-            <section className="rounded-[10px] border border-[var(--color-line)] bg-white p-4">
+            <section className="rounded-[10px] border border-[var(--color-line)] bg-surface p-4">
               <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
               <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
                 {facts.map((f) => (
@@ -175,7 +175,7 @@ export default function PatientDetail({ user }: { user: User }) {
               </div>
             </section>
 
-            <section className="rounded-[10px] border border-[var(--color-line)] bg-white p-4">
+            <section className="rounded-[10px] border border-[var(--color-line)] bg-surface p-4">
               <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
               <div className="text-[13px] leading-relaxed">
                 {addressLine1}
@@ -187,14 +187,14 @@ export default function PatientDetail({ user }: { user: User }) {
                 <button
                   type="button"
                   onClick={handleDirections}
-                  className="cursor-pointer rounded-[7px] border border-[var(--color-line-strong)] bg-white px-2.5 py-1.5 text-xs transition-colors hover:bg-[var(--color-hover)]"
+                  className="cursor-pointer rounded-[7px] border border-[var(--color-line-strong)] bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
                 >
                   Directions
                 </button>
                 <button
                   type="button"
                   onClick={handleCopyAddr}
-                  className="cursor-pointer rounded-[7px] border border-[var(--color-line-strong)] bg-white px-2.5 py-1.5 text-xs transition-colors hover:bg-[var(--color-hover)]"
+                  className="cursor-pointer rounded-[7px] border border-[var(--color-line-strong)] bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
                 >
                   Copy for vendor
                 </button>

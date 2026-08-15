@@ -25,7 +25,7 @@ export function ProductCard({
   return (
     <article className="h-full min-w-0">
       <div className="group relative flex h-full flex-col">
-        <div className="relative aspect-[3/4] overflow-hidden border border-[var(--color-line)] bg-neutral-50 transition-colors group-hover:border-[var(--color-line-strong)]">
+        <div className="relative aspect-[3/4] overflow-hidden border border-[var(--color-line)] bg-bg-subtle transition-colors group-hover:border-[var(--color-line-strong)]">
           {!imgBroken && (
             <img
               src={entry.imagePath}
@@ -40,7 +40,7 @@ export function ProductCard({
                 className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.06]"
                 style={{
                   backgroundImage:
-                    'repeating-linear-gradient(135deg, #f0f0f0 0 8px, #fafafa 8px 16px)',
+                    'repeating-linear-gradient(135deg, var(--track) 0 8px, var(--bg-subtle) 8px 16px)',
                 }}
               />
               <div className="pointer-events-none absolute inset-x-2.5 top-2.5 grid gap-1 font-mono text-[11px] leading-tight text-[var(--color-ink-3)]">
@@ -49,12 +49,12 @@ export function ProductCard({
               </div>
             </>
           )}
-          <div className="absolute bottom-2.5 left-2.5 flex items-center overflow-hidden border border-[var(--color-line-strong)] bg-white/94 backdrop-blur-sm transition-colors group-hover:border-[var(--color-ink)]">
+          <div className="absolute bottom-2.5 left-2.5 flex items-center overflow-hidden border border-[var(--color-line-strong)] bg-surface/94 backdrop-blur-sm transition-colors group-hover:border-[var(--color-ink)]">
             <button
               type="button"
               aria-label="Decrease quantity"
               onClick={() => step(-1)}
-              className="h-7 w-7 leading-none transition-colors hover:bg-[var(--color-ink)] hover:text-white"
+              className="h-7 w-7 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
             >
               −
             </button>
@@ -65,13 +65,13 @@ export function ProductCard({
               value={qty}
               onChange={(e) => onQtyChange(Math.max(1, Math.min(99, parseInt(e.target.value, 10) || 1)))}
               aria-label="Quantity"
-              className="quantity-input w-7.5 border-0 bg-transparent text-center font-mono text-[12.5px] tabular-nums focus:bg-white focus:outline-none"
+              className="quantity-input w-7.5 border-0 bg-transparent text-center font-mono text-[12.5px] tabular-nums focus:bg-surface focus:outline-none"
             />
             <button
               type="button"
               aria-label="Increase quantity"
               onClick={() => step(1)}
-              className="h-7 w-7 leading-none transition-colors hover:bg-[var(--color-ink)] hover:text-white"
+              className="h-7 w-7 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
             >
               +
             </button>
@@ -105,7 +105,7 @@ export function ProductCard({
           <button
             type="button"
             onClick={onAddToCart}
-            className="border border-[var(--color-ink)] bg-[var(--color-ink)] px-3 py-2.5 text-[11px] uppercase tracking-[0.09em] text-white transition-opacity hover:opacity-85"
+            className="border border-solid-bg bg-solid-bg px-3 py-2.5 text-[11px] uppercase tracking-[0.09em] text-solid-ink transition-opacity hover:opacity-85"
           >
             {inCartQty > 0 ? `In cart · ${inCartQty}` : 'Add to cart'}
           </button>
@@ -113,7 +113,7 @@ export function ProductCard({
             type="button"
             onClick={onBuyNow}
             title="Order now"
-            className="border border-[var(--color-line-strong)] bg-white px-3 py-2.5 text-[11px] uppercase tracking-[0.09em] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink)] hover:bg-[var(--color-ink)] hover:text-white"
+            className="border border-[var(--color-line-strong)] bg-surface px-3 py-2.5 text-[11px] uppercase tracking-[0.09em] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink)] hover:bg-solid-bg hover:text-solid-ink"
           >
             Order now
           </button>

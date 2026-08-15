@@ -11,9 +11,9 @@ export function OrderStatusIcon({ icon, className }: { icon: OrderDisplayIcon; c
   if (icon === 'late') {
     return (
       <span
-        className={`flex h-5 w-5 flex-none items-center justify-center rounded-[5px] bg-[var(--color-ink)] ${className ?? ''}`}
+        className={`flex h-5 w-5 flex-none items-center justify-center rounded-[5px] bg-solid-bg ${className ?? ''}`}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-solid-ink" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M10.4 3.9 2.7 17.4A1.6 1.6 0 0 0 4.1 20h15.8a1.6 1.6 0 0 0 1.4-2.6L13.6 3.9a1.6 1.6 0 0 0-3.2 0z" />
           <path d="M12 9v4.5" />
           <path d="M12 16.8h.01" />

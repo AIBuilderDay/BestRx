@@ -48,8 +48,8 @@ export function CatalogFilters({
               key={c.key}
               type="button"
               onClick={() => onChange({ category: c.key })}
-              className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-neutral-100 hover:text-[var(--color-ink)] ${
-                filters.category === c.key ? 'bg-neutral-100 text-[var(--color-ink)]' : 'text-[var(--color-ink-2)]'
+              className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover hover:text-[var(--color-ink)] ${
+                filters.category === c.key ? 'bg-hover text-[var(--color-ink)]' : 'text-[var(--color-ink-2)]'
               }`}
             >
               <span>{c.label}</span>
@@ -68,14 +68,14 @@ export function CatalogFilters({
                 key={v.id}
                 type="button"
                 onClick={() => toggleVendor(v.id)}
-                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-neutral-100"
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover"
               >
                 <span
                   className={`grid h-3 w-3 flex-none place-items-center rounded-[3px] border transition-colors ${
-                    on ? 'border-[var(--color-ink)] bg-[var(--color-ink)]' : 'border-[var(--color-line-strong)]'
+                    on ? 'border-solid-bg bg-solid-bg' : 'border-[var(--color-line-strong)]'
                   }`}
                 >
-                  <span className={`text-[8px] leading-none text-white ${on ? 'scale-100' : 'scale-0'} transition-transform`}>
+                  <span className={`text-[8px] leading-none text-solid-ink ${on ? 'scale-100' : 'scale-0'} transition-transform`}>
                     ✓
                   </span>
                 </span>
@@ -97,7 +97,7 @@ export function CatalogFilters({
                 key={s.key}
                 type="button"
                 onClick={() => onChange({ speed: s.key })}
-                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-neutral-100"
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover"
               >
                 <span
                   className={`grid h-3 w-3 flex-none place-items-center rounded-full border transition-colors ${
@@ -130,7 +130,7 @@ export function CatalogFilters({
       <button
         type="button"
         onClick={onReset}
-        className="mt-7.5 w-full rounded-lg border border-[var(--color-line-strong)] bg-white py-2.5 text-xs text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)] hover:bg-[var(--color-ink)] hover:text-white"
+        className="mt-7.5 w-full rounded-lg border border-[var(--color-line-strong)] bg-surface py-2.5 text-xs text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)] hover:bg-solid-bg hover:text-solid-ink"
       >
         Clear all
       </button>

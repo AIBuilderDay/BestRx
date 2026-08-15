@@ -228,12 +228,12 @@ export function filterCaseload(caseload: Patient[], query: string): Patient[] {
 export function pillClasses(tone: PillTone): string {
   switch (tone) {
     case 'warn':
-      return 'border-[var(--color-ink)] bg-[var(--color-ink)] text-white';
+      return 'border-solid-bg bg-solid-bg text-solid-ink';
     case 'muted':
       return 'border-[var(--color-line)] bg-[var(--color-bg-subtle)] text-[var(--color-ink-3)]';
     case 'done':
     case 'plain':
     default:
-      return 'border-[var(--color-line-strong)] bg-white text-[var(--color-ink-2)]';
+      return 'border-[var(--color-line-strong)] bg-surface text-[var(--color-ink-2)]';
   }
 }
