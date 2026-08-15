@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getUser } from '../data/db';
 import { DEMO_ACCOUNT_IDS, DEMO_PASSWORD, findUserByEmail, ROLE_LABELS } from '../lib/auth';
 import type { User } from '../types/domain';
@@ -12,6 +13,7 @@ const initials = (name: string) =>
 
 /** Sign-in screen — the "minimal" variant from mockups/login.html. Fake auth, real permissions. */
 export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -34,6 +36,7 @@ export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) 
       return;
     }
     onSignIn(user);
+    navigate('/catalog');
   };
 
   const fillAccount = (user: User) => {

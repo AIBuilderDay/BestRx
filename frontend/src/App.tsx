@@ -9,8 +9,9 @@ import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
 
 /**
- * Session gate, then routed app. Every role lands on the catalog by default; patients and other
- * views route from the top nav when permissions allow.
+ * Routed app with /login as a real route, so signing in pushes a history entry and the browser
+ * back button works. Every role lands on the catalog by default; patients and other views route
+ * from the top nav when permissions allow.
  */
 export default function App() {
   const [user, setUser] = useState<User | null>(readSession);
@@ -25,16 +26,21 @@ export default function App() {
     setUser(null);
   };
 
-  if (!user) return <Login onSignIn={signIn} />;
+  const toLogin = <Navigate to="/login" replace />;
 
   return (
     <BrowserRouter>
       <CartProvider>
         <Routes>
+          <Route path="/login" element={<Login onSignIn={signIn} />} />
           <Route path="/" element={<Navigate to="/catalog" replace />} />
-          <Route path="/catalog" element={<Catalog user={user} onSignOut={signOut} />} />
-          <Route path="/patients" element={<Patients user={user} onSignOut={signOut} />} />
-          <Route path="/patients/:patientId" element={<PatientDetail user={user} onSignOut={signOut} />} />
+          <Route path="/catalog" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
+          <Route path="/patients" element={user ? <Patients user={user} onSignOut={signOut} /> : toLogin} />
+          <Route
+            path="/patients/:patientId"
+            element={user ? <PatientDetail user={user} onSignOut={signOut} /> : toLogin}
+          />
+          <Route path="*" element={<Navigate to="/catalog" replace />} />
         </Routes>
       </CartProvider>
     </BrowserRouter>
