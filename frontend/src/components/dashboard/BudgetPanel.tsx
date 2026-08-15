@@ -30,6 +30,7 @@ export function BudgetPanel({
   sortKey,
   sortDir,
   editMode,
+  canEdit,
   onSort,
   onStartEdit,
   onSave,
@@ -46,6 +47,8 @@ export function BudgetPanel({
   sortKey: AccountSortKey;
   sortDir: 1 | -1;
   editMode: boolean;
+  /** Only the owner can adjust budgets. Everyone with reporting access can still see all of it. */
+  canEdit: boolean;
   onSort: (key: AccountSortKey) => void;
   onStartEdit: () => void;
   onSave: () => void;
@@ -54,11 +57,22 @@ export function BudgetPanel({
   onRolePctChange: (role: UserRole, next: number | null) => void;
   onAccountAmountChange: (userId: string, next: number | null) => void;
 }) {
+  // Defensive: even if editMode were somehow left on, a viewer without budgets:configure never
+  // sees an editable field — every input below reads this, not the raw editMode.
+  const activeEditMode = editMode && canEdit;
+
   return (
     <div className="mt-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-[15px] text-ink">Budget configuration</h2>
-        {editMode ? (
+        {!canEdit ? (
+          <span
+            title="Only the owner account can adjust budgets."
+            className="rounded-full border border-line bg-bg-subtle px-2 py-0.5 text-[11px] text-ink-3"
+          >
+            View only
+          </span>
+        ) : activeEditMode ? (
           <span className="rounded-full border border-line bg-bg-subtle px-2 py-0.5 text-[11px] text-ink-3">
             Editing
           </span>
@@ -80,7 +94,7 @@ export function BudgetPanel({
         <TotalBudgetUsageMeter
           usage={usage}
           periodLabel={period.label}
-          editMode={editMode}
+          editMode={activeEditMode}
           onTotalBudgetChange={onTotalBudgetChange}
         />
       </div>
@@ -89,7 +103,7 @@ export function BudgetPanel({
         {roleCards.map((card) => (
           <div key={card.role} className="rounded-card border border-line bg-surface px-3.5 py-3">
             <div className="flex items-start justify-between gap-2">
-              <div className="text-[13px] text-ink">{card.label} — default share</div>
+              <div className="text-[13px] text-ink">{card.label}</div>
               {card.overridden ? (
                 <span
                   title="Session override — not saved."
@@ -112,7 +126,7 @@ export function BudgetPanel({
                     unit="percent"
                     ariaLabel={`Default budget share for ${card.label}`}
                     onCommit={(next) => onRolePctChange(card.role, next)}
-                    readOnly={!editMode}
+                    readOnly={!activeEditMode}
                   />
                   <span className="text-[13px] text-ink-2">
                     = {moneyLabel(card.departmentBudgetUsd ?? 0)} department budget
@@ -138,13 +152,13 @@ export function BudgetPanel({
           totals={totals}
           sortKey={sortKey}
           sortDir={sortDir}
-          editMode={editMode}
+          editMode={activeEditMode}
           onSort={onSort}
           onAmountChange={onAccountAmountChange}
         />
       </div>
 
-      {editMode ? (
+      {activeEditMode ? (
         <div className="mt-4 flex justify-end gap-2">
           <button
             type="button"

@@ -68,13 +68,13 @@ describe('buildAccountRows', () => {
     expect(ownerRows.some((r) => r.user.role === 'hospice_admin')).toBe(false);
   });
 
-  it('shows directors only case managers, field nurses, and admissions nurses', () => {
+  it('shows the director the full budget, including her own row and the owner\'s', () => {
     const directorRows = buildAccountRows('HSP-001', period, NO_OVERRIDES, 'director_of_nursing');
     expect(directorRows.map((r) => r.user.id).sort()).toEqual([
-      'USR-001', 'USR-002', 'USR-010',
+      'USR-001', 'USR-002', 'USR-010', 'USR-012', 'USR-013',
     ]);
-    expect(directorRows.some((r) => r.user.role === 'hospice_admin')).toBe(false);
-    expect(directorRows.some((r) => r.user.role === 'director_of_nursing')).toBe(false);
+    expect(directorRows.some((r) => r.user.role === 'hospice_admin')).toBe(true);
+    expect(directorRows.some((r) => r.user.role === 'director_of_nursing')).toBe(true);
   });
 });
 
@@ -169,17 +169,17 @@ describe('roleRates', () => {
       'admissions_nurse', 'case_manager', 'director_of_nursing',
     ]);
     expect(roleRates('HSP-001', NO_OVERRIDES, 'director_of_nursing').map((c) => c.role).sort()).toEqual([
-      'admissions_nurse', 'case_manager',
+      'admissions_nurse', 'case_manager', 'director_of_nursing', 'hospice_admin',
     ]);
   });
 });
 
 describe('canViewBudgetAccount', () => {
-  it('allows only subordinate budget roles for reporting users', () => {
+  it('gives the owner every subordinate role, and the director the full budget', () => {
     expect(canViewBudgetAccount('hospice_admin', 'hospice_admin')).toBe(false);
     expect(canViewBudgetAccount('hospice_admin', 'director_of_nursing')).toBe(true);
-    expect(canViewBudgetAccount('director_of_nursing', 'hospice_admin')).toBe(false);
-    expect(canViewBudgetAccount('director_of_nursing', 'director_of_nursing')).toBe(false);
+    expect(canViewBudgetAccount('director_of_nursing', 'hospice_admin')).toBe(true);
+    expect(canViewBudgetAccount('director_of_nursing', 'director_of_nursing')).toBe(true);
     expect(canViewBudgetAccount('director_of_nursing', 'case_manager')).toBe(true);
     expect(canViewBudgetAccount('director_of_nursing', 'admissions_nurse')).toBe(true);
   });

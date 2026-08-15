@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { can, isFamilyMember, type Permission } from "../../lib/auth";
+import { can, isFamilyMember } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
@@ -9,11 +9,6 @@ import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
 export type NavSection = "catalog" | "orders" | "patients" | "assignments" | "dashboard";
-
-/** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
-const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: "Vendors", permissions: ["vendors:manage"] },
-];
 
 const canViewOrders = (user: User): boolean =>
   can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
@@ -220,9 +215,6 @@ export function TopNav({
     ...(can(user, "nurse-assignment")
       ? [{ to: "/assignments", label: "Assignments", section: "assignments" as NavSection }]
       : []),
-    ...GATED_SECTIONS.filter((s) => s.permissions.some((p) => can(user, p))).map((s) => ({
-      label: s.label,
-    })),
   ];
 
   return (
