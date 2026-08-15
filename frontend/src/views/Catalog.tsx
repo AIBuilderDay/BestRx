@@ -34,7 +34,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 const PRICE_MAX = priceCeiling(equipmentCatalog);
 
-export default function Catalog({ user, onSignOut }: { user: User; onSignOut: () => void }) {
+export default function Catalog({ user }: { user: User }) {
   const hospice = getHospice(user.orgId);
   const assignablePatients = useMemo(
     () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
@@ -136,7 +136,6 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         cartCount={totalUnitsInCart(lines)}
         activeSection="catalog"
         onOpenCart={() => setCartOpen(true)}
-        onSignOut={onSignOut}
       />
 
       <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">

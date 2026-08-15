@@ -17,7 +17,6 @@ export default function Settings({ user, onSignOut }: { user: User; onSignOut: (
         cartCount={cartCount}
         activeSection="settings"
         onOpenCart={() => setCartOpen(true)}
-        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">

@@ -36,9 +36,9 @@ export default function App() {
           <CartProvider>
             <Routes>
               <Route path="/" element={<Navigate to="/catalog" replace />} />
-              <Route path="/catalog" element={<Catalog user={user} onSignOut={signOut} />} />
-              <Route path="/patients" element={<Patients user={user} onSignOut={signOut} />} />
-              <Route path="/patients/:patientId" element={<PatientDetail user={user} onSignOut={signOut} />} />
+              <Route path="/catalog" element={<Catalog user={user} />} />
+              <Route path="/patients" element={<Patients user={user} />} />
+              <Route path="/patients/:patientId" element={<PatientDetail user={user} />} />
               <Route path="/settings" element={<Settings user={user} onSignOut={signOut} />} />
             </Routes>
           </CartProvider>

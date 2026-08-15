@@ -14,7 +14,7 @@ interface SessionNote {
   text: string;
 }
 
-export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
+export default function PatientDetail({ user }: { user: User }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const hospice = getHospice(user.orgId);
@@ -65,7 +65,6 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       cartCount={cartCount}
       activeSection="patients"
       onOpenCart={() => setCartOpen(true)}
-      onSignOut={onSignOut}
     />
   );
 

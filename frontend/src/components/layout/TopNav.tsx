@@ -1,6 +1,5 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { can, permissionsFor, ROLE_LABELS, type Permission } from '../../lib/auth';
+import { can, ROLE_LABELS, type Permission } from '../../lib/auth';
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
 
@@ -14,24 +13,20 @@ const GATED_SECTIONS: { label: string; permission: Permission }[] = [
   { label: 'Vendors', permission: 'vendors:manage' },
 ];
 
-/** Sticky app header: brand, permission-gated section nav, user menu, and the cart toggle. */
+/** Sticky app header: brand, permission-gated section nav, session label, and the cart toggle. */
 export function TopNav({
   hospiceName,
   user,
   cartCount,
   activeSection,
   onOpenCart,
-  onSignOut,
 }: {
   hospiceName: string;
   user: User;
   cartCount: number;
   activeSection: NavSection;
   onOpenCart: () => void;
-  onSignOut: () => void;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-
   const linkClass = (section: NavSection) =>
     section === activeSection
       ? 'text-[var(--color-ink)]'
@@ -71,46 +66,9 @@ export function TopNav({
       </nav>
 
       <div className="flex items-center gap-4.5">
-        <div className="relative">
-          <button
-            type="button"
-            data-testid="user-menu-button"
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
-            className="rounded-[var(--radius-control)] px-2 py-1 text-xs text-[var(--color-ink-3)] transition-colors hover:bg-hover hover:text-[var(--color-ink)]"
-          >
-            {hospiceName} · {user.name} · {ROLE_LABELS[user.role]}
-          </button>
-          {menuOpen ? (
-            <div
-              data-testid="user-menu"
-              className="absolute right-0 top-full mt-2 w-66 rounded-[var(--radius-card)] border border-line bg-surface p-3.5 text-left shadow-lg"
-            >
-              <div className="text-[13px] font-medium">{user.name}</div>
-              <div className="text-xs text-[var(--color-ink-3)]">
-                {ROLE_LABELS[user.role]} · {hospiceName}
-              </div>
-              <div className="mt-2.5 mb-1 text-[11px] uppercase tracking-[0.07em] text-[var(--color-ink-3)]">
-                Can
-              </div>
-              <ul className="grid gap-1">
-                {permissionsFor(user).map((p) => (
-                  <li key={p} data-permission={p} className="text-xs text-[var(--color-ink-2)]">
-                    {p}
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                data-testid="sign-out"
-                onClick={onSignOut}
-                className="mt-3 w-full rounded-[var(--radius-control)] border border-line-strong bg-surface px-3 py-1.5 text-xs font-medium transition-colors hover:bg-hover"
-              >
-                Sign out
-              </button>
-            </div>
-          ) : null}
-        </div>
+        <span className="px-2 py-1 text-xs text-[var(--color-ink-3)]">
+          {hospiceName} · {user.name} · {ROLE_LABELS[user.role]}
+        </span>
         <button
           type="button"
           onClick={onOpenCart}
