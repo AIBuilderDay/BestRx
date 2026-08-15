@@ -57,6 +57,26 @@ export default function Settings({ user, onSignOut }: { user: User; onSignOut: (
             Currently using <span className="font-medium text-[var(--color-ink-2)]">{theme} mode</span>.
           </p>
         </section>
+
+        <section className="mt-6 max-w-lg rounded-[var(--radius-card)] border border-line bg-surface p-5">
+          <div className="flex items-center justify-between gap-6">
+            <div>
+              <h2 className="text-[15px] font-medium">Account</h2>
+              <p className="mt-1 text-[13px] text-[var(--color-ink-2)]">
+                Signed in as {user.name}.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              data-testid="log-out"
+              onClick={onSignOut}
+              className="shrink-0 rounded-[var(--radius-control)] border border-line-strong bg-surface px-3.5 py-2 text-xs font-medium transition-colors hover:bg-hover"
+            >
+              Log out
+            </button>
+          </div>
+        </section>
       </main>
     </div>
   );
