@@ -164,10 +164,11 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     say('Filters cleared');
   };
 
-  // AI search: the model re-orders the (filter-respecting) catalog around the query and,
-  // when the query names one patient, their sanitized context. Deterministic results render
+  // AI search: the API re-orders the (filter-respecting) catalog around the query and, when the
+  // query names one patient, their sanitized context. Only offer ids and the hospice go up — the
+  // API joins the catalog facts and matches the patient itself. Deterministic results render
   // immediately; the AI order is applied when it lands. Any failure = plain keyword search.
-  const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, assignablePatients);
+  const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, user.orgId);
   const aiFailed = aiMode && !!searchQuery && aiRerank.failed;
   const aiActive = aiMode && !!searchQuery && !aiRerank.failed;
   let filteredSorted: typeof catalogItems;

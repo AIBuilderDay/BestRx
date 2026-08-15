@@ -1,6 +1,5 @@
 // vitest/config re-exports Vite's defineConfig with the `test` block typed.
 import { defineConfig } from 'vitest/config';
-import { loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -8,12 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 // and `src` stays free of Node globals.
 const fromRoot = (path: string): string => new URL(path, import.meta.url).pathname;
 
-export default defineConfig(({ mode }) => {
-  // ANTHROPIC_API_KEY lives in frontend/.env (git-ignored) and is read here, server-side.
-  // It is deliberately NOT VITE_-prefixed, so it never reaches the browser bundle — the
-  // dev server proxies /api/anthropic/* to Anthropic and injects the key on the way out.
-  const env = loadEnv(mode, new URL('.', import.meta.url).pathname, '');
-
+export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
     server: {
@@ -21,17 +15,6 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       // Docker bind mounts don't emit inotify events reliably on macOS.
       watch: { usePolling: true },
-      proxy: {
-        // Narrow on purpose: only the Messages endpoint is forwarded, so this can't be
-        // used as a general Anthropic proxy. Compose publishes the port on loopback only,
-        // and Vite's default dev CORS policy already rejects non-localhost origins.
-        '/api/anthropic/v1/messages': {
-          target: 'https://api.anthropic.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/anthropic/, ''),
-          headers: env.ANTHROPIC_API_KEY ? { 'x-api-key': env.ANTHROPIC_API_KEY } : {},
-        },
-      },
     },
     build: {
       rollupOptions: {

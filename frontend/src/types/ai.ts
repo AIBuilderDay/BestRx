@@ -1,10 +1,14 @@
 /**
  * Types for the AI layer (enhanced search + agent ordering) and its token ledger.
  *
- * The ledger is the data the cost dashboard will read later: every model call is
- * recorded per-feature so spend can be shown split (search re-rank vs agent orders)
- * and as one total. See docs/specs/enhanced-search.md.
+ * These describe what the API's /ai/* endpoints return. The model calls themselves happen on the
+ * backend — see backend/app/ai/ — so the ledger below is read from the API rather than kept in
+ * this browser. It is the data the cost dashboard reads: every model call is recorded per-feature
+ * so spend can be shown split (search re-rank vs agent orders) and as one total.
+ * See docs/specs/enhanced-search.md.
  */
+
+import type { CartDto } from '../lib/api';
 
 /** Every AI feature bills into one of these buckets. Add a member when a new surface calls the model. */
 export type AiFeature = 'rerank' | 'agent_order';
@@ -47,13 +51,32 @@ export interface RerankResult {
   reasons: Record<string, string>;
 }
 
-/** The model's parse of an "order X for Y" command. Human confirms before checkout. */
-export interface AgentOrderAction {
+/** One tool the agent called on its way to the answer, for the "what it did" trace. */
+export interface AgentToolCall {
+  tool: string;
+  ok: boolean;
+}
+
+/** The cart line the agent just added, so the drawer can spotlight it. */
+export interface AgentAddedLine {
   offerId: string;
   patientId: string;
-  quantity: number;
-  /** Model's own confidence; low values are surfaced, not hidden. */
-  confidence: 'high' | 'medium' | 'low';
+}
+
+/**
+ * What the agent did with an "order X for Y" command.
+ *
+ * The cart is written server-side through the same MCP tool an external client would use, so
+ * `cart` is the authoritative cart rather than an action for the browser to apply. It is null when
+ * the agent could not safely resolve a patient or a product — the caller shows plain search
+ * results instead, and never a dead end. A human still confirms checkout.
+ */
+export interface AgentOrderResult {
   /** One sentence the UI can show: what the agent understood. */
   summary: string;
+  /** The cart as the server now holds it, or null when nothing was added. */
+  cart: CartDto | null;
+  /** The line the cart gained, for the drawer's spotlight. Null when the cart was not changed. */
+  added: AgentAddedLine | null;
+  toolCalls: AgentToolCall[];
 }

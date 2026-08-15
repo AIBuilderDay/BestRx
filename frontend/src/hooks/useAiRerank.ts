@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Patient } from '../types/domain';
 import type { CatalogProductVM } from '../lib/catalog';
 import type { RerankResult } from '../types/ai';
-import { rerankOffers } from '../lib/ai/rerank';
-import { findMentionedPatients, sanitizePatient } from '../lib/ai/sanitize';
+import { rerankOffers } from '../lib/ai/client';
 
 export interface AiRerankState {
   /** Model finished: offer ids best-first (a safe permutation of the input). */
@@ -12,22 +10,25 @@ export interface AiRerankState {
   busy: boolean;
   /** True when the call failed and the view should use the plain keyword search. */
   failed: boolean;
-  /** Display label of the patient whose context was used, when one was named. */
+  /** Display label of the patient whose context was used, when the query named one. */
   patientLabel: string | null;
 }
 
 const IDLE: AiRerankState = { result: null, busy: false, failed: false, patientLabel: null };
 
 /**
- * Runs the AI re-rank when the catalog is in AI-search mode. If the query names
- * a patient (matched client-side — names never go to the model for matching),
- * their sanitized context rides along. Stale responses are dropped.
+ * Runs the AI re-rank when the catalog is in AI-search mode.
+ *
+ * Only offer ids go up: the API joins the vendor, price, and rating facts itself from the same
+ * fixtures it serves, so a search costs a list of ids rather than the whole storefront. Patient
+ * matching also happens there — names never leave the API, and only a sanitized patient reaches
+ * the model. Stale responses are dropped.
  */
 export function useAiRerank(
   enabled: boolean,
   query: string,
   items: CatalogProductVM[],
-  patientPool: Patient[],
+  hospiceId: string | null,
 ): AiRerankState {
   const [state, setState] = useState<AiRerankState>(IDLE);
   const runRef = useRef(0);
@@ -38,20 +39,19 @@ export function useAiRerank(
       return;
     }
     const run = ++runRef.current;
-    const mentioned = findMentionedPatients(query, patientPool);
-    const patient = mentioned.length === 1 ? sanitizePatient(mentioned[0]) : null;
-    setState({ result: null, busy: true, failed: false, patientLabel: patient?.label ?? null });
+    const offerIds = items.map((it) => it.offer.id);
+    setState({ result: null, busy: true, failed: false, patientLabel: null });
 
-    rerankOffers(query, items, patient)
-      .then((result) => {
+    rerankOffers(query, offerIds, hospiceId)
+      .then(({ orderedOfferIds, reasons, patientLabel }) => {
         if (runRef.current !== run) return;
-        setState({ result, busy: false, failed: false, patientLabel: patient?.label ?? null });
+        setState({ result: { orderedOfferIds, reasons }, busy: false, failed: false, patientLabel });
       })
       .catch(() => {
         if (runRef.current !== run) return;
         setState({ result: null, busy: false, failed: true, patientLabel: null });
       });
-  }, [enabled, query, items, patientPool]);
+  }, [enabled, query, items, hospiceId]);
 
   return state;
 }

@@ -586,4 +586,5 @@ def health() -> Row:
         "pushEnabled": settings.push_enabled,
         "subscriptionsPersisted": settings.subscriptions_persisted,
         "streamClients": get_store().subscriber_count,
+        "aiEnabled": settings.ai_enabled,
     }

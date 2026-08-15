@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { patients } from '../../data/db';
-import { buildCatalogItems, upsertCartLine } from '../../lib/catalog';
-import { looksLikeOrderCommand, parseAgentOrder } from '../../lib/ai/agentOrder';
+import { looksLikeOrderCommand } from '../../lib/ai/agentOrder';
+import { runAgentOrder } from '../../lib/ai/client';
 import { burstAtCart, flyCometToCart } from '../../lib/fx/agentComet';
 import type { User } from '../../types/domain';
 import { useCart } from '../../context/CartContext';
@@ -20,6 +19,9 @@ const PLACEHOLDERS: Record<Mode, string> = {
  * order-shaped commands go to the agent (fills the cart, human confirms checkout);
  * everything else becomes an AI-ranked search on the catalog. Any AI failure lands
  * on plain search results — this bar never dead-ends.
+ *
+ * The agent runs on the API and writes the cart there through its MCP tools, so what comes back is
+ * the cart the server already holds — this component renders it rather than building one.
  */
 export function NavSearch({ user }: { user: User }) {
   const navigate = useNavigate();
@@ -32,7 +34,7 @@ export function NavSearch({ user }: { user: User }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const aliveRef = useRef(true);
-  const { setLines, setCartOpen, setAgentAdded } = useCart();
+  const { adoptServerCart, setCartOpen, setAgentAdded } = useCart();
 
   // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
   useEffect(() => {
@@ -52,24 +54,22 @@ export function NavSearch({ user }: { user: User }) {
     inputRef.current?.focus();
   };
 
-  const runAgentOrder = async (command: string) => {
-    const items = buildCatalogItems();
-    const assignable = patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased');
+  const placeAgentOrder = async (command: string) => {
     setThinking(true);
     setNotice('');
     try {
-      const action = await parseAgentOrder(command, items, assignable);
+      const { cart, added } = await runAgentOrder(command, user.id);
       if (!aliveRef.current) return;
-      if (!action) {
-        // Model couldn't safely resolve a patient or product — fall back to AI search.
+      if (!cart || !added) {
+        // The agent couldn't safely resolve a patient or product — fall back to AI search.
         setNotice("Couldn't match a patient or item — showing results instead");
         navigate(`/catalog?q=${encodeURIComponent(command)}&ai=1`);
         return;
       }
-      // Cart state first — the order is never lost to a visual effect.
-      // Rental is the catalog's default arrangement; the nurse can switch the line in the cart.
-      setLines((prev) => upsertCartLine(prev, action.offerId, action.patientId, 'month', action.quantity));
-      setAgentAdded(action);
+      // Cart state first — the order is never lost to a visual effect. The API already wrote it,
+      // so this renders the server's copy rather than pushing one back.
+      adoptServerCart(cart);
+      setAgentAdded(added);
       setQuery('');
       setThinking(false); // calm the bar before the comet leaves it
       navigate('/catalog');
@@ -103,7 +103,7 @@ export function NavSearch({ user }: { user: User }) {
       return;
     }
     if (looksLikeOrderCommand(q)) {
-      void runAgentOrder(q);
+      void placeAgentOrder(q);
       return;
     }
     navigate(`/catalog?q=${encodeURIComponent(q)}&ai=1`);

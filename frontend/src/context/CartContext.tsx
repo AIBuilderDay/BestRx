@@ -34,8 +34,8 @@ import {
   type CartLine,
   type PriceUnit,
 } from '../lib/catalog';
-import { checkoutCart, fetchCart, updateCart, type CartLineInput } from '../lib/api';
-import type { AgentOrderAction } from '../types/ai';
+import { checkoutCart, fetchCart, updateCart, type CartDto, type CartLineInput } from '../lib/api';
+import type { AgentAddedLine } from '../types/ai';
 
 interface CartContextValue {
   lines: CartLine[];
@@ -58,8 +58,16 @@ interface CartContextValue {
   toast: string;
   say: (message: string) => void;
   /** The line the AI agent just added, so the drawer can spotlight it. */
-  agentAdded: AgentOrderAction | null;
-  setAgentAdded: (action: AgentOrderAction | null) => void;
+  agentAdded: AgentAddedLine | null;
+  setAgentAdded: (line: AgentAddedLine | null) => void;
+  /**
+   * Take the server's cart as-is, without pushing it back.
+   *
+   * The ordering agent writes the cart on the API before this browser hears about it, so the
+   * response is already authoritative — echoing it back with `setLines` would be a redundant write
+   * and could race the agent's own.
+   */
+  adoptServerCart: (cart: CartDto) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -74,7 +82,7 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
   const [placing, setPlacing] = useState(false);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [agentAdded, setAgentAdded] = useState<AgentOrderAction | null>(null);
+  const [agentAdded, setAgentAdded] = useState<AgentAddedLine | null>(null);
 
   // Serialises pushes so two quick edits reach the server in the order they were made.
   const queue = useRef<Promise<unknown>>(Promise.resolve());
@@ -128,6 +136,11 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
     },
     [userId, say],
   );
+
+  /** Render a cart the server already holds. Deliberately does not push — see the interface. */
+  const adoptServerCart = useCallback((cart: CartDto) => {
+    setLinesState(toInput(cart.lines));
+  }, []);
 
   /** Apply an edit locally, then send the result. */
   const setLines = useCallback<React.Dispatch<React.SetStateAction<CartLine[]>>>(
@@ -207,11 +220,13 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
       say,
       agentAdded,
       setAgentAdded,
+      adoptServerCart,
     }),
     [
       lines,
       cartOpen,
       setLines,
+      adoptServerCart,
       setLineQty,
       clearCart,
       catalogItems,

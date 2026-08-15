@@ -47,6 +47,11 @@ services:
       - ./backend/tests:/app/tests
       # The frontend's data directory is the one copy of the fixtures under version control.
       - ./frontend/src/data:/app/data:ro
+    # backend/.env.local holds ANTHROPIC_API_KEY. It is git-ignored, and the key stays in this
+    # container — the browser never sees it, which is why the model calls live behind /ai/*.
+    env_file:
+      - path: ./backend/.env.local
+        required: false
     environment:
       - PYTHONUNBUFFERED=1
       - CORS_ORIGINS=http://localhost:5173

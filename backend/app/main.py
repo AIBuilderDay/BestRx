@@ -16,7 +16,7 @@ from starlette.middleware import Middleware
 
 from .config import Settings, get_settings
 from .mcp_server import mcp
-from .routers import carts, catalog, orders, push, stream
+from .routers import ai, carts, catalog, orders, push, stream
 from .schemas import HealthResponse
 from .store import get_store
 
@@ -75,6 +75,7 @@ app.include_router(carts.router)
 app.include_router(catalog.router)
 app.include_router(push.router)
 app.include_router(stream.router)
+app.include_router(ai.router)
 
 # Every endpoint above, mirrored as MCP tools for the frontend's AI-assisted search bar. Same
 # process and same stores as the REST API, so a tool call and a request see identical state.
@@ -89,4 +90,5 @@ def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
         pushEnabled=settings.push_enabled,
         subscriptionsPersisted=settings.subscriptions_persisted,
         streamClients=get_store().subscriber_count,
+        aiEnabled=settings.ai_enabled,
     )

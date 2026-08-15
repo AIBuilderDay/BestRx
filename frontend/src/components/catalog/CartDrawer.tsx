@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CartGroupVM, CartTotals, PriceUnit } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
-import type { AgentOrderAction } from '../../types/ai';
+import type { AgentAddedLine } from '../../types/ai';
 
 /** Matches the panel's slide-in duration below: contents only start moving once the drawer has landed. */
 const PANEL_SLIDE_MS = 500;
@@ -31,7 +31,7 @@ export function CartDrawer({
   /** True while checkout is in flight, so a double-tap cannot place the order twice. */
   placing?: boolean;
   /** The line the AI agent just added — spotlighted so the nurse can verify it. */
-  agentAdded?: AgentOrderAction | null;
+  agentAdded?: AgentAddedLine | null;
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;

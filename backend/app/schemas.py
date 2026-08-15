@@ -90,6 +90,22 @@ class PushUnsubscribeRequest(BaseModel):
     endpoint: str = Field(min_length=1)
 
 
+class RerankRequest(BaseModel):
+    """What the browser sends to rank a search. Offer ids only — the facts are joined server-side."""
+
+    query: str = Field(min_length=1, max_length=500)
+    offerIds: list[str] = Field(min_length=1, max_length=200)
+    """Scopes the patient pool the query may be matched against. Names never leave the API."""
+    hospiceId: str | None = None
+
+
+class AgentOrderRequest(BaseModel):
+    """A plain-English order command, and the nurse whose cart it fills."""
+
+    command: str = Field(min_length=1, max_length=500)
+    userId: str = Field(min_length=1)
+
+
 class StatusErrorDetail(BaseModel):
     """Body of a 409, so a client can show the user what is actually possible."""
 
@@ -110,4 +126,6 @@ class HealthResponse(BaseModel):
     subscriptionsPersisted: bool
     """How many browsers currently hold an SSE connection."""
     streamClients: int
+    """False when no ANTHROPIC_API_KEY is set: /ai/* answers 503 and the UI hides AI search."""
+    aiEnabled: bool = False
     knownStatuses: list[str] = Field(default_factory=lambda: list(ALL_STATUSES))
