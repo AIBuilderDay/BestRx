@@ -46,11 +46,13 @@ export function NurseSelect({
   value,
   onChange,
   ariaLabel,
+  className,
 }: {
   nurses: User[];
   value: string;
   onChange: (nurseId: string) => void;
   ariaLabel: string;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -90,14 +92,14 @@ export function NurseSelect({
   };
 
   return (
-    <div ref={rootRef} className="relative shrink-0">
+    <div ref={rootRef} className={`relative shrink-0 ${className ?? ''}`}>
       <button
         type="button"
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`flex w-56 items-center justify-between gap-2 rounded-md border bg-bg px-3 py-2 text-left text-[12.5px] text-ink transition-colors hover:border-ink ${
+        className={`flex w-full items-center justify-between gap-2 rounded-md border bg-bg px-3 py-2 text-left text-[12.5px] text-ink transition-colors hover:border-ink sm:w-56 ${
           open ? 'border-ink' : 'border-line-strong'
         }`}
       >
@@ -106,7 +108,7 @@ export function NurseSelect({
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-30 w-64 overflow-hidden rounded-lg border border-line bg-surface">
+        <div className="absolute left-0 top-[calc(100%+6px)] z-30 w-full overflow-hidden rounded-lg border border-line bg-surface sm:left-auto sm:right-0 sm:w-64">
           <div className="border-b border-line p-2">
             <input
               ref={inputRef}
