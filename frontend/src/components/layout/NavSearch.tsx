@@ -154,7 +154,16 @@ export function NavSearch({ user }: { user: User }) {
             ref={inputRef}
             type="search"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setQuery(value);
+              // Plain search filters live as you type. AI mode waits for Enter — each submit is a
+              // model call, so we never fire one per keystroke.
+              if (mode === 'search') {
+                const q = value.trim();
+                navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog', { replace: true });
+              }
+            }}
             placeholder={PLACEHOLDERS[mode]}
             aria-label={mode === 'ai' ? 'Ask AI or give an order command' : 'Search equipment'}
             data-testid="nav-search-input"
