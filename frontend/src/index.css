@@ -27,6 +27,160 @@ button:not(:disabled) {
   appearance: none;
 }
 
+/* ── Enhanced search: the "ocean sweep" AI treatment ─────────────────────────
+   Decided in mockups/enhanced-search.html (Option C, Variant 1). A palindromic
+   dark→light blue gradient slides THROUGH the pill (not around it), painted
+   twice: a crisp 1.5px ring plus a blurred twin behind it for the glow. The
+   twin drifts slower so the light never visibly loops. Blues come from the
+   --ai-* tokens; nothing here should hardcode a color. */
+
+:root {
+  --ai-wave: linear-gradient(
+    90deg,
+    var(--ai-royal),
+    var(--ai-indigo),
+    var(--ai-royal),
+    var(--ai-sky),
+    var(--ai-bright),
+    var(--ai-crest),
+    var(--ai-bright),
+    var(--ai-sky),
+    var(--ai-royal),
+    var(--ai-indigo),
+    var(--ai-royal)
+  );
+}
+
+.ai-shell {
+  position: relative;
+  /* keep the z-index:-1 glow inside the shell instead of behind the nav */
+  isolation: isolate;
+  border-radius: 9999px;
+  padding: 1.5px; /* the ring thickness */
+  background: var(--line-strong);
+}
+
+/* the blurred twin — always present, gated by opacity so ignition can fade it in */
+.ai-shell::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.ai-shell.ai-on {
+  background: var(--ai-wave);
+  background-size: 300% 100%;
+  /* ignition: one fast crest washes across, then the slow ambient swell */
+  animation:
+    aiIgnite 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    aiSweep 7s linear 0.9s infinite;
+}
+
+.ai-shell.ai-on::before {
+  background: var(--ai-wave);
+  background-size: 300% 100%;
+  filter: blur(14px);
+  opacity: var(--ai-glow-opacity);
+  transform: scale(1);
+  animation:
+    aiIgnite 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    aiSweep 9s linear 0.9s infinite; /* slower than the ring — never repeats in step */
+}
+
+/* while the model works, the swell speeds up */
+.ai-shell.ai-thinking,
+.ai-shell.ai-thinking::before {
+  animation-duration: 0.9s, 2.2s;
+}
+
+@keyframes aiIgnite {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 150% 50%;
+  }
+}
+
+@keyframes aiSweep {
+  from {
+    background-position: 150% 50%;
+  }
+  to {
+    background-position: 450% 50%;
+  }
+}
+
+/* shimmering status readout while the agent thinks */
+.ai-status {
+  background: linear-gradient(90deg, var(--ai-ink), var(--ai-crest), var(--ai-ink));
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: aiShimmer 1.4s linear infinite;
+}
+
+@keyframes aiShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+.ai-spark {
+  transform-origin: center;
+  animation: aiTwinkle 2.6s ease-in-out infinite;
+}
+
+@keyframes aiTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* cart line the agent just added: blue wash that settles back to normal */
+.agent-added {
+  animation: agentAddedWash 2.4s ease-out both;
+}
+
+@keyframes agentAddedWash {
+  0% {
+    background-color: color-mix(in srgb, var(--ai-sky) 20%, transparent);
+    box-shadow: 0 0 0 1px var(--ai-sky);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-shell.ai-on,
+  .ai-shell.ai-on::before,
+  .ai-status,
+  .ai-spark,
+  .agent-added {
+    animation: none !important;
+  }
+}
+
 /* Entrance animations used by the catalog grid, cart groups, and the patient-assignment sheet. */
 @keyframes cardIn {
   from {

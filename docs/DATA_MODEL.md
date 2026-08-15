@@ -121,3 +121,18 @@ until a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
+
+## AI token ledger (localStorage, not a JSON table)
+
+Every Anthropic call made by the enhanced search (`src/lib/ai/`) appends a record to
+localStorage key `bestrx.ai_usage.v1`:
+
+```ts
+{ id, at, feature: 'rerank' | 'agent_order', model, inputTokens, outputTokens,
+  costUsd, latencyMs, ok }
+```
+
+`summarizeUsage()` in `src/lib/ai/usage.ts` returns per-feature totals plus a grand total —
+this is the data source for the cost dashboard's "AI spend" figures. Any new AI surface must
+record into the same ledger with a new `feature` value (extend `AiFeature` in
+`src/types/ai.ts`). Spec: [specs/enhanced-search.md](specs/enhanced-search.md).

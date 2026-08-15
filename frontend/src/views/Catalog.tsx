@@ -33,6 +33,7 @@ import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
+import { useAiRerank } from '../hooks/useAiRerank';
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'featured', label: 'Featured' },
@@ -46,6 +47,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
+  const aiMode = searchParams.get('ai') === '1';
   const assignablePatients = useMemo(
     () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
     [user.orgId],
@@ -56,7 +58,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const [filters, setFilters] = useState<CatalogFilterState>(() => defaultCatalogFilters(priceMax));
   const [currentPage, setCurrentPage] = useState(1);
-  const { lines, setLines, cartOpen, setCartOpen, clearCart } = useCart();
+  const { lines, setLines, cartOpen, setCartOpen, clearCart, agentAdded, setAgentAdded } = useCart();
   const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
   const [sheetMode, setSheetMode] = useState<'cart' | 'order'>('cart');
   const [placedOrder, setPlacedOrder] = useState<PlacedOrderDetails | null>(null);
@@ -162,7 +164,26 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     say('Filters cleared');
   };
 
-  const filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
+  // AI search: the model re-orders the (filter-respecting) catalog around the query and,
+  // when the query names one patient, their sanitized context. Deterministic results render
+  // immediately; the AI order is applied when it lands. Any failure = plain keyword search.
+  const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, assignablePatients);
+  const aiActive = aiMode && !!searchQuery && !aiRerank.failed;
+  let filteredSorted: typeof catalogItems;
+  if (aiActive) {
+    const base = filterAndSortCatalog(catalogItems, filters);
+    if (aiRerank.result) {
+      const position = new Map(aiRerank.result.orderedOfferIds.map((id, i) => [id, i]));
+      filteredSorted = base
+        .slice()
+        .sort((a, b) => (position.get(a.offer.id) ?? 999) - (position.get(b.offer.id) ?? 999));
+    } else {
+      filteredSorted = base;
+    }
+  } else {
+    filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
+  }
+  const aiReasons = aiActive && aiRerank.result ? aiRerank.result.reasons : {};
   const catalogPage = paginateCatalog(filteredSorted, currentPage);
   const cartGroups = buildCartGroups(lines, catalogItems, patients);
   const totals = cartTotals(lines, catalogItems);
@@ -236,6 +257,23 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                       </Link>
                     </div>
                   ) : null}
+                  {aiMode && searchQuery ? (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[12px]" data-testid="ai-rank-status">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="text-ai-ink">
+                        <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+                      </svg>
+                      {aiRerank.busy ? (
+                        <span className="ai-status">Ranking for this search…</span>
+                      ) : aiRerank.failed ? (
+                        <span className="text-ink-3">AI unavailable — standard results</span>
+                      ) : (
+                        <span className="text-ai-ink">
+                          AI-ranked, best match first
+                          {aiRerank.patientLabel ? ` · considered ${aiRerank.patientLabel}` : ''}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {SORTS.map((s) => (
@@ -265,7 +303,11 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                       className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
                       style={{ animationDelay: `${i * 0.045}s` }}
                     >
-                      <ProductCard item={item} onOrderNow={() => openOrderSheet(item.offer.id)} />
+                      <ProductCard
+                        item={item}
+                        onOrderNow={() => openOrderSheet(item.offer.id)}
+                        aiReason={aiReasons[item.offer.id]}
+                      />
                     </div>
                   ))}
                 </div>
@@ -305,12 +347,16 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         totals={totals}
         onQtyChange={(id, patientId, qty) => setLines((prev) => setCartLineQty(prev, id, patientId, qty))}
         onRemove={(id, patientId) => setLines((prev) => setCartLineQty(prev, id, patientId, 0))}
-        onClose={() => setCartOpen(false)}
+        onClose={() => {
+          setCartOpen(false);
+          setAgentAdded(null); // the spotlight is a one-time confirmation, not a permanent badge
+        }}
         onViewCart={() => {
           setCartOpen(false);
           navigate('/cart');
         }}
         onPlaceOrder={placeOrder}
+        agentAdded={agentAdded}
       />
 
       <Toast message={toast} />

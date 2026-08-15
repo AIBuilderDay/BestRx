@@ -7,9 +7,12 @@ import { ItemStarRating } from './ItemStarRating';
 export function ProductCard({
   item,
   onOrderNow,
+  aiReason,
 }: {
   item: CatalogProductVM;
   onOrderNow: () => void;
+  /** One short model-written line on why this ranked here (AI search only). */
+  aiReason?: string;
 }) {
   const [imgBroken, setImgBroken] = useState(false);
   const { offer, price, vendor, rating } = item;
@@ -81,6 +84,15 @@ export function ProductCard({
           </div>
 
           <div className="truncate text-xs text-ink-2">{vendor.displayName}</div>
+
+          {aiReason && (
+            <div className="flex items-center gap-1 text-[11px] text-ai-ink" data-testid="ai-reason">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="shrink-0">
+                <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+              </svg>
+              <span className="truncate">{aiReason}</span>
+            </div>
+          )}
         </div>
       </div>
     </article>
