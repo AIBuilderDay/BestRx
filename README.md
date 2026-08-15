@@ -1,11 +1,17 @@
 # BestRx
 
-Shared visibility for hospice durable medical equipment (DME), from order to pickup.
+Amazon for DME vendors, for hospices.
 
-A hospice patient going home needs a hospital bed and oxygen in place before they arrive. A patient
-who has died needs their equipment collected quickly and respectfully. Both moments are handled by
-an outside DME vendor, outside the hospice's EMR, usually over phone and fax. BestRx puts both sides
-of that handoff on one board, and flags an order as at risk while there is still time to act.
+A hospice orders durable medical equipment the way you order anything else: browse, compare on
+price, quality, and delivery date, add to cart, assign it to a patient, and watch it arrive. Today
+that happens by phone, fax, or one portal per vendor, and nobody finds out an order is late until
+the family calls. BestRx puts ordering and delivery status in one place, with budgets the hospice
+controls and a risk flag that fires while there is still time to act.
+
+The buyer's question is "how are you going to decrease my DME PPD?" — the average equipment cost to
+care for one patient for one day. Price transparency across vendors, fewer paid-for days after a
+death, and fewer emergency substitutions are how BestRx answers it. See
+`docs/PROJECT_DESCRIPTION.md` section 6.
 
 Built for the BetterRX Builder Day bounty, August 2026.
 
@@ -63,6 +69,8 @@ Workers.
 ## Documentation
 
 - `docs/PROJECT_DESCRIPTION.md` is the master document. Read it first.
+- `docs/DESIGN_SYSTEM.html` covers tokens, patterns, and tone. Open it in a browser. It is
+  deliberately basic and expected to change.
 - `docs/DATA_MODEL.md` describes the mock database.
 - `docs/WORKFLOW.md` describes how a mockup becomes a spec, tickets, and a PR.
 - `docs/bounty/` holds the organizers' brief, FAQ, and sample orders.

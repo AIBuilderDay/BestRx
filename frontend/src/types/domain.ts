@@ -21,7 +21,13 @@ export type Urgency = 'stat' | 'urgent' | 'routine';
 
 export type PatientStatus = 'active' | 'pending_discharge' | 'discharged' | 'deceased';
 
-export type UserRole = 'case_manager' | 'field_nurse' | 'vendor_dispatcher';
+export type UserRole =
+  | 'admissions_nurse'
+  | 'case_manager'
+  | 'field_nurse'
+  | 'director_of_nursing'
+  | 'hospice_admin'
+  | 'vendor_dispatcher';
 
 export type EquipmentCategory =
   | 'bed'
@@ -202,6 +208,43 @@ export interface InventoryUnit {
   orderId: string | null;
   overdue?: boolean;
   lastServicedAt: string;
+}
+
+/**
+ * What one vendor charges for one catalog item, and how fast they say they can deliver it.
+ * This is the storefront row: the thing a nurse sorts and compares before adding to a cart.
+ */
+export interface VendorOffer {
+  id: string;
+  vendorId: string;
+  hcpcs: string;
+  priceUsd: number;
+  unit: 'month' | 'purchase';
+  inStock: boolean;
+  /** Vendor's own promise, not a measurement. Compare against vendor.performance30d. */
+  deliveryEtaHours: number;
+  /** 1-5, averaged from the nurses who received previous deliveries. */
+  nurseRating: number;
+  ratingCount: number;
+}
+
+export interface Budget {
+  id: string;
+  hospiceId: string;
+  /** Either a spending cap for a role, or a cap on one patient's equipment. */
+  scope: 'role' | 'patient_purchase';
+  /** A UserRole when scope is 'role', a patient id when scope is 'patient_purchase'. */
+  scopeRef: string;
+  /** Calendar month, YYYY-MM. */
+  period: string;
+  /**
+   * The cap for the period. For role budgets this is derived, not guessed:
+   * ppdUsd x assignedPatients x days, following mockups/cost-ledger.html.
+   */
+  limitUsd: number;
+  spentUsd: number;
+  setById: string | null;
+  derivedFrom?: { ppdUsd: number; assignedPatients: number; days: number };
 }
 
 export interface EmrEvent {

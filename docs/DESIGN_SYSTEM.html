@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BestRx Design System</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #fafafa; --surface: #ffffff;
+    --hover: #f5f5f5; --track: #ececec;
+    --line: #eaeaea; --line-strong: #d4d4d4;
+    --ink: #0a0a0a; --ink-2: #555555; --ink-3: #888888;
+    --solid-bg: #0a0a0a; --solid-ink: #ffffff;
+    --good: #15803d; --good-bg: #f0fdf4;
+    --warn: #b45309; --warn-bg: #fffbeb;
+    --risk: #b42318; --risk-bg: #fef3f2;
+    --s1: #0a0a0a; --s2: #525252; --s3: #969696; --s4: #cfcfcf;
+    --radius-control: 7px; --radius-card: 10px; --radius-panel: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --bg-subtle: #111111; --surface: #0f0f0f;
+      --hover: #171717; --track: #222222;
+      --line: #262626; --line-strong: #3a3a3a;
+      --ink: #fafafa; --ink-2: #a3a3a3; --ink-3: #737373;
+      --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+      --good: #4ade80; --good-bg: #0d1f14;
+      --warn: #fbbf24; --warn-bg: #241a06;
+      --risk: #f97066; --risk-bg: #2a1210;
+      --s1: #fafafa; --s2: #a8a8a8; --s3: #6b6b6b; --s4: #3d3d3d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --bg-subtle: #111111; --surface: #0f0f0f;
+    --hover: #171717; --track: #222222;
+    --line: #262626; --line-strong: #3a3a3a;
+    --ink: #fafafa; --ink-2: #a3a3a3; --ink-3: #737373;
+    --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+    --good: #4ade80; --good-bg: #0d1f14;
+    --warn: #fbbf24; --warn-bg: #241a06;
+    --risk: #f97066; --risk-bg: #2a1210;
+    --s1: #fafafa; --s2: #a8a8a8; --s3: #6b6b6b; --s4: #3d3d3d;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0 auto; padding: 40px 28px 80px; max-width: 940px;
+    background: var(--bg); color: var(--ink);
+    font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 6px; }
+  h2 { font-size: 18px; letter-spacing: -0.01em; margin: 46px 0 4px; padding-top: 22px; border-top: 1px solid var(--line); }
+  h3 { font-size: 14px; margin: 26px 0 8px; }
+  p { max-width: 74ch; color: var(--ink-2); }
+  p.lede { color: var(--ink); font-size: 15px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px;
+         background: var(--bg-subtle); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+  a { color: var(--ink); }
+  ul { max-width: 74ch; color: var(--ink-2); padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  li b, p b { color: var(--ink); }
+  .note { border-left: 2px solid var(--ink); padding: 2px 0 2px 14px; margin: 16px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+       color: var(--ink-3); font-weight: 500; padding: 8px 12px; background: var(--bg-subtle);
+       border-bottom: 1px solid var(--line); }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-2); }
+  td:first-child { color: var(--ink); }
+  .tablewrap { border: 1px solid var(--line); border-radius: var(--radius-card); overflow-x: auto; }
+
+  /* swatches */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px; margin: 14px 0; }
+  .sw { border: 1px solid var(--line); border-radius: var(--radius-card); overflow: hidden; background: var(--surface); }
+  .sw .chip { height: 52px; border-bottom: 1px solid var(--line); }
+  .sw .meta { padding: 8px 10px; }
+  .sw .n { font-size: 12px; font-weight: 600; }
+  .sw .u { font-size: 11px; color: var(--ink-3); font-family: ui-monospace, monospace; }
+
+  /* component demos */
+  .demo { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface);
+          padding: 18px 20px; margin: 12px 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { font: inherit; font-size: 13px; font-weight: 500; border-radius: var(--radius-control);
+         padding: 8px 14px; cursor: pointer; border: 1px solid var(--line-strong);
+         background: var(--surface); color: var(--ink); }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--solid-bg); color: var(--solid-ink); border-color: var(--solid-bg); }
+  .btn.ghost { border-color: transparent; color: var(--ink-2); background: transparent; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500;
+          padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-2); }
+  .pill.solid { background: var(--solid-bg); color: var(--solid-ink); border-color: var(--solid-bg); }
+  .pill.good { color: var(--good); border-color: var(--good); background: var(--good-bg); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+  .pill.risk { color: var(--risk); border-color: var(--risk); background: var(--risk-bg); }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; width: 100%; }
+  .stat { border: 1px solid var(--line); border-radius: var(--radius-card); padding: 13px 15px; background: var(--surface); }
+  .stat.emph { border-color: var(--ink); }
+  .stat .k { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat .v { font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .stat .d { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .stat .v.good { color: var(--good); } .stat .v.warn { color: var(--warn); } .stat .v.risk { color: var(--risk); }
+
+  .meterwrap { width: 100%; max-width: 300px; }
+  .meter { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+  .meter > i { display: block; height: 100%; border-radius: 3px; background: var(--ink); }
+  .meter > i.good { background: var(--good); } .meter > i.warn { background: var(--warn); } .meter > i.risk { background: var(--risk); }
+  .mlabel { font-size: 12px; color: var(--ink-3); margin-top: 5px; font-variant-numeric: tabular-nums; }
+
+  .steps { display: flex; gap: 4px; align-items: center; }
+  .stepseg { width: 26px; height: 4px; border-radius: 2px; background: var(--track); }
+  .stepseg.done { background: var(--ink); }
+  .stepseg.warn { background: repeating-linear-gradient(45deg, var(--ink), var(--ink) 3px, var(--track) 3px, var(--track) 6px); }
+
+  .type-row { display: flex; align-items: baseline; gap: 16px; border-bottom: 1px solid var(--line); padding: 10px 0; }
+  .type-row .lbl { font-size: 11px; color: var(--ink-3); width: 190px; flex: none; font-family: ui-monospace, monospace; }
+  .t-h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .t-h2 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .t-card { font-size: 14px; font-weight: 600; }
+  .t-body { font-size: 13px; }
+  .t-meta { font-size: 12px; color: var(--ink-3); }
+  .t-th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); }
+  .t-num { font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  .series { display: flex; gap: 0; border-radius: var(--radius-control); overflow: hidden; width: 100%; max-width: 420px; }
+  .series > div { height: 40px; flex: 1; display: flex; align-items: flex-end; justify-content: center;
+                  font-size: 10px; padding-bottom: 4px; font-family: ui-monospace, monospace; }
+
+  .toggle { position: fixed; top: 16px; right: 16px; }
+  @media (max-width: 640px) { body { padding: 28px 16px 60px; } .type-row .lbl { width: 110px; } }
+</style>
+</head>
+<body>
+
+<button class="btn toggle" onclick="
+  const r=document.documentElement;
+  const dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#0a0a0a';
+  r.setAttribute('data-theme', dark?'light':'dark');">Toggle theme</button>
+
+<h1>BestRx design system</h1>
+<p class="lede">
+  Deliberately basic, and meant to be edited. Lifted from
+  <code>mockups/orders-board.html</code> and <code>mockups/cost-ledger.html</code> so every screen
+  looks like the same product on day one.
+</p>
+
+<div class="note">
+  <p><b>This file is both the reference and the spec.</b> Open it in a browser to see the system;
+  read it as text to build against it. It is the one HTML file agents should read as well as humans.
+  The values here are implemented once, in <code>frontend/src/index.css</code>.</p>
+  <p><b>Anyone can change this as we go.</b> It is a starting point, not a rulebook. The only rule:
+  change it <i>here</i> and in <code>index.css</code>, rather than working around it inside one
+  component. Token or pattern changes affect everyone's screens, so keep them in a small standalone
+  PR instead of burying them in a feature.</p>
+</div>
+
+<h2>The look, in one sentence</h2>
+<p>
+  Near-monochrome, thin borders, generous whitespace, tabular numbers, colour used only where it
+  carries meaning. Shop-app interaction patterns, clinical restraint in tone.
+</p>
+
+<h2>Surfaces, lines, and ink</h2>
+<p>Hierarchy comes from these, not from colour. Three ink levels is usually enough for any screen.</p>
+
+<div class="swatches">
+  <div class="sw"><div class="chip" style="background:var(--bg)"></div><div class="meta"><div class="n">Page background</div><div class="u">--bg</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--bg-subtle)"></div><div class="meta"><div class="n">Subtle fill</div><div class="u">--bg-subtle</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--surface)"></div><div class="meta"><div class="n">Raised surface</div><div class="u">--surface</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--hover)"></div><div class="meta"><div class="n">Hover</div><div class="u">--hover</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--track)"></div><div class="meta"><div class="n">Bar track</div><div class="u">--track</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--line)"></div><div class="meta"><div class="n">Border</div><div class="u">--line</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--line-strong)"></div><div class="meta"><div class="n">Strong border</div><div class="u">--line-strong</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--ink)"></div><div class="meta"><div class="n">Primary text</div><div class="u">--ink</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--ink-2)"></div><div class="meta"><div class="n">Secondary text</div><div class="u">--ink-2</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--ink-3)"></div><div class="meta"><div class="n">Tertiary text</div><div class="u">--ink-3</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--solid-bg)"></div><div class="meta"><div class="n">Inverted fill</div><div class="u">--solid-bg / --solid-ink</div></div></div>
+</div>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th>Token</th><th>Tailwind utility</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td>--bg</td><td><code>bg-bg</code></td><td>Page background</td></tr>
+      <tr><td>--bg-subtle</td><td><code>bg-bg-subtle</code></td><td>Table headers and footers, inset rule bars</td></tr>
+      <tr><td>--surface</td><td><code>bg-surface</code></td><td>Cards, drawers, anything raised</td></tr>
+      <tr><td>--hover</td><td><code>bg-hover</code></td><td>Row and control hover</td></tr>
+      <tr><td>--track</td><td><code>bg-track</code></td><td>Empty half of a meter or progress bar</td></tr>
+      <tr><td>--line</td><td><code>border-line</code></td><td>Default borders and dividers</td></tr>
+      <tr><td>--line-strong</td><td><code>border-line-strong</code></td><td>Secondary buttons, table footers, emphasized dividers</td></tr>
+      <tr><td>--ink</td><td><code>text-ink</code></td><td>Primary text, headings, filled bars, the main chart line</td></tr>
+      <tr><td>--ink-2</td><td><code>text-ink-2</code></td><td>Secondary text, labels</td></tr>
+      <tr><td>--ink-3</td><td><code>text-ink-3</code></td><td>Breadcrumbs, axis labels, timestamps</td></tr>
+      <tr><td>--solid-bg / --solid-ink</td><td><code>bg-solid-bg</code>, <code>text-solid-ink</code></td><td>Primary buttons, active pills, tooltips. Inverts in dark mode</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>The three semantic colours</h2>
+<p>
+  Colour is meaning, never decoration. There are exactly three, each with a background tint for
+  fills. <b>Do not add a fourth</b> — no blue link colour, no separate info palette.
+</p>
+
+<div class="swatches">
+  <div class="sw"><div class="chip" style="background:var(--good)"></div><div class="meta"><div class="n">Good</div><div class="u">--good / --good-bg</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--warn)"></div><div class="meta"><div class="n">Warn</div><div class="u">--warn / --warn-bg</div></div></div>
+  <div class="sw"><div class="chip" style="background:var(--risk)"></div><div class="meta"><div class="n">Risk</div><div class="u">--risk / --risk-bg</div></div></div>
+</div>
+
+<div class="tablewrap">
+  <table>
+    <thead><tr><th>Colour</th><th>Means</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>good</td><td>A better option exists, or things are healthy</td><td>Savings available, best qualified vendor, under budget, delivered on time</td></tr>
+      <tr><td>warn</td><td>Caution about a choice</td><td>Near or over budget, a cheap vendor that misses SLAs, a manual rate override</td></tr>
+      <tr><td>risk</td><td>A patient-facing failure in progress</td><td>An order that will miss its deadline, a breached pickup SLA</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>
+  If you cannot say which of the three a case is, it probably needs none of them — use ink levels.
+</p>
+
+<h2>Chart series</h2>
+<p>
+  A four-step grayscale ramp, checked for colour-vision deficiency. Categorical series use these in
+  order. <code>good</code> and <code>warn</code> stay reserved for their meanings above. If a chart
+  needs more than four series, it needs a different chart.
+</p>
+<div class="demo">
+  <div class="series">
+    <div style="background:var(--s1);color:var(--bg)">--s1</div>
+    <div style="background:var(--s2);color:var(--bg)">--s2</div>
+    <div style="background:var(--s3);color:var(--bg)">--s3</div>
+    <div style="background:var(--s4);color:var(--ink)">--s4</div>
+  </div>
+</div>
+
+<h2>Radii and spacing</h2>
+<p>
+  <code>--radius-control</code> 7px for buttons and inputs, <code>--radius-card</code> 10px for
+  cards and tables, <code>--radius-panel</code> 12px for drawers and modals.
+  <b>Never hardcode a hex value or a pixel radius in a component.</b> If the tokens do not cover it,
+  add a token here first.
+</p>
+
+<h2>Type and numbers</h2>
+<p>Base 14px / 1.5, system font stack. Uppercase with wide tracking is only for table headers and small control labels.</p>
+
+<div class="type-row"><div class="lbl">22px / 600 / -0.02em</div><div class="t-h1">Page title</div></div>
+<div class="type-row"><div class="lbl">16px / 600</div><div class="t-h2">Section or drawer heading</div></div>
+<div class="type-row"><div class="lbl">14px / 600</div><div class="t-card">Card title</div></div>
+<div class="type-row"><div class="lbl">13-14px / 400</div><div class="t-body">Body text and table cells</div></div>
+<div class="type-row"><div class="lbl">12px / ink-3</div><div class="t-meta">Metadata, breadcrumbs, timestamps</div></div>
+<div class="type-row"><div class="lbl">11px / uppercase</div><div class="t-th">Table header</div></div>
+<div class="type-row"><div class="lbl">tabular-nums</div><div class="t-num">$11,904.00 &nbsp; 4:30 PM &nbsp; 0.87 &nbsp; 94%</div></div>
+
+<p>
+  <b>Any number that lines up in a column gets <code>tabular-nums</code></b> — IDs, times, counts,
+  prices, scores, percentages. Money is right-aligned in tables, with the extended total as a
+  smaller line beneath the unit price where both matter.
+</p>
+
+<h2>Patterns</h2>
+<p>
+  None of these are built in React yet. Build the one your ticket needs inside your own area's folder
+  (<code>components/orders/</code>, <code>components/vendor/</code>, and so on). <b>When a second
+  area needs the same thing, move it to <code>components/ui/</code></b> and add it here. Copy the
+  markup from the mockups rather than reinventing it.
+</p>
+
+<h3>Buttons — one primary action per view</h3>
+<div class="demo">
+  <button class="btn primary">Primary</button>
+  <button class="btn">Secondary</button>
+  <button class="btn ghost">Ghost</button>
+</div>
+
+<h3>Pills — order stage, budget state, risk flag, filter chip</h3>
+<div class="demo">
+  <span class="pill">Dispatched</span>
+  <span class="pill solid">Ordered</span>
+  <span class="pill good">&#10003; Under cap</span>
+  <span class="pill warn">&#9650; Near cap</span>
+  <span class="pill risk">At risk</span>
+</div>
+
+<h3>Stat row — the top of a view</h3>
+<div class="demo">
+  <div class="stats">
+    <div class="stat"><div class="k">Total DME spend</div><div class="v">$18,420</div><div class="d">1 month</div></div>
+    <div class="stat"><div class="k">Cost per patient-day</div><div class="v">$3.34</div><div class="d">178 patients &times; 31 days</div></div>
+    <div class="stat"><div class="k">Savings available</div><div class="v good">&darr; $2,180</div><div class="d">qualified vendors only</div></div>
+    <div class="stat emph"><div class="k">At risk</div><div class="v risk">2</div><div class="d">1 delivery &middot; 1 pickup</div></div>
+  </div>
+</div>
+<p>
+  Colour the number only when the number itself is the news. The full-ink border marks the one thing
+  that needs attention — use it once per view at most.
+</p>
+
+<h3>Meter — budget utilization, risk score, on-time rate</h3>
+<div class="demo">
+  <div class="meterwrap">
+    <div class="meter"><i style="width:68%"></i></div>
+    <div class="mlabel">Neutral &mdash; 68%</div>
+  </div>
+  <div class="meterwrap">
+    <div class="meter"><i class="warn" style="width:94%"></i></div>
+    <div class="mlabel">Near cap &mdash; 94%</div>
+  </div>
+  <div class="meterwrap">
+    <div class="meter"><i class="risk" style="width:95%"></i></div>
+    <div class="mlabel">Risk score &mdash; 0.95</div>
+  </div>
+</div>
+<p>Clamp to 100% so an over-cap value fills the track instead of overflowing it, and give every bar a screen-reader label.</p>
+
+<h3>Lifecycle stepper — six stages, order to pickup</h3>
+<div class="demo">
+  <div class="steps" title="In transit, at risk">
+    <div class="stepseg done"></div><div class="stepseg done"></div><div class="stepseg warn"></div>
+    <div class="stepseg"></div><div class="stepseg"></div><div class="stepseg"></div>
+  </div>
+  <span class="t-meta">In transit, at risk (stage 3 of 6)</span>
+</div>
+
+<h3>Still to build</h3>
+<p>
+  The sidebar shell, filter-tab row, compare switch, sortable data tables with a totals footer, the
+  detail drawer with ladder rows, sparklines, and the area chart with tooltips. All of them exist in
+  the two mockups — reference those.
+</p>
+
+<h2>Charts</h2>
+<p><code>mockups/cost-ledger.html</code> sets the bar. Follow it:</p>
+<ul>
+  <li><b>Derive everything.</b> No hardcoded totals on screen. Change a period or a filter and the whole view stays coherent.</li>
+  <li><b>Round axis ticks.</b> Scale to a nice step (1, 1.5, 2, 2.5, 5 &times; a power of ten), not to <code>max &times; 1.1</code>.</li>
+  <li><b>Label the SVG.</b> Every chart carries <code>role="img"</code> and an <code>aria-label</code> stating the shape and endpoints. Hover targets get their own labels and keyboard focus.</li>
+  <li><b>Small multiples over many charts.</b> Seven sparklines in a table column read faster than seven separate charts.</li>
+  <li><b>The shaded gap is the point.</b> When comparing two lines, fill the space between them — that area is the money, made visible.</li>
+</ul>
+<p>If the <code>dataviz</code> skill is available, load it before building a chart.</p>
+
+<h2>Rules</h2>
+<ul>
+  <li><b>Borders over shadows.</b> No drop shadows except on a true overlay.</li>
+  <li><b>Focus is global.</b> <code>:focus-visible</code> is styled once in <code>index.css</code>. Do not remove or restyle outlines per component.</li>
+  <li><b>Dark mode is not optional.</b> Use tokens and you get it free. A hardcoded colour breaks it, which is the fastest way to spot one — toggle the theme above.</li>
+  <li><b>Tables scroll inside their own wrapper</b>, never the page. The wrapper needs <code>overflow-x: auto</code>, and its grid parent needs <code>min-width: 0</code> or the whole page scrolls sideways on mobile.</li>
+  <li><b>Build for the device.</b> Field nurses are on a phone browser; admissions nurses and dashboards are desktop. Assume an untrained user — nurse turnover is high.</li>
+  <li><b>Respect motion preferences.</b> Any transition gets a <code>prefers-reduced-motion</code> escape.</li>
+  <li><b>Tone.</b> Plain, specific, respectful. No exclamation marks, no celebration, nothing cheerful next to a death or a delayed pickup. A toast explains what happened; it does not congratulate.</li>
+</ul>
+
+</body>
+</html>

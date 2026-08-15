@@ -19,10 +19,28 @@ a PR per ticket, opened with gh
 a Claude session reads well. Mockups are self-contained HTML files because that is what a person can
 open in a browser and react to in ten seconds.
 
-## Who does what
+## Who owns what
 
-Each person on the team owns an area (orders board, risk/explainability, pickup flow, vendor side,
-cost/scorecards). For your area you:
+From the planning session ([whiteboards/whiteboard-2-views.png](whiteboards/whiteboard-2-views.png)).
+Unassigned rows are up for grabs — put your name on one before you start, in a PR.
+
+| Area | View | Owner |
+| --- | --- | --- |
+| Storefront | Sort by delivery date, vendor quality rating, price | Yirang |
+| Storefront | Filtering sidebar (Amazon / shop-app style) | Yirang |
+| Storefront | Select product → select patient | Yirang |
+| Storefront | Payment and cart view | McKay |
+| Auth | Login page, permissions determining views | McKay |
+| Orders | Order and delivery status | Kalo |
+| Dashboard | Spending charts (filter by time, comparison, subscriptions) | Kalo |
+| Dashboard | Budget configuration | Kalo |
+| Patients | Patient information view | Nathan |
+| Patients | Nurse-to-patient assignment | Nathan |
+| Dashboard | Notes on patient status from case manager and nurse | unassigned |
+| Vendors | Preferred vendors, auto-suggested by price and reviews | unassigned |
+| Pickup | Field-nurse pickup trigger and vendor notification | unassigned |
+
+For your area you:
 
 1. Read [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md).
 2. Build an HTML mockup in [../mockups/](../mockups/) — static, self-contained, no build step, no
