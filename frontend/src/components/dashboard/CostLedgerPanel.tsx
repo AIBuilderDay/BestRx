@@ -60,17 +60,25 @@ export function CostLedgerPanel({
   const [spendRange, setSpendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
   const [preferredVendors, setPreferredVendors] = useState(() => readPreferredVendors());
 
-  const useVendorForCode = (hcpcs: string, vendorId: string) => {
+  const toggleVendorForCode = (hcpcs: string, vendorId: string) => {
     setPreferredVendors((current) => {
-      const next = { ...current, [hcpcs]: vendorId };
+      const next = { ...current };
+      if (next[hcpcs] === vendorId) delete next[hcpcs];
+      else next[hcpcs] = vendorId;
       writePreferredVendors(next);
       return next;
     });
   };
 
   const productSavings = useMemo(() => buildProductSavings(lines, columns), [lines, columns]);
-  const totalSavingsUsd = useMemo(() => totalPotentialSavingsUsd(productSavings), [productSavings]);
-  const savingsProductCount = useMemo(() => countGenuineSavings(productSavings), [productSavings]);
+  const totalSavingsUsd = useMemo(
+    () => totalPotentialSavingsUsd(productSavings, preferredVendors),
+    [productSavings, preferredVendors],
+  );
+  const savingsProductCount = useMemo(
+    () => countGenuineSavings(productSavings, preferredVendors),
+    [productSavings, preferredVendors],
+  );
   const spendRangeSummary = useMemo(
     () => spendSummaryForRange(hospiceId, period, lines, spendRange),
     [hospiceId, period, lines, spendRange],
@@ -120,13 +128,12 @@ export function CostLedgerPanel({
       key: 'delta',
       label: 'Potential Savings',
       // Never nets a premium on one product against a saving on another — see
-      // totalPotentialSavingsUsd. Zero means no product this period beats what was paid, not that
-      // nothing was checked.
+      // totalPotentialSavingsUsd. Accepted suggestions are no longer counted as potential.
       value: totalSavingsUsd > 0 ? `↓ ${moneyLabel(totalSavingsUsd)}` : '$0',
       detail:
         totalSavingsUsd > 0
           ? `Across ${savingsProductCount} of ${productSavings.length} products`
-          : `No cheaper real alternative across ${productSavings.length} products`,
+          : `No remaining savings across ${productSavings.length} products`,
       tone: totalSavingsUsd > 0 ? 'good' : 'plain',
       chartable: productSavings.length > 0,
     },
@@ -173,7 +180,7 @@ export function CostLedgerPanel({
       <ProductSavingsPanel
         rows={productSavings}
         preferredVendors={preferredVendors}
-        onUseVendor={useVendorForCode}
+        onUseVendor={toggleVendorForCode}
       />
     );
   } else if (selectedMetric === 'spend') {

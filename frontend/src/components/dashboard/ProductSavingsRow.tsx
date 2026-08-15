@@ -94,14 +94,11 @@ export function ProductSavingsRow({
               className="group relative inline-flex align-middle outline-none"
               tabIndex={0}
               aria-label={`Value score ${suggested.valueScore}. Savings ${suggested.valueCriteria.savingsScore} of 5, ${formatSavingsDelta(suggested.savingsUsd)}${lossPenaltyLabel(suggested.valueCriteria.lossPenalty)}. Vendor rating ${suggested.valueCriteria.ratingScore} of 5. Local service ${suggested.valueCriteria.localServiceScore} of 5, ${serviceAreaSummary(suggested)}.`}
-              title={`Savings: ${suggested.valueCriteria.savingsScore}/5 - ${formatSavingsDelta(suggested.savingsUsd)}${lossPenaltyLabel(suggested.valueCriteria.lossPenalty)}
-Vendor rating: ${suggested.valueCriteria.ratingScore}/5
-Local service: ${suggested.valueCriteria.localServiceScore}/5 - ${serviceAreaSummary(suggested)}`}
             >
               <span className={`${SCORE_BADGE} ${valueScoreColor(suggested.valueScore)}`}>
                 {suggested.valueScore}
               </span>
-              <span className="pointer-events-none absolute bottom-full right-0 z-30 mb-2 hidden w-72 rounded-control border border-line-strong bg-solid-bg p-3 text-left text-[12px] leading-snug text-solid-ink shadow-lg group-hover:block group-focus:block">
+              <span className="pointer-events-none absolute right-0 top-full z-50 mt-2 hidden w-72 rounded-control border border-line-strong bg-solid-bg p-3 text-left text-[12px] leading-snug text-solid-ink shadow-lg group-hover:block group-focus:block">
                 <span className="block text-[11px] font-semibold uppercase tracking-[0.06em] opacity-70">
                   Value score criteria
                 </span>
@@ -124,11 +121,11 @@ Local service: ${suggested.valueCriteria.localServiceScore}/5 - ${serviceAreaSum
           <td className="px-3 py-2.5 text-right">
             <button
               type="button"
-              disabled={isPreferred}
+              aria-pressed={isPreferred}
               onClick={() => onUseVendor(row.hcpcs, suggested.vendor.id)}
               className={
                 isPreferred
-                  ? 'rounded-control border border-good bg-good-bg px-2.5 py-1 text-[11px] font-medium text-good'
+                  ? 'rounded-control border border-good bg-good-bg px-2.5 py-1 text-[11px] font-medium text-good transition-colors hover:border-ink hover:text-ink'
                   : 'rounded-control border border-line-strong px-2.5 py-1 text-[11px] text-ink-2 transition-colors hover:border-ink hover:text-ink'
               }
             >

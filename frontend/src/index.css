@@ -480,6 +480,65 @@ button:not(:disabled) {
   animation: menuIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Dashboard stat values roll in the direction the number moved. */
+.stat-number-roll {
+  display: inline-grid;
+  min-height: 1.15em;
+  overflow: hidden;
+  perspective: 500px;
+  vertical-align: bottom;
+}
+
+.stat-number-roll-old,
+.stat-number-roll-new {
+  grid-area: 1 / 1;
+  transform-origin: center;
+}
+
+.stat-number-roll-up .stat-number-roll-old {
+  animation: statRollOutUp 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stat-number-roll-up .stat-number-roll-new {
+  animation: statRollInUp 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stat-number-roll-down .stat-number-roll-old {
+  animation: statRollOutDown 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.stat-number-roll-down .stat-number-roll-new {
+  animation: statRollInDown 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes statRollOutUp {
+  to {
+    opacity: 0;
+    transform: translateY(-80%) rotateX(55deg);
+  }
+}
+
+@keyframes statRollInUp {
+  from {
+    opacity: 0;
+    transform: translateY(80%) rotateX(-55deg);
+  }
+}
+
+@keyframes statRollOutDown {
+  to {
+    opacity: 0;
+    transform: translateY(80%) rotateX(-55deg);
+  }
+}
+
+@keyframes statRollInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-80%) rotateX(55deg);
+  }
+}
+
 /* Entrance animations used by catalog, orders, detail pages, cart groups, and sheets. */
 @keyframes cardIn {
   from {
@@ -904,6 +963,16 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .stat-number-roll-old,
+  .stat-number-roll-new {
+    animation: none;
+    transform: none;
+  }
+
+  .stat-number-roll-old {
+    display: none;
+  }
+
   .patient-sticky-note--interactive {
     transition: none;
   }

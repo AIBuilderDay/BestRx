@@ -20,18 +20,18 @@ export function ProductSavingsPanel({
   preferredVendors: PreferredVendorMap;
   onUseVendor: (hcpcs: string, vendorId: string) => void;
 }) {
-  const total = totalPotentialSavingsUsd(rows);
-  const genuineCount = countGenuineSavings(rows);
+  const total = totalPotentialSavingsUsd(rows, preferredVendors);
+  const genuineCount = countGenuineSavings(rows, preferredVendors);
 
   return (
     <section className="mt-4 rounded-card border border-ink bg-surface p-4">
       <h2 className="text-[15px] text-ink">Potential savings by product</h2>
       <p className="mt-1 max-w-[80ch] text-[13px] text-ink-2">
-        For every product ordered this period, the non-contracted vendor that best balances savings,
-        vendor rating, and local service fit — not always the cheapest.
+        For every product ordered this period, AI suggested the non-contracted vendor that best
+        balances savings, vendor rating, and local service fit — not always the cheapest.
         {total > 0
           ? ` ${moneyLabel(total)} identified across ${genuineCount} of ${rows.length} products.`
-          : ' No product this period has a cheaper, real alternative once quality is weighed in.'}
+          : ' No remaining product this period has a cheaper, real alternative once quality is weighed in.'}
       </p>
 
       {rows.length === 0 ? (

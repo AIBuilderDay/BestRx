@@ -6,11 +6,12 @@ import type {
   HospiceBudgetUsage,
   RoleRateVM,
 } from '../../lib/budgetLedger';
-import type { UserRole } from '../../types/domain';
+import type { UserRole, Vendor } from '../../types/domain';
 import type { CostPeriod } from '../../lib/costPeriod';
 import { AccountsBudgetTable } from './AccountsBudgetTable';
 import { BudgetFieldInput } from './BudgetFieldInput';
 import { TotalBudgetUsageMeter } from './TotalBudgetUsageMeter';
+import { VendorStatusTable } from './VendorStatusTable';
 
 function PencilIcon() {
   return (
@@ -31,6 +32,8 @@ export function BudgetPanel({
   sortDir,
   editMode,
   canEdit,
+  vendors,
+  vendorEnabled,
   onSort,
   onStartEdit,
   onSave,
@@ -38,6 +41,7 @@ export function BudgetPanel({
   onTotalBudgetChange,
   onRolePctChange,
   onAccountAmountChange,
+  onToggleVendor,
 }: {
   period: CostPeriod;
   usage: HospiceBudgetUsage;
@@ -49,6 +53,8 @@ export function BudgetPanel({
   editMode: boolean;
   /** Only the owner can adjust budgets. Everyone with reporting access can still see all of it. */
   canEdit: boolean;
+  vendors: Vendor[];
+  vendorEnabled: Record<string, boolean>;
   onSort: (key: AccountSortKey) => void;
   onStartEdit: () => void;
   onSave: () => void;
@@ -56,6 +62,7 @@ export function BudgetPanel({
   onTotalBudgetChange: (next: number | null) => void;
   onRolePctChange: (role: UserRole, next: number | null) => void;
   onAccountAmountChange: (userId: string, next: number | null) => void;
+  onToggleVendor: (vendorId: string) => void;
 }) {
   // Defensive: even if editMode were somehow left on, a viewer without budgets:configure never
   // sees an editable field — every input below reads this, not the raw editMode.
@@ -157,6 +164,8 @@ export function BudgetPanel({
           onAmountChange={onAccountAmountChange}
         />
       </div>
+
+      <VendorStatusTable vendors={vendors} enabled={vendorEnabled} canEdit={canEdit} onToggle={onToggleVendor} />
 
       {activeEditMode ? (
         <div className="mt-4 flex justify-end gap-2">

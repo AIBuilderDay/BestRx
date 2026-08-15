@@ -5,7 +5,7 @@
     "rating": 1,
     "reviewedAt": "2026-06-02T10:01:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Missed the discharge window entirely — had to source locally."
+    "comment": "Missed the discharge window entirely \u2014 had to source locally."
   },
   {
     "id": "REV-0002",
@@ -13,7 +13,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-03T10:02:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0003",
@@ -53,7 +53,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-08T10:07:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0008",
@@ -93,7 +93,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-13T10:12:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0013",
@@ -133,7 +133,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-18T10:17:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0018",
@@ -165,7 +165,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-22T10:21:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0022",
@@ -173,7 +173,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-23T10:22:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0023",
@@ -213,7 +213,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-28T10:27:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0028",
@@ -253,7 +253,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-05T10:32:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0033",
@@ -293,7 +293,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-10T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0038",
@@ -333,7 +333,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-15T10:42:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0043",
@@ -357,7 +357,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-18T10:45:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0046",
@@ -373,7 +373,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-20T10:47:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0048",
@@ -389,7 +389,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-22T10:49:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0050",
@@ -413,7 +413,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-25T10:52:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0053",
@@ -453,7 +453,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-02T10:57:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0058",
@@ -493,7 +493,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-07T10:02:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0063",
@@ -517,7 +517,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-10T10:05:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0066",
@@ -533,7 +533,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-12T10:07:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0068",
@@ -549,7 +549,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-14T10:09:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0070",
@@ -573,7 +573,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-17T10:12:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0073",
@@ -613,7 +613,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-22T10:17:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0078",
@@ -653,7 +653,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-27T10:22:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0083",
@@ -677,7 +677,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-02T10:25:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0086",
@@ -693,7 +693,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-04T10:27:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0088",
@@ -709,7 +709,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-06T10:29:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0090",
@@ -725,7 +725,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-08T10:31:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0092",
@@ -773,7 +773,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-14T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0098",
@@ -805,7 +805,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-18T10:41:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0102",
@@ -933,7 +933,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-06T10:57:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0118",
@@ -973,7 +973,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-11T10:02:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0123",
@@ -1061,7 +1061,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-22T10:13:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0134",
@@ -1093,7 +1093,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-26T10:17:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0138",
@@ -1125,7 +1125,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-02T10:21:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0142",
@@ -1221,7 +1221,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-14T10:33:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0154",
@@ -1253,7 +1253,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-18T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0158",
@@ -1285,7 +1285,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-22T10:41:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0162",
@@ -1349,7 +1349,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-02T10:49:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0170",
@@ -1381,7 +1381,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-06T10:53:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0174",
@@ -1413,7 +1413,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-10T10:57:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0178",
@@ -1445,7 +1445,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-14T10:01:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0182",
@@ -1477,7 +1477,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-18T10:05:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0186",
@@ -1509,7 +1509,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-22T10:09:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0190",
@@ -1541,7 +1541,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-26T10:13:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0194",
@@ -1573,7 +1573,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-02T10:17:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0198",
@@ -1605,7 +1605,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-06T10:21:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0202",
@@ -1637,7 +1637,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-10T10:25:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0206",
@@ -1669,7 +1669,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-14T10:29:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0210",
@@ -1701,7 +1701,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-18T10:33:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0214",
@@ -1733,7 +1733,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-22T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0218",
@@ -1765,7 +1765,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-26T10:41:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0222",
@@ -1797,7 +1797,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-02T10:45:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0226",
@@ -1829,7 +1829,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-06T10:49:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0230",
@@ -1861,7 +1861,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-10T10:53:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0234",
@@ -1893,7 +1893,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-14T10:57:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0238",
@@ -1925,7 +1925,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-18T10:01:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0242",
@@ -1957,7 +1957,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-22T10:05:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0246",
@@ -1989,7 +1989,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-26T10:09:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0250",
@@ -2021,7 +2021,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-02T10:13:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0254",
@@ -2053,7 +2053,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-06T10:17:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0258",
@@ -2085,7 +2085,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-10T10:21:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0262",
@@ -2117,7 +2117,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-14T10:25:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0266",
@@ -2149,7 +2149,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-18T10:29:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0270",
@@ -2181,7 +2181,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-22T10:33:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0274",
@@ -2213,7 +2213,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-26T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0278",
@@ -2245,7 +2245,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-02T10:41:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0282",
@@ -2277,7 +2277,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-06T10:45:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0286",
@@ -2309,7 +2309,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-10T10:49:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0290",
@@ -2341,7 +2341,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-14T10:53:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0294",
@@ -2373,7 +2373,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-18T10:57:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0298",
@@ -2405,7 +2405,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-22T10:01:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0302",
@@ -2437,7 +2437,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-26T10:05:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0306",
@@ -2469,7 +2469,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-02T10:09:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0310",
@@ -2501,7 +2501,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-06T10:13:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0314",
@@ -2525,7 +2525,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-09T10:16:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0317",
@@ -2533,7 +2533,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-10T10:17:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0318",
@@ -2565,7 +2565,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-14T10:21:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0322",
@@ -2597,7 +2597,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-18T10:25:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0326",
@@ -2629,7 +2629,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-22T10:29:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0330",
@@ -2661,7 +2661,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-26T10:33:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0334",
@@ -2693,7 +2693,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-02T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0338",
@@ -2725,7 +2725,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-06T10:41:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0342",
@@ -2765,7 +2765,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-11T10:46:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0347",
@@ -2789,7 +2789,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-14T10:49:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0350",
@@ -2813,7 +2813,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-17T10:52:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0353",
@@ -2837,7 +2837,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-20T10:55:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0356",
@@ -2861,7 +2861,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-23T10:58:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0359",
@@ -2885,7 +2885,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-26T10:01:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0362",
@@ -2909,7 +2909,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-01T10:04:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0365",
@@ -2933,7 +2933,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-04T10:07:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0368",
@@ -2957,7 +2957,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-07T10:10:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0371",
@@ -2981,7 +2981,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-10T10:13:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0374",
@@ -3005,7 +3005,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-13T10:16:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0377",
@@ -3029,7 +3029,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-16T10:19:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0380",
@@ -3053,7 +3053,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-19T10:22:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0383",
@@ -3077,7 +3077,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-22T10:25:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0386",
@@ -3101,7 +3101,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-25T10:28:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0389",
@@ -3149,7 +3149,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-03T10:34:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0395",
@@ -3173,7 +3173,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-06T10:37:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0398",
@@ -3197,7 +3197,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-09T10:40:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0401",
@@ -3221,7 +3221,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-12T10:43:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0404",
@@ -3253,7 +3253,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-04T12:01:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0408",
@@ -3293,7 +3293,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-02T10:53:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0413",
@@ -3325,7 +3325,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-17T15:53:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0417",
@@ -3341,7 +3341,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-11T09:06:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0419",
@@ -3373,7 +3373,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-29T21:07:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0423",
@@ -3413,7 +3413,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-12T06:42:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0428",
@@ -3437,7 +3437,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-25T23:05:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0431",
@@ -3445,7 +3445,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-24T03:48:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0432",
@@ -3501,7 +3501,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-03T16:08:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0439",
@@ -3509,7 +3509,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-27T18:40:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0440",
@@ -3517,7 +3517,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-10T06:31:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0441",
@@ -3549,7 +3549,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-20T05:05:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0445",
@@ -3573,7 +3573,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-19T02:36:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0448",
@@ -3581,7 +3581,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-02T18:58:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0449",
@@ -3613,7 +3613,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-17T10:24:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0453",
@@ -3629,7 +3629,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-11T08:50:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0455",
@@ -3637,7 +3637,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-11T19:29:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0456",
@@ -3653,7 +3653,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-22T12:19:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0458",
@@ -3693,7 +3693,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-08T11:16:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0463",
@@ -3741,7 +3741,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-14T22:37:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0469",
@@ -3789,7 +3789,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-06T12:34:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0475",
@@ -3837,7 +3837,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-02T06:33:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0481",
@@ -3853,7 +3853,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-28T17:56:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0483",
@@ -3885,7 +3885,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-11T14:42:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0487",
@@ -3893,7 +3893,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-08T12:50:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0488",
@@ -3949,7 +3949,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-13T05:53:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0495",
@@ -3997,7 +3997,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-13T00:14:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0501",
@@ -4029,7 +4029,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-04T14:16:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0505",
@@ -4069,7 +4069,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-02T21:58:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0510",
@@ -4093,7 +4093,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-08T04:35:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0513",
@@ -4125,7 +4125,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-29T16:52:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0517",
@@ -4197,7 +4197,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-26T13:49:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0526",
@@ -4205,7 +4205,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-08T14:31:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0527",
@@ -4349,7 +4349,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-01T13:31:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0545",
@@ -4389,7 +4389,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-17T21:55:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0550",
@@ -4413,7 +4413,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-26T19:09:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0553",
@@ -4421,7 +4421,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-07T15:24:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0554",
@@ -4445,7 +4445,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-28T11:14:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0557",
@@ -4493,7 +4493,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-04T22:57:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0563",
@@ -4509,7 +4509,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-15T23:02:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0565",
@@ -4533,7 +4533,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-17T09:42:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0568",
@@ -4589,7 +4589,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-25T18:29:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0575",
@@ -4597,7 +4597,7 @@
     "rating": 5,
     "reviewedAt": "2026-07-15T02:28:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0576",
@@ -4613,7 +4613,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-23T13:18:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0578",
@@ -4621,7 +4621,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-24T05:51:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0579",
@@ -4637,7 +4637,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-25T09:13:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0581",
@@ -4653,7 +4653,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-05T20:32:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0583",
@@ -4733,7 +4733,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-28T03:59:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0593",
@@ -4749,7 +4749,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-22T20:45:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0595",
@@ -4757,7 +4757,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-15T08:28:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0596",
@@ -4765,7 +4765,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-14T12:10:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0597",
@@ -4781,7 +4781,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-21T17:17:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0599",
@@ -4789,7 +4789,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-06T14:31:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0600",
@@ -4829,7 +4829,7 @@
     "rating": 5,
     "reviewedAt": "2026-08-26T20:39:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0605",
@@ -4845,7 +4845,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-18T05:15:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0607",
@@ -4853,7 +4853,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-16T18:58:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0608",
@@ -4861,7 +4861,7 @@
     "rating": 4,
     "reviewedAt": "2026-06-08T04:31:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0609",
@@ -4877,7 +4877,7 @@
     "rating": 5,
     "reviewedAt": "2026-06-06T11:05:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Solid unit — nurses report no issues after delivery."
+    "comment": "Solid unit \u2014 nurses report no issues after delivery."
   },
   {
     "id": "REV-0611",
@@ -4925,7 +4925,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-15T06:44:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0617",
@@ -4941,7 +4941,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-13T12:53:00-06:00",
     "reviewerId": "USR-002",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0619",
@@ -4957,7 +4957,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-20T18:03:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0621",
@@ -4973,7 +4973,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-13T12:55:00-06:00",
     "reviewerId": "USR-004",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0623",
@@ -4997,7 +4997,7 @@
     "rating": 4,
     "reviewedAt": "2026-08-27T08:15:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0626",
@@ -5005,7 +5005,7 @@
     "rating": 4,
     "reviewedAt": "2026-07-31T02:17:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Good overall — delivery was a few hours later than quoted but acceptable."
+    "comment": "Good overall \u2014 delivery was a few hours later than quoted but acceptable."
   },
   {
     "id": "REV-0627",
@@ -5093,7 +5093,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-02T19:30:00-06:00",
     "reviewerId": "USR-003",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0638",
@@ -5101,7 +5101,7 @@
     "rating": 3,
     "reviewedAt": "2026-07-13T13:45:00-06:00",
     "reviewerId": "USR-001",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0639",
@@ -5125,7 +5125,7 @@
     "rating": 3,
     "reviewedAt": "2026-06-18T18:08:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0642",
@@ -5141,7 +5141,7 @@
     "rating": 3,
     "reviewedAt": "2026-08-02T08:17:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   },
   {
     "id": "REV-0644",
@@ -5149,6 +5149,6 @@
     "rating": 3,
     "reviewedAt": "2026-06-03T13:49:00-06:00",
     "reviewerId": "USR-010",
-    "comment": "Acceptable but not exceptional — took two delivery attempts."
+    "comment": "Acceptable but not exceptional \u2014 took two delivery attempts."
   }
 ]
