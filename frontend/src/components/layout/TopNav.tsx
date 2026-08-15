@@ -1,17 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { can, type Permission } from '../../lib/auth';
-import { RESET_CATALOG_FILTERS_STATE } from '../../lib/catalog';
-import type { User } from '../../types/domain';
-import { Logo } from '../ui/Logo';
-import { ProfileMenu } from './ProfileMenu';
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { can, type Permission } from "../../lib/auth";
+import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
+import type { User } from "../../types/domain";
+import { Logo } from "../ui/Logo";
+import { ProfileMenu } from "./ProfileMenu";
 
-export type NavSection = 'catalog' | 'patients';
+export type NavSection = "catalog" | "patients";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: 'Orders', permissions: ['storefront:purchase', 'pickup:trigger'] },
-  { label: 'Costs', permissions: ['reporting', 'vendors:manage'] },
+  { label: "Orders", permissions: ["storefront:purchase", "pickup:trigger"] },
 ];
 
 /** Sticky app header: brand, section nav, catalog search, cart icon, and the profile menu. */
@@ -30,7 +29,7 @@ export function TopNav({
 }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const urlQuery = searchParams.get('q') ?? '';
+  const urlQuery = searchParams.get("q") ?? "";
   const [query, setQuery] = useState(urlQuery);
 
   // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
@@ -41,49 +40,67 @@ export function TopNav({
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
-    navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
+    navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : "/catalog");
   };
 
   const linkClass = (section: NavSection) =>
-    section === activeSection ? 'text-ink' : 'text-ink-2 transition-colors hover:text-ink';
+    section === activeSection
+      ? "text-ink"
+      : "text-ink-2 transition-colors hover:text-ink";
 
   return (
-    <header className="sticky top-0 z-20 flex items-center gap-6 border-b border-line bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
-      <div className="shrink-0 text-ink">
-        <Logo height={26} />
-      </div>
+    <header className="sticky top-0 z-20 grid grid-cols-[1fr_minmax(0,520px)_1fr] items-center gap-6 border-b border-line bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
+      <div className="flex items-center gap-6">
+        <div className="shrink-0 text-ink">
+          <Logo height={26} />
+        </div>
 
-      <nav className="flex shrink-0 gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
-        <Link
-          to="/catalog"
-          state={RESET_CATALOG_FILTERS_STATE}
-          aria-current={activeSection === 'catalog' ? 'page' : undefined}
-          className={linkClass('catalog')}
-        >
-          Catalog
-        </Link>
-        {can(user, 'orders:own-patients') ? (
+        <nav className="flex shrink-0 gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
           <Link
-            to="/patients"
-            aria-current={activeSection === 'patients' ? 'page' : undefined}
-            className={linkClass('patients')}
+            to="/catalog"
+            state={RESET_CATALOG_FILTERS_STATE}
+            aria-current={activeSection === "catalog" ? "page" : undefined}
+            className={linkClass("catalog")}
           >
-            Patients
+            Catalog
           </Link>
-        ) : null}
-        {GATED_SECTIONS.filter((s) => s.permissions.some((p) => can(user, p))).map((s) => (
-          <span key={s.label} className="cursor-default text-ink-2" title="Coming soon">
-            {s.label}
-          </span>
-        ))}
-      </nav>
+          {can(user, "orders:own-patients") ? (
+            <Link
+              to="/patients"
+              aria-current={activeSection === "patients" ? "page" : undefined}
+              className={linkClass("patients")}
+            >
+              Patients
+            </Link>
+          ) : null}
+          {GATED_SECTIONS.filter((s) =>
+            s.permissions.some((p) => can(user, p)),
+          ).map((s) => (
+            <span
+              key={s.label}
+              className="cursor-default text-ink-2"
+              title="Coming soon"
+            >
+              {s.label}
+            </span>
+          ))}
+        </nav>
+      </div>
 
       <form
         onSubmit={submitSearch}
         role="search"
-        className="flex min-w-0 flex-1 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-ink-3 transition-colors focus-within:border-ink max-w-[520px]"
+        className="flex w-full min-w-0 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-ink-3 transition-colors focus-within:border-ink"
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+        <svg
+          width="13"
+          height="13"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
         </svg>
@@ -97,17 +114,17 @@ export function TopNav({
         />
       </form>
 
-      <div className="ml-auto flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center gap-3 justify-self-end">
         <button
           type="button"
           onClick={onOpenCart}
-          aria-label={`Cart, ${cartCount} item${cartCount === 1 ? '' : 's'}`}
+          aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
           data-testid="cart-button"
           className="p-1 text-ink transition-opacity hover:opacity-70"
         >
           <svg
-            width="30"
-            height="30"
+            width="38"
+            height="38"
             viewBox="0 0 32 32"
             fill="none"
             stroke="currentColor"
@@ -129,12 +146,12 @@ export function TopNav({
               y="16.6"
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize="10"
+              fontSize="10.5"
               fontWeight="700"
               stroke="none"
               className="fill-bg"
             >
-              {cartCount > 99 ? '99' : cartCount}
+              {cartCount > 99 ? "99" : cartCount}
             </text>
           </svg>
         </button>

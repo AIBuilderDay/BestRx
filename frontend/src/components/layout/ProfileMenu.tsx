@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { ROLE_LABELS } from '../../lib/auth';
+import { can, ROLE_LABELS } from '../../lib/auth';
 import type { User } from '../../types/domain';
 
 /** "Jordan Reyes" → "JR". Falls back to "?" so a blank name can't render an empty circle. */
@@ -67,6 +67,19 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
           </div>
 
           <div className="mx-1.5 border-t border-line" />
+
+          {can(user, 'reporting') || can(user, 'vendors:manage') ? (
+            <div
+              role="menuitem"
+              aria-disabled="true"
+              title="Coming soon"
+              data-testid="dashboard-item"
+              className="mt-1.5 flex cursor-default items-center justify-between rounded-control px-3 py-2 text-[13px] text-ink"
+            >
+              Dashboard
+              <span className="text-[10px] uppercase tracking-[0.09em] text-ink-3">Soon</span>
+            </div>
+          ) : null}
 
           <button
             type="button"
