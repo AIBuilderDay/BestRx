@@ -10,28 +10,41 @@ const SPEED_OPTIONS: { key: SpeedFilter; label: string }[] = [
   { key: '7', label: 'Within a week' },
 ];
 
-export function CatalogFilters({
-  filters,
-  categories,
-  vendors,
-  priceMax,
-  onChange,
-  onReset,
-}: {
+type CatalogFiltersProps = {
   filters: CatalogFilterState;
   categories: CategoryOption[];
   vendors: VendorFilterOption[];
   priceMax: number;
   onChange: (patch: Partial<CatalogFilterState>) => void;
   onReset: () => void;
-}) {
+};
+
+/** Desktop sticky sidebar. Hidden below lg, where the same controls open in a mobile sheet. */
+export function CatalogFilters(props: CatalogFiltersProps) {
+  return (
+    <aside className="sticky top-[57px] hidden min-h-[calc(100vh-57px)] border-r border-line px-5.5 py-7.5 pb-15 lg:block">
+      <CatalogFilterControls {...props} />
+    </aside>
+  );
+}
+
+/** The filter controls themselves, layout-agnostic so the desktop sidebar and the mobile
+ *  filter sheet render exactly the same thing. */
+export function CatalogFilterControls({
+  filters,
+  categories,
+  vendors,
+  priceMax,
+  onChange,
+  onReset,
+}: CatalogFiltersProps) {
   const toggleVendor = (id: string) => {
     const on = filters.vendorIds.includes(id);
     onChange({ vendorIds: on ? filters.vendorIds.filter((v) => v !== id) : [...filters.vendorIds, id] });
   };
 
   return (
-    <aside className="sticky top-[57px] min-h-[calc(100vh-57px)] border-r border-line px-5.5 py-7.5 pb-15">
+    <>
       <FilterGroup label="Category" first>
         <div className="grid gap-0.5">
           {categories.map((c) => (
@@ -126,7 +139,7 @@ export function CatalogFilters({
       >
         Clear all
       </button>
-    </aside>
+    </>
   );
 }
 
