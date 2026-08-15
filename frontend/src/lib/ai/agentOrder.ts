@@ -20,6 +20,7 @@ const MAX_QTY = 10;
 
 const SYSTEM_PROMPT = `You turn a hospice nurse's plain-English order command into one structured cart action.
 Pick the single offer that best matches the equipment asked for (prefer in-stock, faster delivery, better rating, then lower price when several fit) and the single patient the command refers to.
+If the command states an explicit preference — cheapest, a specific vendor, fastest delivery — that preference overrides the defaults above.
 Patients are listed with a short label like "Harold B." — match on that. If the command does not clearly identify a listed patient or a matching product, answer ${NO_MATCH} for that field instead of guessing.
 Quantity defaults to 1 unless the command says otherwise.
 "summary" is one sentence a nurse can skim to confirm what you understood, e.g. "Add 1 Hospital Bed (Sample Vendor 1) for Harold B."`;
