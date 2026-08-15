@@ -52,7 +52,7 @@ export function defaultOrderFilters(): OrderFilterState {
 
 /** Orders this user may see: hospice-wide, caseload, and/or placed by them. */
 export function getVisibleOrders(user: User): Order[] {
-  const hospiceOrders = orders.filter((o) => o.hospiceId === user.orgId);
+  const hospiceOrders = orders().filter((o) => o.hospiceId === user.orgId);
 
   if (can(user, 'orders:all')) return hospiceOrders;
 
@@ -130,12 +130,12 @@ export function filterAndSortOrders(items: OrderListItemVM[], filters: OrderFilt
 
   out = out.slice().sort((a, b) => {
     if (filters.sort === 'status') {
-      const ao = orders.find((o) => o.id === a.orderId);
-      const bo = orders.find((o) => o.id === b.orderId);
+      const ao = orders().find((o) => o.id === a.orderId);
+      const bo = orders().find((o) => o.id === b.orderId);
       return (STATUS_SORT_RANK[ao?.status ?? 'ordered'] ?? 0) - (STATUS_SORT_RANK[bo?.status ?? 'ordered'] ?? 0);
     }
-    const ao = orders.find((o) => o.id === a.orderId)?.orderedAt ?? '';
-    const bo = orders.find((o) => o.id === b.orderId)?.orderedAt ?? '';
+    const ao = orders().find((o) => o.id === a.orderId)?.orderedAt ?? '';
+    const bo = orders().find((o) => o.id === b.orderId)?.orderedAt ?? '';
     return bo.localeCompare(ao);
   });
 
@@ -143,7 +143,7 @@ export function filterAndSortOrders(items: OrderListItemVM[], filters: OrderFilt
 }
 
 /**
- * Keeps filter groups consistent: changing category drops patients with no orders in it;
+ * Keeps filter groups consistent: changing category drops patients with no orders() in it;
  * changing patients drops a category that none of them have orders in.
  */
 export function resolveOrderFilters(

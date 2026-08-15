@@ -70,6 +70,52 @@ def list_vendors() -> list[dict[str, Any]]:
     return fixtures.vendors()
 
 
+@router.get("/hospices")
+def list_hospices() -> list[dict[str, Any]]:
+    return fixtures.hospices()
+
+
+@router.get("/users")
+def list_users(orgId: str | None = Query(default=None)) -> list[dict[str, Any]]:
+    """Demo identities for the login picker. No secrets live in this table."""
+    rows = fixtures.users()
+    if orgId:
+        rows = [row for row in rows if row.get("orgId") == orgId]
+    return rows
+
+
+@router.get("/budgets")
+def list_budgets(hospiceId: str | None = Query(default=None)) -> list[dict[str, Any]]:
+    rows = fixtures.budgets()
+    if hospiceId:
+        rows = [row for row in rows if row.get("hospiceId") == hospiceId]
+    return rows
+
+
+@router.get("/inventory")
+def list_inventory(vendorId: str | None = Query(default=None)) -> list[dict[str, Any]]:
+    rows = fixtures.inventory()
+    if vendorId:
+        rows = [row for row in rows if row.get("vendorId") == vendorId]
+    return rows
+
+
+@router.get("/reviews")
+def list_reviews(offerId: str | None = Query(default=None)) -> list[dict[str, Any]]:
+    rows = fixtures.product_reviews()
+    if offerId:
+        rows = [row for row in rows if row.get("offerId") == offerId]
+    return rows
+
+
+@router.get("/emr-events")
+def list_emr_events(patientId: str | None = Query(default=None)) -> list[dict[str, Any]]:
+    rows = fixtures.emr_events()
+    if patientId:
+        rows = [row for row in rows if row.get("patientId") == patientId]
+    return rows
+
+
 @router.get("/real-vendors")
 def list_real_vendors(
     state: str | None = Query(default=None, description="Two-letter state, e.g. UT"),

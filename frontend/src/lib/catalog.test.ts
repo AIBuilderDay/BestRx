@@ -17,12 +17,12 @@ import {
 
 describe('itemPrice', () => {
   it('uses the monthly allowed rate for rentals', () => {
-    const bed = equipmentCatalog.find((e) => e.hcpcs === 'E0250')!;
+    const bed = equipmentCatalog().find((e) => e.hcpcs === 'E0250')!;
     expect(itemPrice(bed)).toEqual({ amount: 65.47, unit: '/mo' });
   });
 
   it('uses the purchase allowed rate for non-rentals', () => {
-    const walker = equipmentCatalog.find((e) => e.hcpcs === 'E0143')!;
+    const walker = equipmentCatalog().find((e) => e.hcpcs === 'E0143')!;
     expect(itemPrice(walker)).toEqual({ amount: 64.17, unit: 'one-time' });
   });
 });
@@ -82,7 +82,7 @@ describe('patientOwnsEquipment / ownersOf', () => {
   });
 
   it('filters a patient pool down to owners', () => {
-    const owners = ownersOf('E0250', patients).map((p) => p.id);
+    const owners = ownersOf('E0250', patients()).map((p) => p.id);
     expect(owners).toContain('PT-88421');
     expect(owners).not.toContain('PT-87602');
   });
@@ -164,14 +164,14 @@ describe('catalogFilterOptions', () => {
       speed: 'any',
       maxPrice: 10_000,
       sort: 'featured',
-    }, vendors);
+    }, vendors());
     const withVendor = catalogFilterOptions(items, {
       category: 'All',
       vendorIds: ['VND-001'],
       speed: 'any',
       maxPrice: 10_000,
       sort: 'featured',
-    }, vendors);
+    }, vendors());
 
     const respiratoryAll = unfiltered.categories.find((c) => c.key === 'respiratory')!.count;
     const respiratoryVendor1 = withVendor.categories.find((c) => c.key === 'respiratory')!.count;
@@ -179,7 +179,7 @@ describe('catalogFilterOptions', () => {
   });
 
   it('updates vendor counts when a category is selected', () => {
-    const options = catalogFilterOptions(items, filters, vendors);
+    const options = catalogFilterOptions(items, filters, vendors());
     const vendor1Respiratory = options.vendors.find((v) => v.id === 'VND-001')!.count;
     const vendor1All = catalogFilterOptions(items, {
       category: 'All',
@@ -187,15 +187,15 @@ describe('catalogFilterOptions', () => {
       speed: 'any',
       maxPrice: 10_000,
       sort: 'featured',
-    }, vendors).vendors.find((v) => v.id === 'VND-001')!.count;
+    }, vendors()).vendors.find((v) => v.id === 'VND-001')!.count;
     expect(vendor1Respiratory).toBeLessThanOrEqual(vendor1All);
   });
 
   it('keeps every category and vendor listed even when a filter zeroes them out', () => {
     // A $1 ceiling matches no offer at all, so every count lands on zero.
-    const options = catalogFilterOptions(items, { ...filters, maxPrice: 1 }, vendors);
+    const options = catalogFilterOptions(items, { ...filters, maxPrice: 1 }, vendors());
     expect(options.categories.map((c) => c.key)).toEqual(['All', ...Object.keys(CATEGORY_LABELS)]);
-    expect(options.vendors.map((v) => v.id)).toEqual(vendors.map((v) => v.id));
+    expect(options.vendors.map((v) => v.id)).toEqual(vendors().map((v) => v.id));
     expect(options.categories.every((c) => c.count === 0)).toBe(true);
     expect(options.vendors.every((v) => v.count === 0)).toBe(true);
   });

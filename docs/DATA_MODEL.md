@@ -31,6 +31,7 @@ usable.
 | `equipment_catalog.json` | 10 | `hcpcs` | — |
 | `hospices.json` | 3 | `id` (HSP-) | — |
 | `vendors.json` | 3 | `id` (VND-) | — |
+| `real_vendors.json` | 8 | `id` (RVND-) | `hcpcsCarried` → `equipment_catalog.hcpcs`. Reference only — see below |
 | `users.json` | 13 | `id` (USR-) | `orgId` → hospice or vendor. `email` is the login identity; permissions derive from `role` in `src/lib/auth.ts`, not from this table |
 | `patients.json` | 30 | `id` (PT-) | `hospiceId`, `caseManagerId` |
 | `orders.json` | 66 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
@@ -53,6 +54,33 @@ vendor_offers ──> vendors, equipment_catalog   the storefront: price, ETA, r
 product_reviews ──> vendor_offers, users        individual nurse star ratings per vendor SKU
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
+
+## Two vendor tables, on purpose
+
+**`vendors.json`** is the simulated storefront: three fictional vendors (`Sample Vendor 1…3`) that
+orders point at. It carries operational telemetry — `fleet`, `sla`, `performance30d`,
+`overallRating` — that drives the scorecard and risk math.
+
+**`real_vendors.json`** is reference data: eight real, publicly-listed DME suppliers (four Utah,
+four national/multi-region), scraped from each vendor's own site or a directory listing. Nothing
+points at it and nothing derives from it.
+
+They are separate because **no supplier publishes the telemetry `vendors.json` carries.** Truck
+counts, on-time percentages, POD capture rates, and contracted SLA hours are private operational
+data. Filling those in for a named real company would be inventing vendor facts about a real
+business — the exact thing CLAUDE.md forbids. So `RealVendor` has no such fields: every value is
+either sourced or `null`, and each row records `sourceUrl` and `sourceRetrieved`.
+
+Consequences for anyone extending this:
+
+- Don't merge the two tables, and don't widen `Vendor` to accept real rows. An order's `vendorId`
+  must stay a `VND-` id.
+- `serviceAreaDescription` is prose, not `serviceAreaZips`. Suppliers publish "the Wasatch Front",
+  not ZIP lists. Do not synthesize ZIPs from it.
+- `hcpcsCarried` is a mapping from each vendor's published product lines onto our catalog codes, so
+  it is a coverage claim, not a price list. There are no prices — nobody publishes hospice contract
+  rates. If a screen needs a price, it belongs in `vendor_offers.json`.
+- If a field is `null`, the source did not state it. Render it as unknown; never backfill a guess.
 
 ## The tables that carry the product
 

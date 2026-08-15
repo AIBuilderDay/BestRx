@@ -58,7 +58,7 @@ export function itemPrice(entry: CatalogEntry): ItemPrice {
 /** One catalog card per vendor offer. Items with no offer are not listed. */
 export function buildCatalogItems(sessionReviews: ProductReview[] = []): CatalogProductVM[] {
   const items: CatalogProductVM[] = [];
-  for (const offer of vendorOffers) {
+  for (const offer of vendorOffers()) {
     const vendor = getVendor(offer.vendorId);
     if (!vendor || !getCatalogEntry(offer.hcpcs)) continue;
     items.push({
@@ -87,7 +87,7 @@ const HOLDS_EQUIPMENT_STATUSES = new Set<Order['status']>([
 
 /** True if the patient has a non-terminal order that includes this HCPCS code already. */
 export function patientOwnsEquipment(patientId: string, hcpcs: string): boolean {
-  return orders.some(
+  return orders().some(
     (o) =>
       o.patientId === patientId &&
       HOLDS_EQUIPMENT_STATUSES.has(o.status) &&

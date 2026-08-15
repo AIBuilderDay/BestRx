@@ -44,7 +44,7 @@ function findOfferPrice(
   hcpcs: string,
 ): { amount: number; unit: '/mo' | 'one-time' } | null {
   if (!vendorId) return null;
-  const offer = vendorOffers.find((o) => o.vendorId === vendorId && o.hcpcs === hcpcs);
+  const offer = vendorOffers().find((o) => o.vendorId === vendorId && o.hcpcs === hcpcs);
   if (!offer) return null;
   const price = offerPrice(offer);
   return { amount: price.amount, unit: price.unit };

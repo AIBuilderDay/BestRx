@@ -71,7 +71,7 @@ export const canViewVendorScorecard = (user: User | null): boolean => can(user, 
 
 export const findUserByEmail = (email: string): User | undefined => {
   const needle = email.trim().toLowerCase();
-  return needle === '' ? undefined : users.find((u) => u.email.toLowerCase() === needle);
+  return needle === '' ? undefined : users().find((u) => u.email.toLowerCase() === needle);
 };
 
 /** The accounts offered as one-click sign-ins on the login page: Sample Hospice A, senior first. */
@@ -83,7 +83,7 @@ const SESSION_KEY = 'bestrx.sessionUserId';
 export const readSession = (): User | null => {
   try {
     const id = window.localStorage.getItem(SESSION_KEY);
-    return id ? (users.find((u) => u.id === id) ?? null) : null;
+    return id ? (users().find((u) => u.id === id) ?? null) : null;
   } catch {
     return null;
   }

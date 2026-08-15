@@ -6,7 +6,7 @@
     "category": "bed",
     "rental": true,
     "avgMonthlyAllowedUsd": 65.47,
-    "imagePath": "/images/equipment/e0250-hospital-bed.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "hcpcs": "E1390",
@@ -15,7 +15,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 115.77,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator.svg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.png"
   },
   {
     "hcpcs": "E0601",
@@ -24,7 +24,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 47.42,
-    "imagePath": "/images/equipment/e0601-cpap.svg"
+    "imagePath": "/images/equipment/e0601-cpap.png"
   },
   {
     "hcpcs": "E0470",
@@ -33,7 +33,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 123.3,
-    "imagePath": "/images/equipment/e0470-bipap.svg"
+    "imagePath": "/images/equipment/e0470-bipap.png"
   },
   {
     "hcpcs": "E1130",
@@ -42,7 +42,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 68.0,
-    "imagePath": "/images/equipment/e1130-wheelchair.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "hcpcs": "E0143",
@@ -51,7 +51,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 64.17,
-    "imagePath": "/images/equipment/e0143-walker.svg"
+    "imagePath": "/images/equipment/e0143-walker.png"
   },
   {
     "hcpcs": "E0163",
@@ -60,7 +60,7 @@
     "category": "bathroom_safety",
     "rental": false,
     "avgPurchaseAllowedUsd": 68.4,
-    "imagePath": "/images/equipment/e0163-commode.svg"
+    "imagePath": "/images/equipment/e0163-commode.png"
   },
   {
     "hcpcs": "E0277",
@@ -69,7 +69,7 @@
     "category": "bed",
     "rental": true,
     "avgMonthlyAllowedUsd": 212.49,
-    "imagePath": "/images/equipment/e0277-air-mattress.svg"
+    "imagePath": "/images/equipment/e0277-air-mattress.png"
   },
   {
     "hcpcs": "E0431",
@@ -78,7 +78,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 21.19,
-    "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
+    "imagePath": "/images/equipment/e0431-portable-oxygen.png"
   },
   {
     "hcpcs": "A7030",
@@ -88,7 +88,7 @@
     "rental": false,
     "avgPurchaseAllowedUsd": 121.08,
     "resupplyCadenceDays": 90,
-    "imagePath": "/images/equipment/a7030-cpap-mask.svg"
+    "imagePath": "/images/equipment/a7030-cpap-mask.png"
   },
   {
     "hcpcs": "E0110",
@@ -97,7 +97,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 54.98,
-    "imagePath": "/images/equipment/e0110-forearm-crutches.svg"
+    "imagePath": "/images/equipment/e0110-forearm-crutches.png"
   },
   {
     "hcpcs": "E0114",
@@ -106,7 +106,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 23.64,
-    "imagePath": "/images/equipment/e0114-underarm-crutches.svg"
+    "imagePath": "/images/equipment/e0114-underarm-crutches.png"
   },
   {
     "hcpcs": "E0100",
@@ -115,7 +115,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 18.32,
-    "imagePath": "/images/equipment/e0100-cane.svg"
+    "imagePath": "/images/equipment/e0100-cane.png"
   },
   {
     "hcpcs": "E0105",
@@ -124,7 +124,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 32.15,
-    "imagePath": "/images/equipment/e0105-quad-cane.svg"
+    "imagePath": "/images/equipment/e0105-quad-cane.png"
   },
   {
     "hcpcs": "E0130",
@@ -133,7 +133,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 44.63,
-    "imagePath": "/images/equipment/e0130-rigid-walker.svg"
+    "imagePath": "/images/equipment/e0130-rigid-walker.png"
   },
   {
     "hcpcs": "E0148",
@@ -142,7 +142,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 95.2,
-    "imagePath": "/images/equipment/e0148-heavy-duty-walker.svg"
+    "imagePath": "/images/equipment/e0148-heavy-duty-walker.png"
   },
   {
     "hcpcs": "E1140",
@@ -151,7 +151,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 74.85,
-    "imagePath": "/images/equipment/e1140-wheelchair-standard-plus.svg"
+    "imagePath": "/images/equipment/e1140-wheelchair-standard-plus.png"
   },
   {
     "hcpcs": "E1240",
@@ -160,7 +160,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 94.1,
-    "imagePath": "/images/equipment/e1240-wheelchair-lightweight.svg"
+    "imagePath": "/images/equipment/e1240-wheelchair-lightweight.png"
   },
   {
     "hcpcs": "E1092",
@@ -169,7 +169,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 138.6,
-    "imagePath": "/images/equipment/e1092-wheelchair-heavy-duty.svg"
+    "imagePath": "/images/equipment/e1092-wheelchair-heavy-duty.png"
   },
   {
     "hcpcs": "E1161",
@@ -178,7 +178,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 312.4,
-    "imagePath": "/images/equipment/e1161-wheelchair-tilt-in-space.svg"
+    "imagePath": "/images/equipment/e1161-wheelchair-tilt-in-space.png"
   },
   {
     "hcpcs": "E1038",
@@ -187,7 +187,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 46.75,
-    "imagePath": "/images/equipment/e1038-transport-chair.svg"
+    "imagePath": "/images/equipment/e1038-transport-chair.png"
   },
   {
     "hcpcs": "E0630",
@@ -196,7 +196,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 184.9,
-    "imagePath": "/images/equipment/e0630-hydraulic-lift.svg"
+    "imagePath": "/images/equipment/e0630-hydraulic-lift.png"
   },
   {
     "hcpcs": "E0245",
@@ -205,7 +205,7 @@
     "category": "bathroom_safety",
     "rental": false,
     "avgPurchaseAllowedUsd": 61.9,
-    "imagePath": "/images/equipment/e0245-tub-bench.svg"
+    "imagePath": "/images/equipment/e0245-tub-bench.png"
   },
   {
     "hcpcs": "E0247",
@@ -214,7 +214,7 @@
     "category": "bathroom_safety",
     "rental": false,
     "avgPurchaseAllowedUsd": 149.55,
-    "imagePath": "/images/equipment/e0247-transfer-bench-commode.svg"
+    "imagePath": "/images/equipment/e0247-transfer-bench-commode.png"
   },
   {
     "hcpcs": "E0244",
@@ -223,6 +223,6 @@
     "category": "bathroom_safety",
     "rental": false,
     "avgPurchaseAllowedUsd": 47.85,
-    "imagePath": "/images/equipment/e0244-raised-toilet-seat.svg"
+    "imagePath": "/images/equipment/e0244-raised-toilet-seat.png"
   }
 ]

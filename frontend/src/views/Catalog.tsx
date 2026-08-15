@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { patients, vendors } from '../data/db';
 import { can } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
 import {
-  buildCartGroups,
   buildCatalogItems,
-  cartTotals,
   catalogFilterOptions,
   defaultCatalogFilters,
   filterAndSortCatalog,
@@ -16,7 +14,6 @@ import {
   searchCatalog,
   patientFullName,
   priceCeiling,
-  setCartLineQty,
   totalUnitsInCart,
   upsertCartLine,
   type CatalogFilterState,
@@ -29,8 +26,6 @@ import { ProductCard } from '../components/catalog/ProductCard';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
-import { CartDrawer } from '../components/catalog/CartDrawer';
-import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
 
 const SORTS: { key: SortKey; label: string }[] = [
@@ -46,7 +41,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
   const assignablePatients = useMemo(
-    () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
+    () => patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
     [user.orgId],
   );
   const [sessionReviews, setSessionReviews] = useState<ProductReview[]>([]);
@@ -55,16 +50,8 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const [filters, setFilters] = useState<CatalogFilterState>(() => defaultCatalogFilters(priceMax));
   const [currentPage, setCurrentPage] = useState(1);
-  const { lines, setLines, cartOpen, setCartOpen, clearCart } = useCart();
+  const { lines, setLines, setCartOpen, say } = useCart();
   const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
-  const [toast, setToast] = useState('');
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  const say = (message: string) => {
-    clearTimeout(toastTimer.current);
-    setToast(message);
-    toastTimer.current = setTimeout(() => setToast(''), 3000);
-  };
 
   const resetFiltersToDefault = () => {
     setFilters(defaultCatalogFilters(priceMax));
@@ -111,24 +98,12 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     );
     const names =
       selectedPatientIds.length === 1
-        ? (patients.find((p) => p.id === selectedPatientIds[0]) &&
-            patientFullName(patients.find((p) => p.id === selectedPatientIds[0])!)) ||
+        ? (patients().find((p) => p.id === selectedPatientIds[0]) &&
+            patientFullName(patients().find((p) => p.id === selectedPatientIds[0])!)) ||
           selectedPatientIds[0]
-        : `${selectedPatientIds.length} patients`;
+        : `${selectedPatientIds.length} patients()`;
     say(`${sheetProduct.offer.productName} ${qty} added for ${names}`);
     setSheetOfferId(null);
-  };
-
-  const placeOrder = () => {
-    if (lines.length === 0) {
-      say('Cart is empty');
-      return;
-    }
-    const patientCount = new Set(lines.map((l) => l.patientId)).size;
-    const lineCount = lines.length;
-    clearCart();
-    setCartOpen(false);
-    say(`Order placed — ${lineCount} line${lineCount > 1 ? 's' : ''} across ${patientCount} patient${patientCount > 1 ? 's' : ''}`);
   };
 
   const applyFilters = (patch: Partial<CatalogFilterState>) => {
@@ -145,16 +120,14 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
   const catalogPage = paginateCatalog(filteredSorted, currentPage);
-  const cartGroups = buildCartGroups(lines, catalogItems, patients);
-  const totals = cartTotals(lines, catalogItems);
 
   const filterOptions = useMemo(
-    () => catalogFilterOptions(catalogItems, filters, vendors),
+    () => catalogFilterOptions(catalogItems, filters, vendors()),
     [catalogItems, filters],
   );
 
   if (!can(user, 'storefront:purchase')) {
-    return <Navigate to="/patients" replace />;
+    return <Navigate to="/patients()" replace />;
   }
 
   return (
@@ -273,21 +246,6 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         onConfirm={confirmSheet}
       />
 
-      <CartDrawer
-        open={cartOpen}
-        groups={cartGroups}
-        totals={totals}
-        onQtyChange={(id, patientId, qty) => setLines((prev) => setCartLineQty(prev, id, patientId, qty))}
-        onRemove={(id, patientId) => setLines((prev) => setCartLineQty(prev, id, patientId, 0))}
-        onClose={() => setCartOpen(false)}
-        onViewCart={() => {
-          setCartOpen(false);
-          navigate('/cart');
-        }}
-        onPlaceOrder={placeOrder}
-      />
-
-      <Toast message={toast} />
     </div>
   );
 }

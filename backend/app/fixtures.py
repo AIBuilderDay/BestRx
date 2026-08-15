@@ -76,6 +76,18 @@ def users() -> list[Row]:
     return load_table("users")
 
 
+def budgets() -> list[Row]:
+    return load_table("budgets")
+
+
+def inventory() -> list[Row]:
+    return load_table("inventory")
+
+
+def emr_events() -> list[Row]:
+    return load_table("emr_events")
+
+
 def seed_orders() -> list[Row]:
     return load_table("orders")
 

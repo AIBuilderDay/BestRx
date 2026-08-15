@@ -41,7 +41,7 @@ export interface PatientDetailVM {
 }
 
 export function getCaseloadPatients(userId: string, hospiceId: string): Patient[] {
-  return patients.filter(
+  return patients().filter(
     (p) => p.hospiceId === hospiceId && p.caseManagerId === userId && p.status !== 'deceased',
   );
 }

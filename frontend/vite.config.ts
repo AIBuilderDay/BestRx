@@ -32,5 +32,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    // The store is empty until the API loads it; seed it from the JSON fixtures for every test.
+    setupFiles: [fromRoot('src/test-setup.ts')],
   },
 });

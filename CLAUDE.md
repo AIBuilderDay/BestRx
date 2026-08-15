@@ -146,7 +146,7 @@ BestRx/
 │   │   ├── types/         shared TypeScript types
 │   │   └── sw.ts          service worker — renders push notifications
 │   └── public/images/     product/equipment/vendor imagery
-├── backend/               FastAPI: catalog, orders, and the SSE stream (optional — see below)
+├── backend/               FastAPI: catalog, orders, and the SSE stream (required — see below)
 │   ├── app/               the API
 │   └── scripts/           deploy to ECR, sync fixtures
 ├── notification-service/  Web Push sender: SQS-triggered Lambda, separate on purpose
@@ -154,9 +154,15 @@ BestRx/
 └── render.yaml            the API's deployment; the frontend goes to Cloudflare Pages
 ```
 
-**The backend is optional.** With no `VITE_API_BASE_URL` set, `lib/api.ts` falls back to the JSON
-fixtures and the app behaves exactly as it did before the backend existed. Keep it that way — a demo
-must not go dark because AWS is unreachable.
+**The backend is required.** The frontend loads every table from the API once at boot
+(`context/DataContext.tsx` → `lib/api.ts` → `data/store.ts`), and `data/db.ts` reads that snapshot.
+There is no fixture fallback: a failed load shows an error with a retry rather than quietly
+rendering bundled JSON, so a broken backend can never look like a working one. `task start` runs
+both services, and the frontend waits on the API's healthcheck.
+
+The JSON files in `frontend/src/data/` are still the one copy of the data under version control —
+the API serves them, and the tests read them directly through `data/testSnapshot.ts`. Nothing in
+`src/` imports them at runtime.
 
 **Markdown is for agents. HTML is for humans.** Specs and tickets are `.md`; mockups are `.html`.
 The one exception is [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html), which is written to be read
@@ -180,8 +186,8 @@ task clean:all    # clean + docker volumes/images + build artifacts
 ```
 
 Both services run in Docker. The frontend waits for the API's healthcheck, so it never starts
-pointing at a backend that is not ready. The API needs no AWS account — with no tables configured it
-serves the same JSON fixtures the frontend reads.
+pointing at a backend that is not ready. The API needs no AWS account — it serves the JSON tables in
+`frontend/src/data/` straight from disk.
 
 ```bash
 task backend:logs    # tail just the API

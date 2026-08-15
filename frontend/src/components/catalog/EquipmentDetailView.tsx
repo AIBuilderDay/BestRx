@@ -189,7 +189,7 @@ export function EquipmentDetailView({
 
       <section className="mt-8 overflow-hidden border border-line bg-surface">
         <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
-          <h2 className="text-[13px] font-semibold tracking-tight">Reviews for this item</h2>
+          <h2 className="text-[13px] font-semibold tracking-tight">Reviews</h2>
           <p className="mt-0.5 text-xs text-ink-3">
             Ratings are for this specific listing from nurses who received it — not the vendor overall.
           </p>
@@ -228,9 +228,9 @@ export function EquipmentDetailView({
                   const stars = normalizeStarRating(review.rating);
                   return (
                     <li key={review.id} className="border-t border-line py-4 first:border-t-0">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
-                        <span className="font-medium text-ink-2">{reviewerLabel(review.reviewerId)}</span>
-                        <span className="font-mono text-ink">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-baseline gap-x-3 text-xs">
+                        <span className="truncate font-medium text-ink-2">{reviewerLabel(review.reviewerId)}</span>
+                        <span className="font-mono tracking-[0.08em] text-ink">
                           {'★'.repeat(stars)}
                           {'☆'.repeat(5 - stars)}
                         </span>

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { budgetCapUsd, getBudgetsForHospice, getHospice, getPatient } from '../data/db';
 import { cartLineTiming, cartPpdImpact, totalUnitsInCart } from '../lib/catalog';
@@ -6,8 +6,6 @@ import type { User, UserRole } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CartLineRow } from '../components/catalog/CartLineRow';
 import { CartSummary, type CartBudgetVM } from '../components/catalog/CartSummary';
-import { CartDrawer } from '../components/catalog/CartDrawer';
-import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
 
 const ROLE_BUDGET_LABEL: Partial<Record<UserRole, string>> = {
@@ -23,16 +21,8 @@ const staggerMs = (n: number) => Math.min(n, 12) * 60;
 
 export default function Cart({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const hospice = getHospice(user.orgId);
-  const { lines, cartGroups, cartTotals: totals, setCartLineQty, clearCart, cartOpen, setCartOpen } = useCart();
+  const { lines, cartGroups, cartTotals: totals, setCartLineQty, setCartOpen, placeOrder } = useCart();
   const navigate = useNavigate();
-
-  const [toast, setToast] = useState('');
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const say = (message: string) => {
-    clearTimeout(toastTimer.current);
-    setToast(message);
-    toastTimer.current = setTimeout(() => setToast(''), 3000);
-  };
 
   const firstMonthTotal = totals.monthly + totals.oneTime;
 
@@ -71,17 +61,11 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
     return n;
   }, [cartGroups]);
 
-  const placeOrder = () => {
-    if (lines.length === 0) {
-      say('Cart is empty');
-      return;
-    }
-    const lineCount = lines.length;
-    const patientCount = cartGroups.length;
-    clearCart();
-    setCartOpen(false);
-    say(`Order placed — ${lineCount} line${lineCount > 1 ? 's' : ''} across ${patientCount} patient${patientCount > 1 ? 's' : ''}`);
-    navigate('/catalog');
+  /** The cart page has nothing left to show once the order is placed, so it returns to the catalog. */
+  const placeOrderAndLeave = () => {
+    const hadLines = lines.length > 0;
+    placeOrder();
+    if (hadLines) navigate('/catalog');
   };
 
   const unitCount = totalUnitsInCart(lines);
@@ -151,24 +135,11 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
               atRiskCount={atRiskCount}
               budget={budget}
               ppd={ppd}
-              onPlaceOrder={placeOrder}
+              onPlaceOrder={placeOrderAndLeave}
             />
           </div>
         )}
       </div>
-
-      <CartDrawer
-        open={cartOpen}
-        groups={cartGroups}
-        totals={totals}
-        onQtyChange={(hcpcs, patientId, qty) => setCartLineQty(hcpcs, patientId, qty)}
-        onRemove={(hcpcs, patientId) => setCartLineQty(hcpcs, patientId, 0)}
-        onClose={() => setCartOpen(false)}
-        onViewCart={() => setCartOpen(false)}
-        onPlaceOrder={placeOrder}
-      />
-
-      <Toast message={toast} />
     </div>
   );
 }

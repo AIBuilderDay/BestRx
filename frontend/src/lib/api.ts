@@ -1,47 +1,36 @@
 /**
- * The API seam.
+ * The API client. The backend is the only source of data.
  *
- * When `VITE_API_BASE_URL` is set the app talks to the deployed backend. When it is not — the
- * default for `pnpm dev` and for anyone cloning the repo — every call falls back to the JSON
- * fixtures in `data/db.ts` and the app behaves exactly as it did before the backend existed.
+ * `VITE_API_BASE_URL` defaults to the local API in docker-compose. There is deliberately no
+ * fixture fallback: the app used to fall back to bundled JSON when a request failed, which meant a
+ * broken backend looked identical to a working one. A failed request now surfaces as a visible
+ * error state so what you see is always what the API actually returned.
  *
- * That fallback is deliberate: a demo must not go dark because AWS is unreachable or a credential
- * expired. It also means no view has to know whether a backend is present.
- *
- * Errors are returned, never thrown. Callers render something sane for the failure case, matching
- * the "lookups return undefined" rule in docs/DATA_MODEL.md.
+ * Reads throw on failure; callers catch and render an error state.
  */
 
-import {
-  equipmentCatalog,
-  getOrder,
-  getOrderEvents,
-  orders as fixtureOrders,
-  patients as fixturePatients,
-  vendorOffers,
-  vendors as fixtureVendors,
-} from '../data/db';
-import type { CatalogEntry, Order, OrderEvent, Patient, Vendor, VendorOffer } from '../types/domain';
+import { appendOrderEvent, upsertOrder, type Snapshot } from '../data/store';
+import type {
+  Budget,
+  CatalogEntry,
+  EmrEvent,
+  Hospice,
+  InventoryUnit,
+  Order,
+  OrderEvent,
+  Patient,
+  ProductReview,
+  User,
+  Vendor,
+  VendorOffer,
+} from '../types/domain';
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 
-/** True when a deployed backend is configured. */
+/** True when a backend URL is configured. Without one the app cannot load any data. */
 export const isApiConfigured = (): boolean => BASE_URL.length > 0;
 
-export interface ApiResult<T> {
-  data: T;
-  /** Where the data came from. Views can surface this so a demo is honest about what it is showing. */
-  source: 'api' | 'fixtures';
-  error?: string;
-}
-
-const fixtureResult = <T>(data: T, error?: string): ApiResult<T> => ({
-  data,
-  source: 'fixtures',
-  error,
-});
-
-/** Ten seconds: long enough for a Lambda cold start, short enough that a dead API fails visibly. */
+/** Ten seconds: long enough for a cold start, short enough that a dead API fails visibly. */
 const REQUEST_TIMEOUT_MS = 10_000;
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -67,19 +56,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 }
 
-/** Try the API, fall back to fixtures on any failure. */
-async function withFallback<T>(path: string, fallback: () => T): Promise<ApiResult<T>> {
-  if (!isApiConfigured()) return fixtureResult(fallback());
-
-  try {
-    return { data: await request<T>(path), source: 'api' };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.warn(`API request to ${path} failed; using fixtures instead.`, message);
-    return fixtureResult(fallback(), message);
-  }
-}
-
 // ── Reads ─────────────────────────────────────────────────────────────────────
 
 export interface OrderFilters extends Record<string, string | undefined> {
@@ -97,54 +73,87 @@ const queryString = (filters: Record<string, string | undefined>): string => {
   return query ? `?${query}` : '';
 };
 
-export const fetchOrders = (filters: OrderFilters = {}): Promise<ApiResult<Order[]>> =>
-  withFallback(`/orders${queryString(filters)}`, () =>
-    fixtureOrders.filter(
-      (order) =>
-        (!filters.hospiceId || order.hospiceId === filters.hospiceId) &&
-        (!filters.patientId || order.patientId === filters.patientId) &&
-        (!filters.status || order.status === filters.status),
-    ),
-  );
+export const fetchOrders = (filters: OrderFilters = {}): Promise<Order[]> =>
+  request<Order[]>(`/orders${queryString(filters)}`);
 
 export interface OrderWithTimeline {
   order: Order | undefined;
   events: OrderEvent[];
 }
 
-export const fetchOrder = (orderId: string): Promise<ApiResult<OrderWithTimeline>> =>
-  withFallback(`/orders/${orderId}`, () => ({
-    order: getOrder(orderId),
-    events: getOrderEvents(orderId),
-  }));
+export const fetchOrder = (orderId: string): Promise<OrderWithTimeline> =>
+  request<OrderWithTimeline>(`/orders/${orderId}`);
 
 export const fetchPatients = (
   filters: { hospiceId?: string; caseManagerId?: string } = {},
-): Promise<ApiResult<Patient[]>> =>
-  withFallback(`/patients${queryString(filters)}`, () =>
-    fixturePatients.filter(
-      (patient) =>
-        (!filters.hospiceId || patient.hospiceId === filters.hospiceId) &&
-        (!filters.caseManagerId || patient.caseManagerId === filters.caseManagerId),
-    ),
-  );
+): Promise<Patient[]> => request<Patient[]>(`/patients${queryString(filters)}`);
 
 export const fetchProducts = (
   filters: { vendorId?: string; category?: string } = {},
-): Promise<ApiResult<VendorOffer[]>> =>
-  withFallback(`/products${queryString(filters)}`, () =>
-    vendorOffers.filter(
-      (offer) =>
-        (!filters.vendorId || offer.vendorId === filters.vendorId) &&
-        (!filters.category || offer.category === filters.category),
-    ),
-  );
+): Promise<VendorOffer[]> => request<VendorOffer[]>(`/products${queryString(filters)}`);
 
-export const fetchEquipment = (): Promise<ApiResult<CatalogEntry[]>> =>
-  withFallback('/equipment', () => equipmentCatalog);
+export const fetchEquipment = (): Promise<CatalogEntry[]> => request<CatalogEntry[]>('/equipment');
 
-export const fetchVendors = (): Promise<ApiResult<Vendor[]>> =>
-  withFallback('/vendors', () => fixtureVendors);
+export const fetchVendors = (): Promise<Vendor[]> => request<Vendor[]>('/vendors');
+
+/**
+ * Every table, in parallel, for the boot snapshot in `data/store.ts`.
+ *
+ * One round of requests rather than per-view fetching: the tables are small, none of them change
+ * server-side during a session, and loading them up front keeps the synchronous lookups in
+ * `src/lib/` working without threading promises through every helper.
+ *
+ * Rejects if any single table fails — a partially loaded app would render wrong numbers, which is
+ * worse than showing an error.
+ */
+export async function fetchSnapshot(): Promise<Snapshot> {
+  if (!isApiConfigured()) {
+    throw new Error('No backend configured. Set VITE_API_BASE_URL to load data.');
+  }
+
+  const [
+    equipmentCatalog,
+    hospices,
+    vendors,
+    users,
+    patients,
+    orders,
+    orderEvents,
+    inventory,
+    emrEvents,
+    vendorOffers,
+    productReviews,
+    budgets,
+  ] = await Promise.all([
+    request<CatalogEntry[]>('/equipment'),
+    request<Hospice[]>('/hospices'),
+    request<Vendor[]>('/vendors'),
+    request<User[]>('/users'),
+    request<Patient[]>('/patients'),
+    request<Order[]>('/orders'),
+    request<OrderEvent[]>('/orders/events/all'),
+    request<InventoryUnit[]>('/inventory'),
+    request<EmrEvent[]>('/emr-events'),
+    request<VendorOffer[]>('/products'),
+    request<ProductReview[]>('/reviews'),
+    request<Budget[]>('/budgets'),
+  ]);
+
+  return {
+    equipmentCatalog,
+    hospices,
+    vendors,
+    users,
+    patients,
+    orders,
+    orderEvents,
+    inventory,
+    emrEvents,
+    vendorOffers,
+    productReviews,
+    budgets,
+  };
+}
 
 // ── Writes ────────────────────────────────────────────────────────────────────
 // No fixture fallback: a write that silently did nothing would be worse than a visible failure.
@@ -185,7 +194,10 @@ export class InvalidTransitionError extends Error {
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
   if (!isApiConfigured()) throw new ApiUnavailableError();
-  return request<Order>('/orders', { method: 'POST', body: JSON.stringify(input) });
+  const order = await request<Order>('/orders', { method: 'POST', body: JSON.stringify(input) });
+  // Keep the boot snapshot current so the synchronous lookups in src/lib/ see the new order.
+  upsertOrder(order);
+  return order;
 }
 
 export async function updateOrderStatus(
@@ -196,10 +208,13 @@ export async function updateOrderStatus(
   if (!isApiConfigured()) throw new ApiUnavailableError();
 
   try {
-    return await request<{ order: Order; event: OrderEvent }>(`/orders/${orderId}/status`, {
+    const result = await request<{ order: Order; event: OrderEvent }>(`/orders/${orderId}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status, actorId }),
     });
+    upsertOrder(result.order);
+    appendOrderEvent(result.event);
+    return result;
   } catch (error) {
     // Rethrow a 409 as something the UI can explain to the user.
     const message = error instanceof Error ? error.message : '';

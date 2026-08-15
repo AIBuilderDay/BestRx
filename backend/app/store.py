@@ -85,6 +85,12 @@ class OrderStore:
             matches = [dict(e) for e in self._events if e.get("orderId") == order_id]
         return sorted(matches, key=lambda event: event.get("at", ""))
 
+    def all_events(self) -> list[Row]:
+        """Every event, oldest first. Feeds the frontend's boot snapshot in one request."""
+        with self._lock:
+            events = [dict(e) for e in self._events]
+        return sorted(events, key=lambda event: event.get("at", ""))
+
     def events_since(self, seq: int, limit: int = 100) -> list[Row]:
         """Backfill for a client that reconnects with a cursor."""
         with self._lock:

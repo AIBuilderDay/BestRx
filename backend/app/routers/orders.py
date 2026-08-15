@@ -24,6 +24,15 @@ def list_orders(
     return service.list_orders(store, hospice_id=hospiceId, patient_id=patientId, status=status)
 
 
+@router.get("/events/all")
+def list_all_events(store: OrderStore = Depends(get_store)) -> list[dict[str, Any]]:
+    """Every order event in one response, for the frontend's boot snapshot.
+
+    Declared above /{order_id} so "events" is not captured as an order id.
+    """
+    return store.all_events()
+
+
 @router.get("/{order_id}", response_model=OrderWithTimeline)
 def get_order(order_id: str, store: OrderStore = Depends(get_store)) -> OrderWithTimeline:
     try:

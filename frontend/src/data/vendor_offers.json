@@ -11,7 +11,7 @@
     "inStock": true,
     "deliveryEtaHours": 6,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0250-hospital-bed-vnd-001.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "id": "OFR-002",
@@ -25,7 +25,7 @@
     "inStock": true,
     "deliveryEtaHours": 5,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator-vnd-001.svg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.png"
   },
   {
     "id": "OFR-003",
@@ -39,7 +39,7 @@
     "inStock": true,
     "deliveryEtaHours": 8,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1130-wheelchair-vnd-001.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "id": "OFR-004",
@@ -53,7 +53,7 @@
     "inStock": true,
     "deliveryEtaHours": 10,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0277-air-mattress.svg"
+    "imagePath": "/images/equipment/e0277-air-mattress.png"
   },
   {
     "id": "OFR-005",
@@ -67,7 +67,7 @@
     "inStock": true,
     "deliveryEtaHours": 8,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0143-walker-vnd-001.svg"
+    "imagePath": "/images/equipment/e0143-walker.png"
   },
   {
     "id": "OFR-006",
@@ -81,7 +81,7 @@
     "inStock": true,
     "deliveryEtaHours": 8,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0163-commode-vnd-001.svg"
+    "imagePath": "/images/equipment/e0163-commode.png"
   },
   {
     "id": "OFR-007",
@@ -95,7 +95,7 @@
     "inStock": true,
     "deliveryEtaHours": 14,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0250-hospital-bed-vnd-002.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "id": "OFR-008",
@@ -109,7 +109,7 @@
     "inStock": true,
     "deliveryEtaHours": 9,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0601-cpap.svg"
+    "imagePath": "/images/equipment/e0601-cpap.png"
   },
   {
     "id": "OFR-009",
@@ -123,7 +123,7 @@
     "inStock": false,
     "deliveryEtaHours": 36,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0470-bipap.svg"
+    "imagePath": "/images/equipment/e0470-bipap.png"
   },
   {
     "id": "OFR-010",
@@ -137,7 +137,7 @@
     "inStock": true,
     "deliveryEtaHours": 12,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator-vnd-002.svg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.png"
   },
   {
     "id": "OFR-011",
@@ -151,7 +151,7 @@
     "inStock": true,
     "deliveryEtaHours": 24,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/a7030-cpap-mask.svg"
+    "imagePath": "/images/equipment/a7030-cpap-mask.png"
   },
   {
     "id": "OFR-012",
@@ -165,7 +165,7 @@
     "inStock": true,
     "deliveryEtaHours": 9,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
+    "imagePath": "/images/equipment/e0431-portable-oxygen.png"
   },
   {
     "id": "OFR-017",
@@ -179,7 +179,7 @@
     "inStock": true,
     "deliveryEtaHours": 10,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1130-wheelchair-vnd-002.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "id": "OFR-013",
@@ -193,7 +193,7 @@
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0250-hospital-bed-vnd-003.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "id": "OFR-014",
@@ -207,7 +207,7 @@
     "inStock": true,
     "deliveryEtaHours": 28,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e1130-wheelchair-vnd-003.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "id": "OFR-015",
@@ -221,7 +221,7 @@
     "inStock": true,
     "deliveryEtaHours": 26,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0143-walker-vnd-003.svg"
+    "imagePath": "/images/equipment/e0143-walker.png"
   },
   {
     "id": "OFR-016",
@@ -235,6 +235,6 @@
     "inStock": false,
     "deliveryEtaHours": 48,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0163-commode-vnd-003.svg"
+    "imagePath": "/images/equipment/e0163-commode.png"
   }
 ]
