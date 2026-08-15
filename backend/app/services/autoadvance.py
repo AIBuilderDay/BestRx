@@ -23,7 +23,7 @@ import logging
 
 from ..config import Settings
 from ..lifecycle import allowed_next
-from ..store import OrderStore
+from ..store import BaseOrderStore
 from . import orders as service
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def _next_status(current: str) -> str | None:
     return sorted(options)[0] if options else None
 
 
-def advance_once(store: OrderStore, settings: Settings) -> list[str]:
+def advance_once(store: BaseOrderStore, settings: Settings) -> list[str]:
     """Move every eligible order one step. Returns the ids that changed."""
     moved: list[str] = []
 
@@ -73,7 +73,7 @@ def advance_once(store: OrderStore, settings: Settings) -> list[str]:
     return moved
 
 
-async def run_loop(store: OrderStore, settings: Settings) -> None:
+async def run_loop(store: BaseOrderStore, settings: Settings) -> None:
     """Tick until cancelled. One bad tick must not kill the loop, so failures are logged only."""
     logger.info("auto-advance running every %ss", settings.auto_advance_seconds)
     while True:

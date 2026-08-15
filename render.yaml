@@ -12,6 +12,19 @@
 # live in memory, so a spin-down also resets them to the seeded fixtures. Both are documented in
 # backend/README.md rather than hidden.
 
+# Orders and their timeline. The API seeds this from the JSON fixtures on first boot and leaves it
+# alone afterwards, so a spin-down no longer discards what nurses placed — and a phone and a laptop
+# read the same board.
+#
+# Free tier: expires 30 days after creation, after which Render deletes it. Fine for the bounty;
+# upgrade or recreate before then if the demo needs to outlive that.
+databases:
+  - name: bestrx-db
+    plan: free
+    region: ohio # same region as the API, so queries do not cross the country
+    databaseName: bestrx
+    user: bestrx
+
 services:
   - type: web
     name: bestrx-api
@@ -36,6 +49,15 @@ services:
       # Render assigns the port; uvicorn must bind to it rather than a hardcoded 8000.
       - key: PORT
         value: 8000
+
+      # Wired by Render from the database below — never typed by hand, and rotated with the
+      # database rather than copied into the dashboard. Its presence is what switches the API from
+      # the in-memory store to Postgres, so orders survive a restart and every device sees the
+      # same board.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bestrx-db
+          property: connectionString
 
       - key: AWS_REGION
         value: us-east-2

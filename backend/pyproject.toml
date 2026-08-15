@@ -9,6 +9,12 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     # SQS (enqueue a push) and DynamoDB (the subscriptions table the notification service reads).
     "boto3>=1.35.0",
+    # Postgres, when DATABASE_URL is set: orders that survive a restart and are shared across
+    # devices. Unset locally, where the in-memory store is used and this import never runs.
+    "psycopg[binary,pool]>=3.2.0",
+    # Postgres, when DATABASE_URL is set: orders that survive a restart and are shared across
+    # devices. Unset locally, where the in-memory store is used and this import never runs.
+    "psycopg[binary,pool]>=3.2.0",
     # The MCP surface mounted at /mcp, for the frontend's AI-assisted search bar.
     "fastmcp>=2.11.0",
     # The AI endpoints: rerank (structured output) and the agent's MCP tool loop.

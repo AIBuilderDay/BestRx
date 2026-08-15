@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from ..config import Settings, get_settings
 from ..schemas import CreateOrderRequest, OrderWithTimeline, UpdateStatusRequest
 from ..services import orders as service
-from ..store import OrderStore, get_store
+from ..store import BaseOrderStore, get_store
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -19,13 +19,13 @@ def list_orders(
     hospiceId: str | None = Query(default=None),
     patientId: str | None = Query(default=None),
     status: str | None = Query(default=None),
-    store: OrderStore = Depends(get_store),
+    store: BaseOrderStore = Depends(get_store),
 ) -> list[dict[str, Any]]:
     return service.list_orders(store, hospice_id=hospiceId, patient_id=patientId, status=status)
 
 
 @router.get("/events/all")
-def list_all_events(store: OrderStore = Depends(get_store)) -> list[dict[str, Any]]:
+def list_all_events(store: BaseOrderStore = Depends(get_store)) -> list[dict[str, Any]]:
     """Every order event in one response, for the frontend's boot snapshot.
 
     Declared above /{order_id} so "events" is not captured as an order id.
@@ -34,7 +34,7 @@ def list_all_events(store: OrderStore = Depends(get_store)) -> list[dict[str, An
 
 
 @router.get("/{order_id}", response_model=OrderWithTimeline)
-def get_order(order_id: str, store: OrderStore = Depends(get_store)) -> OrderWithTimeline:
+def get_order(order_id: str, store: BaseOrderStore = Depends(get_store)) -> OrderWithTimeline:
     try:
         order, events = service.get_order_with_timeline(store, order_id)
     except service.OrderNotFound as exc:
@@ -45,7 +45,7 @@ def get_order(order_id: str, store: OrderStore = Depends(get_store)) -> OrderWit
 @router.post("", status_code=201)
 def create_order(
     payload: CreateOrderRequest,
-    store: OrderStore = Depends(get_store),
+    store: BaseOrderStore = Depends(get_store),
     settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:
     try:
@@ -58,7 +58,7 @@ def create_order(
 def update_status(
     order_id: str,
     payload: UpdateStatusRequest,
-    store: OrderStore = Depends(get_store),
+    store: BaseOrderStore = Depends(get_store),
     settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:
     """Move an order forward, fan the event out over SSE, and enqueue a push notification."""

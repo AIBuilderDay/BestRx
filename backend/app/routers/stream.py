@@ -18,7 +18,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import StreamingResponse
 
-from ..store import OrderStore, get_store
+from ..store import BaseOrderStore, get_store
 
 router = APIRouter(tags=["stream"])
 
@@ -53,7 +53,7 @@ def _resolve_cursor(last_event_id: str | None, since: int | None) -> int:
 
 async def _event_stream(
     request: Request,
-    store: OrderStore,
+    store: BaseOrderStore,
     hospice_id: str | None,
     cursor: int,
 ) -> AsyncIterator[str]:
@@ -98,7 +98,7 @@ async def _event_stream(
         store.unsubscribe(queue)
 
 
-def _matches(event: dict[str, Any], hospice_id: str | None, store: OrderStore) -> bool:
+def _matches(event: dict[str, Any], hospice_id: str | None, store: BaseOrderStore) -> bool:
     """Filter by hospice, resolving through the event's order.
 
     Events carry no hospiceId of their own, so an unknown order is treated as non-matching rather
@@ -116,7 +116,7 @@ async def stream_order_events(
     hospiceId: str | None = Query(default=None),
     since: int | None = Query(default=None, ge=0),
     last_event_id: str | None = Header(default=None, alias="Last-Event-ID"),
-    store: OrderStore = Depends(get_store),
+    store: BaseOrderStore = Depends(get_store),
 ) -> StreamingResponse:
     """Open an SSE stream of order status changes."""
     cursor = _resolve_cursor(last_event_id, since)

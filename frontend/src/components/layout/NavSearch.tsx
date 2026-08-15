@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { looksLikeOrderCommand } from '../../lib/ai/agentOrder';
-import { runAgentOrder } from '../../lib/ai/client';
+import { askAgent, runAgentOrder } from '../../lib/ai/client';
 import { flattenCommands, searchCommands } from '../../lib/commandSearch';
 import type { CommandResult } from '../../lib/commandSearch';
 import { burstAtCart, flyCometToCart } from '../../lib/fx/agentComet';
+import type { AskResult } from '../../types/ai';
 import type { User } from '../../types/domain';
 import { useCart } from '../../context/CartContext';
+import { AskAnswer } from './AskAnswer';
 import { CommandResults, FILTER_ROW_ID } from './CommandResults';
 import type { FilterRow } from './CommandResults';
 import type { NavSection } from './TopNav';
@@ -15,7 +17,7 @@ type Mode = 'search' | 'ai';
 
 const PLACEHOLDERS: Record<Mode, string> = {
   search: 'Search patients, orders, equipment, or pages…',
-  ai: 'Ask, or command — "order a hospital bed for Harold"',
+  ai: 'Ask about orders, patients, or equipment — or say "order a bed for Harold"',
 };
 
 /**

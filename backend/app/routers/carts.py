@@ -11,7 +11,7 @@ from ..config import Settings, get_settings
 from ..schemas import CheckoutRequest, CreateCartRequest, UpdateCartRequest
 from ..services import carts as service
 from ..services import orders as orders_service
-from ..store import OrderStore, get_store
+from ..store import BaseOrderStore, get_store
 
 router = APIRouter(prefix="/carts", tags=["carts"])
 
@@ -74,7 +74,7 @@ def checkout(
     user_id: str,
     payload: CheckoutRequest,
     carts: CartStore = Depends(get_cart_store),
-    store: OrderStore = Depends(get_store),
+    store: BaseOrderStore = Depends(get_store),
     settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:
     """Convert the cart into orders — one per (patient, vendor) — and empty it.

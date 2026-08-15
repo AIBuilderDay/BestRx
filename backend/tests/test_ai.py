@@ -632,3 +632,215 @@ def test_usage_endpoint_reports_what_the_calls_cost(
 
 def test_health_reports_whether_ai_is_configured(ai_client: TestClient) -> None:
     assert ai_client.get("/health").json()["aiEnabled"] is True
+
+
+# ── /ai/ask: questions across orders, patients, and the catalog ───────────────
+
+
+VENDOR_USER = "USR-007"  # dispatcher at VND-001
+
+
+def _stub_ask(monkeypatch: pytest.MonkeyPatch, responses: list[_Response]) -> _StubClient:
+    stub = _StubClient(responses)
+    monkeypatch.setattr("app.ai.ask.get_client", lambda _settings: stub)
+    return stub
+
+
+def test_ask_answers_from_the_rows_the_tools_returned(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The whole point: the answer comes from a tool call against this process's own store."""
+    _stub_ask(
+        monkeypatch,
+        [
+            _Response(
+                [_ToolUseBlock("tu_1", "list_orders", {"patientId": "PT-88421"})],
+                stop_reason="tool_use",
+            ),
+            _Response([_TextBlock("Order DME-10231 for PT-88421 is still ordered.")]),
+        ],
+    )
+
+    response = ai_client.post(
+        "/ai/ask", json={"question": "where is the hospital bed for Harold?", "userId": USER}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["toolCalls"] == [{"tool": "list_orders", "ok": True}]
+    # Cited ids became links, in the order the answer mentions them.
+    assert [source["id"] for source in body["sources"]] == ["DME-10231", "PT-88421"]
+    assert body["sources"][0]["to"] == "/orders/DME-10231"
+    assert body["sources"][1]["label"] == "Harold B."
+
+
+def test_ask_drops_a_cited_id_the_tools_never_returned(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A model that names a plausible-looking order it never read must not get a link for it."""
+    _stub_ask(
+        monkeypatch,
+        [
+            _Response(
+                [_ToolUseBlock("tu_1", "list_orders", {"patientId": "PT-88421"})],
+                stop_reason="tool_use",
+            ),
+            _Response([_TextBlock("See DME-10231 and DME-99999.")]),
+        ],
+    )
+
+    response = ai_client.post("/ai/ask", json={"question": "any beds late?", "userId": USER})
+
+    assert [source["id"] for source in response.json()["sources"]] == ["DME-10231"]
+
+
+def test_ask_scopes_every_tool_call_to_the_askers_hospice(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A nurse cannot ask their way into another network's orders, even by naming one."""
+    _stub_ask(
+        monkeypatch,
+        [
+            _Response(
+                [_ToolUseBlock("tu_1", "list_orders", {"hospiceId": "HSP-002"})],
+                stop_reason="tool_use",
+            ),
+            _Response([_TextBlock("Nothing outstanding.")]),
+        ],
+    )
+
+    ai_client.post("/ai/ask", json={"question": "orders at HSP-002?", "userId": USER})
+
+    # The model asked for HSP-002; every row it got back belongs to the asker's own hospice.
+    from app.ai.ask import OrgScope
+
+    scope = OrgScope(org_type="hospice", org_id="HSP-001")
+    assert scope.apply("list_orders", {"hospiceId": "HSP-002"}) == {"hospiceId": "HSP-001"}
+
+
+def test_ask_never_sends_an_identifying_field_to_the_model(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Patient rows reach the model only in their sanitized form, tool results included."""
+    harold = next(p for p in patients() if p["firstName"] == "Harold")
+    stub = _stub_ask(
+        monkeypatch,
+        [
+            _Response([_ToolUseBlock("tu_1", "list_patients", {})], stop_reason="tool_use"),
+            _Response([_TextBlock("Nothing outstanding.")]),
+        ],
+    )
+
+    ai_client.post("/ai/ask", json={"question": "who is on my caseload?", "userId": USER})
+
+    sent = json.dumps(stub.messages.calls[1]["messages"], default=str)
+    assert harold["lastName"] not in sent
+    assert harold["dob"] not in sent
+    assert harold["address"]["street1"] not in sent
+    assert "Harold B." in sent  # the read-back label survives
+
+
+def test_ask_withholds_patient_tools_from_a_vendor_user(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A vendor dispatcher reads their own orders and stock, never a hospice's charts."""
+    stub = _stub_ask(
+        monkeypatch,
+        [
+            _Response([_ToolUseBlock("tu_1", "get_patient", {"patientId": "PT-88421"})],
+                      stop_reason="tool_use"),
+            _Response([_TextBlock("I cannot see patient charts.")]),
+        ],
+    )
+
+    response = ai_client.post(
+        "/ai/ask", json={"question": "who is PT-88421?", "userId": VENDOR_USER}
+    )
+
+    assert response.status_code == 200
+    offered = {tool["name"] for tool in stub.messages.calls[0]["tools"]}
+    assert "get_patient" not in offered and "list_patients" not in offered
+    # Reached for anyway, it is refused rather than answered.
+    assert response.json()["toolCalls"] == [{"tool": "get_patient", "ok": False}]
+
+
+def test_ask_refuses_a_write_tool(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Questions never move an order. The write tools are not in the allowlist at all."""
+    from app.ai import ask as ask_module
+
+    assert not {"update_order_status", "create_order", "update_cart"} & ask_module.ALLOWED_TOOLS
+    stub = _stub_ask(
+        monkeypatch,
+        [
+            _Response(
+                [_ToolUseBlock("tu_1", "update_order_status",
+                               {"orderId": "DME-10231", "status": "delivered"})],
+                stop_reason="tool_use",
+            ),
+            _Response([_TextBlock("I can only look things up.")]),
+        ],
+    )
+
+    response = ai_client.post(
+        "/ai/ask", json={"question": "mark DME-10231 delivered", "userId": USER}
+    )
+
+    assert response.json()["toolCalls"] == [{"tool": "update_order_status", "ok": False}]
+    assert "update_order_status" not in {t["name"] for t in stub.messages.calls[0]["tools"]}
+    # The order is untouched.
+    assert ai_client.get("/orders/DME-10231").json()["order"]["status"] == "ordered"
+
+
+def test_ask_stops_at_the_tool_turn_ceiling(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.main import app
+
+    settings = Settings(anthropic_api_key="sk-ant-test", ai_max_tool_turns=2)
+    app.dependency_overrides[get_settings] = lambda: settings
+    stub = _stub_ask(
+        monkeypatch,
+        [
+            _Response([_ToolUseBlock(f"tu_{i}", "list_orders", {})], stop_reason="tool_use")
+            for i in range(5)
+        ],
+    )
+    try:
+        response = TestClient(app).post(
+            "/ai/ask", json={"question": "how are we doing?", "userId": USER}
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert len(stub.messages.calls) == 2
+
+
+def test_ask_answers_503_without_a_key() -> None:
+    from app.main import app
+
+    app.dependency_overrides[get_settings] = lambda: Settings(anthropic_api_key="")
+    try:
+        response = TestClient(app).post(
+            "/ai/ask", json={"question": "where is the bed?", "userId": USER}
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 503
+
+
+def test_ask_404s_for_an_unknown_user(ai_client: TestClient) -> None:
+    response = ai_client.post("/ai/ask", json={"question": "where?", "userId": "USR-nope"})
+
+    assert response.status_code == 404
+
+
+def test_ask_bills_into_its_own_ledger_bucket(
+    ai_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _stub_ask(monkeypatch, [_Response([_TextBlock("Nothing outstanding.")])])
+
+    ai_client.post("/ai/ask", json={"question": "anything late?", "userId": USER})
+
+    assert ai_client.get("/ai/usage").json()["summary"]["byFeature"]["ask"]["calls"] == 1

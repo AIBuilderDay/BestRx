@@ -19,7 +19,7 @@ from ..lifecycle import (
     describe,
     is_known_status,
 )
-from ..store import OrderStore
+from ..store import BaseOrderStore
 from . import notifications
 
 Row = dict[str, Any]
@@ -54,13 +54,13 @@ def now_iso() -> str:
     return datetime.now(MOUNTAIN).isoformat(timespec="seconds")
 
 
-def _next_event_id(store: OrderStore, order_id: str) -> str:
+def _next_event_id(store: BaseOrderStore, order_id: str) -> str:
     existing = len(store.events_for_order(order_id))
     return f"EVT-{order_id[4:]}-{existing + 1:03d}"
 
 
 def list_orders(
-    store: OrderStore,
+    store: BaseOrderStore,
     hospice_id: str | None = None,
     patient_id: str | None = None,
     status: str | None = None,
@@ -75,14 +75,14 @@ def list_orders(
     return sorted(orders, key=lambda order: str(order.get("orderedAt") or ""), reverse=True)
 
 
-def get_order_with_timeline(store: OrderStore, order_id: str) -> tuple[Row, list[Row]]:
+def get_order_with_timeline(store: BaseOrderStore, order_id: str) -> tuple[Row, list[Row]]:
     order = store.get_order(order_id)
     if order is None:
         raise OrderNotFound(order_id)
     return order, store.events_for_order(order_id)
 
 
-def create_order(store: OrderStore, settings: Settings, payload: Row) -> Row:
+def create_order(store: BaseOrderStore, settings: Settings, payload: Row) -> Row:
     """Create an order in `ordered` state and open its timeline."""
     patient_id = payload["patientId"]
     if find_by("patients", "id", patient_id) is None:
@@ -126,7 +126,7 @@ def create_order(store: OrderStore, settings: Settings, payload: Row) -> Row:
 
 
 def change_status(
-    store: OrderStore,
+    store: BaseOrderStore,
     settings: Settings,
     order_id: str,
     target: str,

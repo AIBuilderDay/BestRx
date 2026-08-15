@@ -16,6 +16,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..ai.agent import run_agent_order
+from ..ai.ask import OrgScope, run_ask
 from ..ai.client import AiUnavailable
 from ..ai.facts import assignable_patients, known_offer_ids
 from ..ai.rerank import rerank_offers
@@ -23,7 +24,7 @@ from ..ai.sanitize import find_mentioned_patients, patient_label, sanitize_patie
 from ..ai.usage import get_usage_ledger
 from ..config import Settings, get_settings
 from ..fixtures import find_by
-from ..schemas import AgentOrderRequest, RerankRequest
+from ..schemas import AgentOrderRequest, AskRequest, RerankRequest
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -84,6 +85,37 @@ async def agent_order(
             command=payload.command,
             user_id=payload.userId,
             patients=assignable_patients(user.get("orgId")),
+        )
+    except AiUnavailable as exc:
+        raise _unavailable(exc) from exc
+    except Exception as exc:
+        raise _upstream(exc) from exc
+
+
+@router.post("/ask")
+async def ask(
+    payload: AskRequest,
+    settings: Settings = Depends(get_settings),
+) -> dict[str, Any]:
+    """Answer a question about orders, patients, or the catalog from the store's own rows.
+
+    Read-only: the agent behind this reaches the same MCP tools the ordering agent does, minus
+    every write. `sources` are the rows the answer cites, so the nurse can open what it read.
+    """
+    user = find_by("users", "id", payload.userId)
+    if user is None:
+        raise HTTPException(status_code=404, detail=f"User {payload.userId} not found")
+
+    try:
+        return await run_ask(
+            settings,
+            question=payload.question,
+            user_id=payload.userId,
+            # Scope comes from the stored user, never from the request: a hospice user reads their
+            # own network, a vendor dispatcher reads their own orders and stock.
+            scope=OrgScope(
+                org_type=str(user.get("orgType", "")), org_id=str(user.get("orgId", ""))
+            ),
         )
     except AiUnavailable as exc:
         raise _unavailable(exc) from exc

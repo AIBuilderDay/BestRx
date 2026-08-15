@@ -27,6 +27,14 @@ class Settings:
     # live in this process's memory (see store.py).
     push_subscriptions_table: str = os.environ.get("PUSH_SUBSCRIPTIONS_TABLE", "")
 
+    # Postgres, when orders need to outlive a restart and be visible from more than one device.
+    # Unset locally, where the in-memory store seeded from the JSON fixtures is enough.
+    database_url: str = os.environ.get("DATABASE_URL", "")
+
+    # Postgres, when orders need to outlive a restart and be visible from more than one device.
+    # Unset locally, where the in-memory store seeded from the JSON fixtures is enough.
+    database_url: str = os.environ.get("DATABASE_URL", "")
+
     push_queue_url: str = os.environ.get("PUSH_QUEUE_URL", "")
     vapid_public_key: str = os.environ.get("VAPID_PUBLIC_KEY", "")
 
@@ -59,6 +67,11 @@ class Settings:
     def auto_advance_enabled(self) -> bool:
         """False when AUTO_ADVANCE_SECONDS is 0: orders then move only when asked to."""
         return self.auto_advance_seconds > 0
+
+    @property
+    def orders_persisted(self) -> bool:
+        """False locally: orders live in memory and reset to the fixtures on restart."""
+        return bool(self.database_url)
 
     @property
     def push_enabled(self) -> bool:

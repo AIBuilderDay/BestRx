@@ -11,7 +11,7 @@
 import type { CartDto } from '../lib/api';
 
 /** Every AI feature bills into one of these buckets. Add a member when a new surface calls the model. */
-export type AiFeature = 'rerank' | 'agent_order';
+export type AiFeature = 'rerank' | 'agent_order' | 'ask';
 
 /** One model call, as the cost dashboard will see it. */
 export interface AiUsageRecord {
@@ -71,6 +71,32 @@ export interface AgentAddedLine {
  * the agent could not safely resolve a patient or a product — the caller shows plain search
  * results instead, and never a dead end. A human still confirms checkout.
  */
+/** One row an answer cited, resolved server-side into something the UI can link to. */
+export interface AskSource {
+  kind: 'order' | 'patient' | 'offer';
+  id: string;
+  /** What to show: an order id and its item, a patient's label, a product name. */
+  label: string;
+  /** Secondary line — status, diagnosis, vendor. */
+  meta: string;
+  /** In-app route this row opens. */
+  to: string;
+}
+
+/**
+ * What the ask agent found for a question about orders, patients, or the catalog.
+ *
+ * Read-only: it answers from the same MCP tools the ordering agent writes through, minus every
+ * write. `sources` are only rows a tool actually returned *and* the answer mentions, so a link
+ * can never point at something the model invented. `answer` is empty when the model said nothing
+ * — the caller falls back to deterministic search rather than showing an empty panel.
+ */
+export interface AskResult {
+  answer: string;
+  sources: AskSource[];
+  toolCalls: AgentToolCall[];
+}
+
 export interface AgentOrderResult {
   /** One sentence the UI can show: what the agent understood. */
   summary: string;

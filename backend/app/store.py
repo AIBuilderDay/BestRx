@@ -1,15 +1,17 @@
 """The order store.
 
-A long-running container can hold state in memory, so it does. Orders and events are seeded from
-the JSON fixtures at startup and mutated in place; nothing here is persisted.
+Two implementations behind one interface, chosen by whether `DATABASE_URL` is set:
 
-That is a deliberate trade for a demo: no database to provision, no seeding step, and a restart
-returns the dataset to a known-good state. The cost is that writes do not survive a restart, which
-is stated plainly in the README rather than hidden.
+- `OrderStore` keeps orders and events in this process's memory, seeded from the JSON fixtures at
+  startup. No database to provision, and a restart returns to a known-good dataset. Writes do not
+  survive a restart, and two processes cannot see each other's orders.
+- `PostgresOrderStore` (see `postgres_store.py`) persists the same rows, so a nurse's phone and a
+  case manager's laptop read the same board and orders outlive a restart or a Render spin-down.
 
-`subscribe()` is what makes SSE work without polling. A status change appends an event and hands it
-straight to every connected client's queue, so latency is a function of the network rather than a
-poll interval.
+Both inherit the SSE fan-out below, which is transport rather than storage: a status change appends
+an event and hands it straight to every connected client's queue, so latency is a function of the
+network rather than a poll interval. That fan-out is in-process, which is correct while the API runs
+as a single instance — see `docs/DATA_MODEL.md`.
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ import asyncio
 import threading
 from typing import Any
 
+from .config import get_settings
 from .fixtures import seed_order_events, seed_orders
 
 Row = dict[str, Any]
@@ -28,13 +31,105 @@ Row = dict[str, Any]
 SUBSCRIBER_QUEUE_SIZE = 100
 
 
-class OrderStore:
-    """Orders, their timeline, and the fan-out to connected SSE clients."""
+class BaseOrderStore:
+    """SSE fan-out, shared by every storage backend.
+
+    Subscriber queues belong to the asyncio loop while writes arrive from whichever worker thread
+    FastAPI ran the handler on, so this is the same tricky handoff regardless of where rows are
+    kept. Subclasses supply the data methods and call `_publish` from `append_event`.
+    """
 
     def __init__(self) -> None:
-        # Guards the dicts below. Event fan-out happens on the asyncio loop, but writes arrive from
-        # whichever worker thread FastAPI ran the handler on.
+        # Guards `_subscribers` (and, in the in-memory subclass, the row dicts too).
         self._lock = threading.Lock()
+
+        self._subscribers: set[asyncio.Queue[Row]] = set()
+        self._loop: asyncio.AbstractEventLoop | None = None
+
+    def bind_loop(self, loop: asyncio.AbstractEventLoop) -> None:
+        """Remember the loop, so a write from a worker thread can reach subscriber queues."""
+        self._loop = loop
+
+    # ── The storage contract ──────────────────────────────────────────────────
+    # Implemented by OrderStore (memory) and PostgresOrderStore. Declared here so callers can be
+    # annotated with the interface rather than one implementation.
+
+    def list_orders(self) -> list[Row]:
+        raise NotImplementedError
+
+    def get_order(self, order_id: str) -> Row | None:
+        raise NotImplementedError
+
+    def put_order(self, order: Row) -> None:
+        raise NotImplementedError
+
+    def next_order_id(self) -> str:
+        raise NotImplementedError
+
+    def is_session_order(self, order_id: str) -> bool:
+        raise NotImplementedError
+
+    def events_for_order(self, order_id: str) -> list[Row]:
+        raise NotImplementedError
+
+    def all_events(self) -> list[Row]:
+        raise NotImplementedError
+
+    def events_since(self, seq: int, limit: int = 100) -> list[Row]:
+        raise NotImplementedError
+
+    def append_event(self, event: Row) -> Row:
+        raise NotImplementedError
+
+    # ── SSE fan-out ───────────────────────────────────────────────────────────
+
+    def subscribe(self) -> asyncio.Queue[Row]:
+        queue: asyncio.Queue[Row] = asyncio.Queue(maxsize=SUBSCRIBER_QUEUE_SIZE)
+        with self._lock:
+            self._subscribers.add(queue)
+        return queue
+
+    def unsubscribe(self, queue: asyncio.Queue[Row]) -> None:
+        with self._lock:
+            self._subscribers.discard(queue)
+
+    @property
+    def subscriber_count(self) -> int:
+        with self._lock:
+            return len(self._subscribers)
+
+    def _publish(self, event: Row) -> None:
+        with self._lock:
+            queues = list(self._subscribers)
+        if not queues:
+            return
+
+        loop = self._loop
+        if loop is None or loop.is_closed():
+            # No loop bound yet: a write outside a request, or a test. Events are still recorded.
+            return
+
+        def deliver() -> None:
+            for queue in queues:
+                try:
+                    queue.put_nowait(dict(event))
+                except asyncio.QueueFull:
+                    # Drop rather than block. A client this far behind will resync on reconnect
+                    # using Last-Event-ID.
+                    pass
+
+        # The handler may be on a worker thread; queue mutation has to happen on the loop.
+        try:
+            loop.call_soon_threadsafe(deliver)
+        except RuntimeError:
+            pass
+
+
+class OrderStore(BaseOrderStore):
+    """Orders and their timeline, in this process's memory."""
+
+    def __init__(self) -> None:
+        super().__init__()
 
         self._orders: dict[str, Row] = {row["id"]: dict(row) for row in seed_orders()}
 
@@ -50,13 +145,6 @@ class OrderStore:
         # driver only walks these forward — `canonical` does not answer the question, since 60 of
         # the 66 seeded orders are non-canonical too.
         self._session_order_ids: set[str] = set()
-
-        self._subscribers: set[asyncio.Queue[Row]] = set()
-        self._loop: asyncio.AbstractEventLoop | None = None
-
-    def bind_loop(self, loop: asyncio.AbstractEventLoop) -> None:
-        """Remember the loop, so a write from a worker thread can reach subscriber queues."""
-        self._loop = loop
 
     # ── Orders ────────────────────────────────────────────────────────────────
 
@@ -124,61 +212,25 @@ class OrderStore:
         self._publish(stored)
         return dict(stored)
 
-    # ── SSE fan-out ───────────────────────────────────────────────────────────
 
-    def subscribe(self) -> asyncio.Queue[Row]:
-        queue: asyncio.Queue[Row] = asyncio.Queue(maxsize=SUBSCRIBER_QUEUE_SIZE)
-        with self._lock:
-            self._subscribers.add(queue)
-        return queue
-
-    def unsubscribe(self, queue: asyncio.Queue[Row]) -> None:
-        with self._lock:
-            self._subscribers.discard(queue)
-
-    @property
-    def subscriber_count(self) -> int:
-        with self._lock:
-            return len(self._subscribers)
-
-    def _publish(self, event: Row) -> None:
-        with self._lock:
-            queues = list(self._subscribers)
-        if not queues:
-            return
-
-        loop = self._loop
-        if loop is None or loop.is_closed():
-            # No loop bound yet: a write outside a request, or a test. Events are still recorded.
-            return
-
-        def deliver() -> None:
-            for queue in queues:
-                try:
-                    queue.put_nowait(dict(event))
-                except asyncio.QueueFull:
-                    # Drop rather than block. A client this far behind will resync on reconnect
-                    # using Last-Event-ID.
-                    pass
-
-        # The handler may be on a worker thread; queue mutation has to happen on the loop.
-        try:
-            loop.call_soon_threadsafe(deliver)
-        except RuntimeError:
-            pass
-
-
-_store: OrderStore | None = None
+_store: BaseOrderStore | None = None
 _store_lock = threading.Lock()
 
 
-def get_store() -> OrderStore:
-    """One store per process."""
+def get_store() -> BaseOrderStore:
+    """One store per process: Postgres when DATABASE_URL is set, memory otherwise."""
     global _store
     if _store is None:
         with _store_lock:
             if _store is None:
-                _store = OrderStore()
+                database_url = get_settings().database_url
+                if database_url:
+                    # Imported lazily so a local run needs neither psycopg nor a database.
+                    from .postgres_store import PostgresOrderStore
+
+                    _store = PostgresOrderStore(database_url)
+                else:
+                    _store = OrderStore()
     return _store
 
 

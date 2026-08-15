@@ -15,7 +15,7 @@ from typing import Any, Literal
 
 Row = dict[str, Any]
 
-Feature = Literal["rerank", "agent_order"]
+Feature = Literal["rerank", "agent_order", "ask"]
 
 # USD per 1M tokens, used to price each call. Keep in step with the model in Settings.ai_model.
 MODEL_PRICES_PER_MTOK: dict[str, dict[str, float]] = {
@@ -85,6 +85,7 @@ class UsageLedger:
         totals: dict[str, Row] = {
             "rerank": dict(_EMPTY_TOTALS),
             "agent_order": dict(_EMPTY_TOTALS),
+            "ask": dict(_EMPTY_TOTALS),
         }
         total = dict(_EMPTY_TOTALS)
         for record in self.records():

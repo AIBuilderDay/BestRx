@@ -16,7 +16,7 @@ from typing import Any
 from ..carts import MAX_LINE_QTY, CartStore
 from ..config import Settings
 from ..fixtures import find_by
-from ..store import OrderStore
+from ..store import BaseOrderStore
 from . import orders as orders_service
 
 Row = dict[str, Any]
@@ -192,7 +192,7 @@ def clear_cart(carts: CartStore, user_id: str) -> None:
 
 def checkout(
     carts: CartStore,
-    store: OrderStore,
+    store: BaseOrderStore,
     settings: Settings,
     user_id: str,
     urgency: str = "routine",

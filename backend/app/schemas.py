@@ -119,6 +119,17 @@ class AgentOrderRequest(BaseModel):
     userId: str = Field(min_length=1)
 
 
+class AskRequest(BaseModel):
+    """A plain-English question about orders, patients, or the catalog, and who is asking.
+
+    The asking user is what scopes the answer: their hospice is resolved server-side and forced
+    onto every tool call, so a question cannot reach another network's data.
+    """
+
+    question: str = Field(min_length=1, max_length=500)
+    userId: str = Field(min_length=1)
+
+
 class StatusErrorDetail(BaseModel):
     """Body of a 409, so a client can show the user what is actually possible."""
 
@@ -137,6 +148,8 @@ class HealthResponse(BaseModel):
     pushEnabled: bool
     """False locally: subscriptions are in memory and do not survive a restart."""
     subscriptionsPersisted: bool
+    """False locally: orders are in memory, reset on restart, and not shared across devices."""
+    ordersPersisted: bool
     """How many browsers currently hold an SSE connection."""
     streamClients: int
     """False when no ANTHROPIC_API_KEY is set: /ai/* answers 503 and the UI hides AI search."""

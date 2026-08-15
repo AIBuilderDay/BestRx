@@ -102,6 +102,7 @@ def health(settings: Settings = Depends(get_settings)) -> HealthResponse:
         status="ok",
         pushEnabled=settings.push_enabled,
         subscriptionsPersisted=settings.subscriptions_persisted,
+        ordersPersisted=settings.orders_persisted,
         streamClients=get_store().subscriber_count,
         aiEnabled=settings.ai_enabled,
     )

@@ -10,7 +10,13 @@
  * search. AI is an enhancement, never a dependency.
  */
 
-import type { AgentOrderResult, AiUsageSummary, AiUsageRecord, RerankResult } from '../../types/ai';
+import type {
+  AgentOrderResult,
+  AiUsageSummary,
+  AiUsageRecord,
+  AskResult,
+  RerankResult,
+} from '../../types/ai';
 import type { CartDto } from '../api';
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
@@ -64,6 +70,16 @@ export const rerankOffers = (
  */
 export const runAgentOrder = (command: string, userId: string): Promise<AgentOrderResult> =>
   post<AgentOrderResult>('/ai/order', { command, userId });
+
+/**
+ * Answer a question about orders, patients, or the catalog.
+ *
+ * The API scopes the answer to this user's own organisation from the stored user row, so the
+ * question itself cannot widen what it reaches — the browser sends who is asking, not what they
+ * may see.
+ */
+export const askAgent = (question: string, userId: string): Promise<AskResult> =>
+  post<AskResult>('/ai/ask', { question, userId });
 
 export interface UsageResponse {
   records: AiUsageRecord[];
