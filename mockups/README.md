@@ -22,5 +22,12 @@ Known inconsistency: `cost-ledger.html` uses its own vendor names (Northstar, Ca
 Rotera) while the app data uses Sample Vendor 1-3, which the bounty's canonical orders reference.
 The app follows `frontend/src/data/`; treat the mockup names as placeholders.
 
+`cost-ledger.html` is built at `/dashboard` (`frontend/src/views/Dashboard.tsx`), open by default to
+the roles holding `reporting`. Four of its premises do not survive the real data, and the built
+screen departs from it deliberately in each case — the sidebar becomes the app's top nav, the period
+tabs collapse to the one month of orders on file, "savings available" becomes a signed delta because
+the only vendor clearing the service floor is also the most expensive, and every vendor column
+carries its ZIP coverage. See "Known inconsistencies" in [../docs/DATA_MODEL.md](../docs/DATA_MODEL.md).
+
 New mockups should reuse the tokens in `orders-board.html` so everything stays one product. If you
 change a token there, change it in `frontend/src/index.css` and `docs/DESIGN_SYSTEM.html` too.
