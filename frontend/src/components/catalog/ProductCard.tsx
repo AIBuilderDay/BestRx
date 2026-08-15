@@ -4,7 +4,13 @@ import type { CatalogProductVM } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
 import { ItemStarRating } from './ItemStarRating';
 
-export function ProductCard({ item }: { item: CatalogProductVM }) {
+export function ProductCard({
+  item,
+  onOrderNow,
+}: {
+  item: CatalogProductVM;
+  onOrderNow: () => void;
+}) {
   const [imgBroken, setImgBroken] = useState(false);
   const { offer, price, vendor, rating } = item;
 
@@ -16,30 +22,41 @@ export function ProductCard({ item }: { item: CatalogProductVM }) {
             to={`/catalog/${offer.id}`}
             className="relative block aspect-[3/4] w-full cursor-pointer overflow-hidden border border-line bg-bg-subtle text-left transition-colors hover:border-line-strong"
           >
-          {!imgBroken && (
-            <img
-              src={offer.imagePath}
-              alt={offer.productName}
-              onError={() => setImgBroken(true)}
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
-            />
-          )}
-          {imgBroken && (
-            <>
-              <div
-                className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.06]"
-                style={{
-                  backgroundImage:
-                    'repeating-linear-gradient(135deg, var(--track) 0 8px, var(--bg-subtle) 8px 16px)',
-                }}
+            {!imgBroken && (
+              <img
+                src={offer.imagePath}
+                alt={offer.productName}
+                onError={() => setImgBroken(true)}
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
               />
-              <div className="pointer-events-none absolute inset-x-2.5 top-2.5 grid gap-1 font-mono text-[11px] leading-tight text-ink-3">
-                <span>{offer.hcpcs}</span>
-                <span className="max-w-[80%]">{offer.description}</span>
-              </div>
-            </>
-          )}
+            )}
+            {imgBroken && (
+              <>
+                <div
+                  className="absolute inset-0 transition-transform duration-700 group-hover:scale-[1.06]"
+                  style={{
+                    backgroundImage:
+                      'repeating-linear-gradient(135deg, var(--track) 0 8px, var(--bg-subtle) 8px 16px)',
+                  }}
+                />
+                <div className="pointer-events-none absolute inset-x-2.5 top-2.5 grid gap-1 font-mono text-[11px] leading-tight text-ink-3">
+                  <span>{offer.hcpcs}</span>
+                  <span className="max-w-[80%]">{offer.description}</span>
+                </div>
+              </>
+            )}
           </Link>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onOrderNow();
+            }}
+            className="absolute bottom-2.5 right-2.5 border border-solid-bg bg-solid-bg px-2.5 py-1.5 text-[10px] uppercase tracking-[0.08em] text-solid-ink opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:opacity-100"
+          >
+            Order now
+          </button>
         </div>
 
         <div className="grid content-start gap-2 pt-3.5">

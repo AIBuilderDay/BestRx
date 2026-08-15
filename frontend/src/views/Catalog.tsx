@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getHospice, patients, vendors } from '../data/db';
+import { patients, vendors } from '../data/db';
 import { can } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
@@ -27,6 +27,7 @@ import { CatalogFilters, type CategoryOption } from '../components/catalog/Catal
 import { ProductCard } from '../components/catalog/ProductCard';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
+import { OrderPlacedDialog, type PlacedOrderDetails } from '../components/catalog/OrderPlacedDialog';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
@@ -42,7 +43,6 @@ export default function Catalog({ user }: { user: User }) {
   const { offerId } = useParams<{ offerId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const hospice = getHospice(user.orgId);
   const assignablePatients = useMemo(
     () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
     [user.orgId],
@@ -55,7 +55,8 @@ export default function Catalog({ user }: { user: User }) {
   const [currentPage, setCurrentPage] = useState(1);
   const { lines, setLines, cartOpen, setCartOpen, clearCart } = useCart();
   const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
-  const [checkoutAfter, setCheckoutAfter] = useState(false);
+  const [sheetMode, setSheetMode] = useState<'cart' | 'order'>('cart');
+  const [placedOrder, setPlacedOrder] = useState<PlacedOrderDetails | null>(null);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -80,9 +81,15 @@ export default function Catalog({ user }: { user: User }) {
     if (offerId) navigate('/catalog');
   };
 
-  const openSheet = (id: string, forCheckout: boolean) => {
+  const openCartSheet = (id: string) => {
     setSheetOfferId(id);
-    setCheckoutAfter(forCheckout);
+    setSheetMode('cart');
+    setCartOpen(false);
+  };
+
+  const openOrderSheet = (id: string) => {
+    setSheetOfferId(id);
+    setSheetMode('order');
     setCartOpen(false);
   };
 
@@ -101,6 +108,16 @@ export default function Catalog({ user }: { user: User }) {
       say('Pick at least one patient for this equipment');
       return;
     }
+
+    if (sheetMode === 'order') {
+      const orderPatients = selectedPatientIds
+        .map((id) => patients.find((p) => p.id === id))
+        .filter((p): p is NonNullable<typeof p> => Boolean(p));
+      setPlacedOrder({ product: sheetProduct, patients: orderPatients, qty });
+      setSheetOfferId(null);
+      return;
+    }
+
     setLines((prev) =>
       selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, qty), prev),
     );
@@ -112,7 +129,6 @@ export default function Catalog({ user }: { user: User }) {
         : `${selectedPatientIds.length} patients`;
     say(`${sheetProduct.offer.productName} × ${qty} added for ${names}`);
     setSheetOfferId(null);
-    if (checkoutAfter) setCartOpen(true);
   };
 
   const placeOrder = () => {
@@ -184,8 +200,7 @@ export default function Catalog({ user }: { user: User }) {
                 user={user}
                 sessionReviews={sessionReviews}
                 onAddReview={addReview}
-                onAddToCart={() => openSheet(detailProduct.offer.id, false)}
-                onBuyNow={() => openSheet(detailProduct.offer.id, true)}
+                onAddToCart={() => openCartSheet(detailProduct.offer.id)}
               />
             ) : (
               <>
@@ -203,12 +218,7 @@ export default function Catalog({ user }: { user: User }) {
             <>
               <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
                 <div>
-                  <div className="text-xs text-ink-3">{hospice?.name ?? 'Hospice'} / Catalog</div>
-                  <h1 className="mt-1.5 text-3xl font-normal tracking-tight">Durable Medical Equipment</h1>
-                  <div className="mt-1.5 text-[13px] text-ink-2">
-                    {filteredSorted.length} listings · {new Set(catalogItems.map((it) => it.offer.hcpcs)).size} equipment types ·
-                    vendor price and lead time shown per listing
-                  </div>
+                  <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {SORTS.map((s) => (
@@ -238,7 +248,7 @@ export default function Catalog({ user }: { user: User }) {
                       className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
                       style={{ animationDelay: `${i * 0.045}s` }}
                     >
-                      <ProductCard item={item} />
+                      <ProductCard item={item} onOrderNow={() => openOrderSheet(item.offer.id)} />
                     </div>
                   ))}
                 </div>
@@ -265,10 +275,12 @@ export default function Catalog({ user }: { user: User }) {
       <PatientAssignSheet
         product={sheetProduct}
         patients={assignablePatients}
-        checkoutAfter={checkoutAfter}
+        mode={sheetMode}
         onClose={() => setSheetOfferId(null)}
         onConfirm={confirmSheet}
       />
+
+      <OrderPlacedDialog order={placedOrder} onClose={() => setPlacedOrder(null)} />
 
       <CartDrawer
         open={cartOpen}

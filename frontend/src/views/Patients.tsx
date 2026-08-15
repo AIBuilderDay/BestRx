@@ -33,7 +33,7 @@ export default function Patients({ user }: { user: User }) {
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-[22px] font-semibold tracking-tight">My patients</h1>
+            <h1 className="text-3xl font-normal tracking-tight">My patients</h1>
             <div className="mt-1 text-[13px] text-ink-2">
               {caseloadSubtitle(caseload, attentionTotal)}
             </div>

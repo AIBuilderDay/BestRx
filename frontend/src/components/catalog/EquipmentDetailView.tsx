@@ -55,14 +55,12 @@ export function EquipmentDetailView({
   sessionReviews,
   onAddReview,
   onAddToCart,
-  onBuyNow,
 }: {
   product: CatalogProductVM;
   user: User;
   sessionReviews: ProductReview[];
   onAddReview: (rating: number, comment: string) => void;
   onAddToCart: () => void;
-  onBuyNow: () => void;
 }) {
   const [draftRating, setDraftRating] = useState(5);
   const [draftComment, setDraftComment] = useState('');
@@ -121,18 +119,18 @@ export function EquipmentDetailView({
         <span>Catalog</span>
       </Link>
 
-      <div className="mb-6 flex flex-wrap items-start gap-4">
-        <div className="h-[120px] w-[90px] flex-none overflow-hidden border border-line bg-bg-subtle">
+      <div className="mb-6 flex gap-5">
+        <div className="w-[min(42%,200px)] min-w-[160px] flex-none self-stretch overflow-hidden border border-line bg-bg-subtle">
           {!imgBroken ? (
             <img
               src={offer.imagePath}
               alt={offer.productName}
               onError={() => setImgBroken(true)}
-              className="h-full w-full object-cover"
+              className="h-full min-h-[200px] w-full object-cover"
             />
           ) : (
             <div
-              className="h-full w-full"
+              className="h-full min-h-[200px] w-full"
               style={{
                 backgroundImage:
                   'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
@@ -140,7 +138,7 @@ export function EquipmentDetailView({
             />
           )}
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col justify-center">
           <div className="text-xs text-ink-3">{vendor.displayName}</div>
           <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
             <h1 className="text-[22px] font-semibold tracking-tight">{offer.productName}</h1>
@@ -150,6 +148,13 @@ export function EquipmentDetailView({
             {moneyLabel(price.amount)}
             {price.unit === '/mo' ? <span className="text-sm text-ink-3">/mo</span> : null}
           </div>
+          <button
+            type="button"
+            onClick={onAddToCart}
+            className="mt-3 w-fit cursor-pointer self-start border border-solid-bg bg-solid-bg px-3 py-1.5 text-[11px] uppercase tracking-[0.09em] text-solid-ink transition-opacity hover:opacity-85"
+          >
+            Add to cart
+          </button>
         </div>
       </div>
 
@@ -179,23 +184,6 @@ export function EquipmentDetailView({
             <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Description</h2>
             <p className="text-[13px] leading-relaxed text-ink-2">{offer.description}</p>
           </section>
-
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={onAddToCart}
-              className="cursor-pointer border border-solid-bg bg-solid-bg px-4 py-2.5 text-[11px] uppercase tracking-[0.09em] text-solid-ink transition-opacity hover:opacity-85"
-            >
-              Add to cart
-            </button>
-            <button
-              type="button"
-              onClick={onBuyNow}
-              className="cursor-pointer border border-line-strong bg-surface px-4 py-2.5 text-[11px] uppercase tracking-[0.09em] text-ink-2 transition-colors hover:border-ink hover:bg-solid-bg hover:text-solid-ink"
-            >
-              Order now
-            </button>
-          </div>
         </div>
       </div>
 
@@ -263,6 +251,7 @@ export function EquipmentDetailView({
                 lastItem={reviewPageData.lastItem}
                 totalItems={filteredReviews.length}
                 onPageChange={setReviewPage}
+                ariaLabel="Review pages"
               />
             ) : null}
           </div>
