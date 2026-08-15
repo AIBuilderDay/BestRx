@@ -13,7 +13,7 @@ interface SessionNote {
   text: string;
 }
 
-export default function PatientDetail({ user }: { user: User }) {
+export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { cartCount, setCartOpen } = useCart();
@@ -62,6 +62,7 @@ export default function PatientDetail({ user }: { user: User }) {
       cartCount={cartCount}
       activeSection="patients"
       onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
     />
   );
 
