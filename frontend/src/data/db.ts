@@ -8,6 +8,7 @@
  */
 
 import type {
+  Budget,
   CatalogEntry,
   EmrEvent,
   Hospice,
@@ -17,8 +18,10 @@ import type {
   Patient,
   User,
   Vendor,
+  VendorOffer,
 } from '../types/domain';
 
+import budgetsJson from './budgets.json';
 import equipmentCatalogJson from './equipment_catalog.json';
 import emrEventsJson from './emr_events.json';
 import hospicesJson from './hospices.json';
@@ -27,6 +30,7 @@ import orderEventsJson from './order_events.json';
 import ordersJson from './orders.json';
 import patientsJson from './patients.json';
 import usersJson from './users.json';
+import vendorOffersJson from './vendor_offers.json';
 import vendorsJson from './vendors.json';
 
 // TypeScript widens JSON string literals to `string`, so the union types in domain.ts need an
@@ -40,6 +44,8 @@ export const orders = ordersJson as unknown as Order[];
 export const orderEvents = orderEventsJson as unknown as OrderEvent[];
 export const inventory = inventoryJson as unknown as InventoryUnit[];
 export const emrEvents = emrEventsJson as unknown as EmrEvent[];
+export const vendorOffers = vendorOffersJson as unknown as VendorOffer[];
+export const budgets = budgetsJson as unknown as Budget[];
 
 export const getOrder = (id: string): Order | undefined => orders.find((o) => o.id === id);
 
@@ -77,3 +83,25 @@ export const getAtRiskOrders = (): Order[] =>
     .filter((o) => o.riskState !== null)
     .slice()
     .sort((a, b) => (b.risk?.score ?? 0) - (a.risk?.score ?? 0));
+
+/** Every vendor selling one catalog item. The storefront's comparison list. */
+export const getOffersForItem = (hcpcs: string): VendorOffer[] =>
+  vendorOffers.filter((o) => o.hcpcs === hcpcs);
+
+export const getOffersForVendor = (vendorId: string): VendorOffer[] =>
+  vendorOffers.filter((o) => o.vendorId === vendorId);
+
+export const getBudgetsForHospice = (hospiceId: string): Budget[] =>
+  budgets.filter((b) => b.hospiceId === hospiceId);
+
+/** The cap a role budget works out to: per-patient-day allowance x patients carried x days. */
+export const budgetCapUsd = (budget: Budget): number =>
+  budget.derivedFrom
+    ? budget.derivedFrom.ppdUsd * budget.derivedFrom.assignedPatients * budget.derivedFrom.days
+    : budget.limitUsd;
+
+/** 0-100. Over-cap values exceed 100 on purpose — the caller decides how to show that. */
+export const budgetUtilizationPct = (budget: Budget): number => {
+  const cap = budgetCapUsd(budget);
+  return cap > 0 ? (budget.spentUsd / cap) * 100 : 0;
+};

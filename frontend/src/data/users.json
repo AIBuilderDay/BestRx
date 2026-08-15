@@ -7,5 +7,9 @@
   { "id": "USR-006", "name": "Ruth Kim", "role": "field_nurse", "orgType": "hospice", "orgId": "HSP-003", "phone": "801-555-0312", "avatarPath": "/images/people/ruth-kim.svg" },
   { "id": "USR-007", "name": "Alicia Romero", "role": "vendor_dispatcher", "orgType": "vendor", "orgId": "VND-001", "phone": "801-555-0141", "avatarPath": "/images/people/alicia-romero.svg" },
   { "id": "USR-008", "name": "Devon Marsh", "role": "vendor_dispatcher", "orgType": "vendor", "orgId": "VND-002", "phone": "801-555-0192", "avatarPath": "/images/people/devon-marsh.svg" },
-  { "id": "USR-009", "name": "Karen Vo", "role": "vendor_dispatcher", "orgType": "vendor", "orgId": "VND-003", "phone": "801-555-0177", "avatarPath": "/images/people/karen-vo.svg" }
+  { "id": "USR-009", "name": "Karen Vo", "role": "vendor_dispatcher", "orgType": "vendor", "orgId": "VND-003", "phone": "801-555-0177", "avatarPath": "/images/people/karen-vo.svg" },
+  { "id": "USR-010", "name": "Bea Cordova", "role": "admissions_nurse", "orgType": "hospice", "orgId": "HSP-001", "phone": "801-555-0321", "avatarPath": "/images/people/bea-cordova.svg" },
+  { "id": "USR-011", "name": "Omar Haddad", "role": "admissions_nurse", "orgType": "hospice", "orgId": "HSP-002", "phone": "801-555-0322", "avatarPath": "/images/people/omar-haddad.svg" },
+  { "id": "USR-012", "name": "Linda Ferraro", "role": "director_of_nursing", "orgType": "hospice", "orgId": "HSP-001", "phone": "801-555-0331", "avatarPath": "/images/people/linda-ferraro.svg" },
+  { "id": "USR-013", "name": "Grant Whitmore", "role": "hospice_admin", "orgType": "hospice", "orgId": "HSP-001", "phone": "801-555-0341", "avatarPath": "/images/people/grant-whitmore.svg" }
 ]

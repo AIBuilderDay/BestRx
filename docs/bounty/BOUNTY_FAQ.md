@@ -123,3 +123,22 @@ No formally defined delivery-window standard exists (no DME contracts held). Rea
 ## 10. Post-Hackathon Path
 
 BetterRX will review winning submissions for production quality and **intends to use the work (in part or whole) as a foundation for a future DME product** — a genuine roadmap opportunity, not just an exercise.
+
+## 11. The buyer's question: "How are you going to decrease my DME PPD?" ⚠️ (organizer guidance, added Aug 14)
+
+Direct from BetterRX during the build: **the hospice buyer is looking for the answer to one
+question — how are you going to decrease my DME PPD?** Be prepared to answer it in the pitch.
+
+**PPD (per patient day)** is the average medication or DME cost to care for one hospice patient for
+one day. It is a critical financial metric for hospices: even small increases in PPD add up to
+significant cost across hundreds or thousands of patients. Hospices work to keep PPD inside a target
+range while ensuring patients receive the medications and DME they need for comfort and quality of
+life.
+
+Two consequences for our build:
+
+1. **PPD is the headline number, not a footnote.** Cost views should express spend as PPD, not only
+   as a monthly total, because PPD is the number the buyer already manages against.
+2. **Every feature needs a PPD story.** If a screen cannot be connected to lowering PPD or defending
+   quality at the same PPD, it is not a selling feature. See
+   [../PROJECT_DESCRIPTION.md](../PROJECT_DESCRIPTION.md) §6 for our answer.

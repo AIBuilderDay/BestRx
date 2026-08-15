@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DME Pulse — Cost Ledger</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #fafafa;
+    --surface: #ffffff;
+    --border: #eaeaea;
+    --border-strong: #d4d4d4;
+    --ink: #0a0a0a;
+    --ink-2: #555555;
+    --ink-3: #6f6f6f;
+    --pill-solid-bg: #0a0a0a;
+    --pill-solid-ink: #ffffff;
+    --hover: #f5f5f5;
+    --track: #ececec;
+    /* semantic accents — the only two colors in the system */
+    --good: #15803d;
+    --good-bg: #f0fdf4;
+    --warn: #b45309;
+    --warn-bg: #fffbeb;
+    /* validated 4-step grayscale series ramp (CVD ΔE 18.1) */
+    --s1: #0a0a0a; --s2: #525252; --s3: #969696; --s4: #cfcfcf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --bg-subtle: #111111; --surface: #0f0f0f;
+      --border: #262626; --border-strong: #3a3a3a;
+      --ink: #fafafa; --ink-2: #a3a3a3; --ink-3: #8f8f8f;
+      --pill-solid-bg: #fafafa; --pill-solid-ink: #0a0a0a;
+      --hover: #171717; --track: #222222;
+      --good: #4ade80; --good-bg: #0d1f14;
+      --warn: #fbbf24; --warn-bg: #241a06;
+      --s1: #fafafa; --s2: #a8a8a8; --s3: #6b6b6b; --s4: #3d3d3d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --bg-subtle: #111111; --surface: #0f0f0f;
+    --border: #262626; --border-strong: #3a3a3a;
+    --ink: #fafafa; --ink-2: #a3a3a3; --ink-3: #8f8f8f;
+    --pill-solid-bg: #fafafa; --pill-solid-ink: #0a0a0a;
+    --hover: #171717; --track: #222222;
+    --good: #4ade80; --good-bg: #0d1f14;
+    --warn: #fbbf24; --warn-bg: #241a06;
+    --s1: #fafafa; --s2: #a8a8a8; --s3: #6b6b6b; --s4: #3d3d3d;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .app { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  /* grid items default to min-width:auto and refuse to shrink below the table's
+     content width — without this the whole page scrolls sideways on mobile
+     instead of the table scrolling inside its own wrapper */
+  .app > * { min-width: 0; }
+
+  /* Sidebar */
+  .side { border-right: 1px solid var(--border); padding: 21px 13px; display: flex; flex-direction: column; gap: 4px; background: var(--bg); }
+  .logo { display: flex; align-items: center; gap: 9px; padding: 4px 10px 21px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink); flex: none; }
+  .nav-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); padding: 13px 10px 6px; }
+  .nav a { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; cursor: pointer; }
+  .nav a:hover { background: var(--hover); color: var(--ink); }
+  .nav a.active { background: var(--hover); color: var(--ink); font-weight: 500; }
+  .nav .count { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .side-foot { margin-top: auto; padding: 10px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--border); }
+
+  /* Main */
+  .main { padding: 26px 32px 55px; max-width: 1180px; }
+  .crumb { font-size: 12px; color: var(--ink-3); margin-bottom: 6px; }
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 21px; margin-bottom: 21px; }
+  h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; font-weight: 600; }
+  .sub { color: var(--ink-2); margin-top: 4px; font-size: 13px; }
+  .btn { font: inherit; font-size: 13px; font-weight: 500; border-radius: 7px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--pill-solid-bg); color: var(--pill-solid-ink); border-color: var(--pill-solid-bg); }
+  .btn.primary:hover { opacity: 0.85; }
+  .btn.sm { font-size: 12px; padding: 5px 10px; }
+  .btn:focus-visible, .nav a:focus-visible, .tab:focus-visible, tbody tr:focus-visible,
+  .switch:focus-visible, input:focus-visible, th[role="button"]:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* Stat strip — leaner than the orders page; this is a ledger, not a summary */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 21px; }
+  .stat { border: 1px solid var(--border); border-radius: 10px; padding: 11px 14px; background: var(--surface); }
+  .stat .k { font-size: 11px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat .v { font-size: 23px; font-weight: 600; letter-spacing: -0.02em; margin-top: 5px; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .stat .d { font-size: 12px; color: var(--ink-3); margin-top: 3px; }
+  .stat.good .v { color: var(--good); }
+  .stat.alert { border-color: var(--warn); }
+  .stat.alert .v { color: var(--warn); }
+
+  /* Controls */
+  .controls { display: flex; gap: 13px; align-items: center; margin-bottom: 13px; flex-wrap: wrap; justify-content: space-between; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+  .tab:hover { color: var(--ink); border-color: var(--border-strong); }
+  .tab.on { background: var(--pill-solid-bg); color: var(--pill-solid-ink); border-color: var(--pill-solid-bg); }
+  .ctl-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); margin-right: 2px; }
+
+  /* Compare switch */
+  .switch { display: inline-flex; align-items: center; gap: 9px; font: inherit; font-size: 13px; font-weight: 500;
+            border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink);
+            border-radius: 999px; padding: 6px 14px 6px 8px; cursor: pointer; }
+  .switch:hover { background: var(--hover); }
+  .switch .knob { width: 30px; height: 18px; border-radius: 999px; background: var(--track); position: relative; flex: none; transition: background .18s; }
+  .switch .knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.28); transition: transform .18s; }
+  .switch[aria-pressed="true"] { border-color: var(--ink); }
+  .switch[aria-pressed="true"] .knob { background: var(--ink); }
+  .switch[aria-pressed="true"] .knob::after { transform: translateX(12px); }
+
+  /* Tables */
+  /* contain:paint is load-bearing — without it the wide table's painted overflow
+     escapes the rounded scroll container and the whole page scrolls sideways */
+  .tablewrap { border: 1px solid var(--border); border-radius: 10px; overflow-x: auto;
+               background: var(--surface); min-width: 0; contain: paint; }
+  table { width: 100%; min-width: 720px; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 500;
+       padding: 9px 13px; border-bottom: 1px solid var(--border); background: var(--bg-subtle); white-space: nowrap; vertical-align: bottom; }
+  td { padding: 9px 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: 1px solid var(--border); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover td { background: var(--hover); }
+  tfoot td { padding: 11px 13px; border-top: 1px solid var(--border-strong); font-weight: 600; background: var(--bg-subtle); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .mono { font-variant-numeric: tabular-nums; }
+  .code { font-weight: 600; letter-spacing: -0.01em; }
+  .muted { color: var(--ink-3); }
+  .ext { font-size: 11px; color: var(--ink-3); font-variant-numeric: tabular-nums; display: block; margin-top: 1px; }
+
+  /* Matrix specifics */
+  .vh { display: block; }
+  .vh .vn { color: var(--ink); font-weight: 600; text-transform: none; letter-spacing: -0.01em; font-size: 12px; }
+  .vh .vm { display: block; font-size: 10px; color: var(--ink-3); text-transform: none; letter-spacing: 0; font-weight: 400; margin-top: 1px; }
+  th.contracted, td.contracted { background: var(--bg-subtle); border-left: 1px solid var(--ink); border-right: 1px solid var(--ink); }
+  tbody tr:hover td.contracted { background: var(--hover); }
+  td.best { background: var(--good-bg); }
+  td.best .u { color: var(--good); font-weight: 600; }
+  tbody tr:hover td.best { background: var(--good-bg); filter: brightness(0.985); }
+  td.riskprice .u { color: var(--warn); }
+  td.riskprice { background: var(--warn-bg); }
+  tbody tr:hover td.riskprice { background: var(--warn-bg); filter: brightness(0.985); }
+  .u { font-variant-numeric: tabular-nums; }
+  .delta { color: var(--good); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .delta.zero { color: var(--ink-3); font-weight: 400; }
+
+  /* Pills */
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--ink-2); white-space: nowrap; }
+  .pill.solid { background: var(--pill-solid-bg); color: var(--pill-solid-ink); border-color: var(--pill-solid-bg); }
+  .pill.good { color: var(--good); border-color: var(--good); background: var(--good-bg); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+
+  /* Chart card */
+  .card { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 18px 21px; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 13px; margin-bottom: 13px; flex-wrap: wrap; }
+  .card-title { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  .card-note { font-size: 12px; color: var(--ink-3); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .lk { width: 14px; height: 3px; border-radius: 2px; background: var(--ink); flex: none; }
+  .lk.dash { background: repeating-linear-gradient(90deg, var(--good) 0 5px, transparent 5px 9px); }
+  .chart { position: relative; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .tip { position: absolute; pointer-events: none; background: var(--pill-solid-bg); color: var(--pill-solid-ink);
+         font-size: 12px; padding: 7px 10px; border-radius: 7px; opacity: 0; transition: opacity .12s;
+         white-space: nowrap; transform: translate(-50%, -120%); font-variant-numeric: tabular-nums; z-index: 5; }
+  .tip.show { opacity: 1; }
+  .tip b { font-weight: 600; }
+  .tip .tl { display: block; opacity: .72; font-size: 11px; }
+
+  .section-gap { height: 34px; }
+
+  /* Drawer */
+  .drawer { border: 1px solid var(--ink); border-radius: 12px; margin-top: 21px; padding: 21px; background: var(--surface); }
+  .drawer h2 { margin: 0 0 3px; font-size: 16px; letter-spacing: -0.01em; }
+  .drawer .why { color: var(--ink-2); font-size: 13px; max-width: 62ch; }
+  .drawer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 13px; }
+  .x { background: none; border: none; color: var(--ink-3); cursor: pointer; font-size: 16px; line-height: 1; padding: 4px; }
+  .x:hover { color: var(--ink); }
+  .ladder { margin: 16px 0 0; display: grid; gap: 8px; max-width: 620px; }
+  .lrow { display: grid; grid-template-columns: minmax(190px, auto) 1fr 92px; gap: 13px; align-items: center; font-size: 13px; }
+  .lname { color: var(--ink-2); display: flex; align-items: center; gap: 6px; }
+  .lname b { color: var(--ink); font-weight: 600; }
+  .lbar { height: 20px; background: var(--track); border-radius: 3px; overflow: hidden; }
+  .lbar > i { display: block; height: 100%; background: var(--ink); border-radius: 3px; }
+  .lbar > i.alt { background: var(--s3); }
+  .lbar > i.bst { background: var(--good); }
+  .lbar > i.rsk { background: repeating-linear-gradient(45deg, var(--warn) 0 4px, var(--warn-bg) 4px 8px); }
+  .lval { text-align: right; font-variant-numeric: tabular-nums; }
+  .drawer-actions { display: flex; gap: 8px; margin-top: 21px; flex-wrap: wrap; }
+
+  /* Budgets */
+  .rulebar { border: 1px solid var(--border); border-radius: 10px; background: var(--bg-subtle); padding: 16px 21px; margin-bottom: 21px;
+             display: flex; align-items: center; gap: 13px; flex-wrap: wrap; }
+  .formula { font-size: 15px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .formula .op { color: var(--ink-3); }
+  .formula .term { border-bottom: 1px dashed var(--border-strong); padding-bottom: 1px; }
+  .rate-in { font: inherit; font-size: 15px; font-variant-numeric: tabular-nums; width: 76px; padding: 3px 7px; border-radius: 6px;
+             border: 1px solid var(--border-strong); background: var(--surface); color: var(--ink); text-align: right; }
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; margin-bottom: 21px; }
+  .role { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: var(--surface); }
+  .role .rn { font-weight: 600; font-size: 13px; }
+  .role .rr { font-size: 21px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .role .rd { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .role label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); margin-bottom: 5px; }
+  .meter { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; min-width: 74px; }
+  .meter > i { display: block; height: 100%; border-radius: 3px; background: var(--ink); }
+  .meter > i.g { background: var(--good); }
+  .meter > i.w { background: var(--warn); }
+  .mcell { display: flex; align-items: center; gap: 9px; }
+  .mcell .pct { font-variant-numeric: tabular-nums; font-size: 12px; width: 38px; text-align: right; color: var(--ink-2); }
+  th[role="button"] { cursor: pointer; user-select: none; }
+  th[role="button"]:hover { color: var(--ink); }
+  th .sortmark { opacity: .45; margin-left: 3px; }
+  .ovr { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); border: 1px solid var(--warn);
+         border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+
+  .toast { position: fixed; bottom: 22px; right: 22px; background: var(--pill-solid-bg); color: var(--pill-solid-ink);
+           padding: 10px 16px; border-radius: 8px; font-size: 13px; opacity: 0; transform: translateY(8px); transition: all .25s;
+           pointer-events: none; z-index: 40; max-width: 380px; }
+  .toast.show { opacity: 1; transform: none; }
+
+  [hidden] { display: none !important; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast, .switch .knob, .switch .knob::after, .tip { transition: none; }
+  }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .side { flex-direction: row; align-items: center; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 10px 13px; }
+    .side .logo { padding: 4px 10px; }
+    .side-foot, .nav-label { display: none; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .roles { grid-template-columns: 1fr; }
+    .main { padding: 21px 16px 40px; }
+    .lrow { grid-template-columns: 116px 1fr 82px; }
+  }
+</style>
+</head>
+<body data-palette="#0a0a0a,#525252,#969696,#cfcfcf">
+
+<div class="app">
+  <aside class="side">
+    <div class="logo"><span class="logo-dot"></span>DME Pulse</div>
+    <nav class="nav" style="display:contents">
+      <div class="nav-label">Hospice</div>
+      <a href="#" onclick="toast('Orders lifecycle view — see mockup-dme-pulse.html');return false">Orders <span class="count">9</span></a>
+      <a href="#" onclick="toast('Bedside ordering flow opens here');return false">New order</a>
+      <a href="#" onclick="toast('Pickups queue — wired to EMR status changes');return false">Pickups <span class="count">2</span></a>
+      <a id="nav-cost" class="active" href="#cost" onclick="go('cost');return false">Cost of care</a>
+      <a id="nav-budgets" href="#budgets" onclick="go('budgets');return false">Budgets</a>
+      <div class="nav-label">Shared</div>
+      <a href="#" onclick="toast('Risk feed — every at-risk order, explained');return false">Risk feed <span class="count">2</span></a>
+      <a href="#" onclick="toast('Vendor scorecards — SLA vs actual');return false">Vendors</a>
+    </nav>
+    <div class="side-foot">Sample Hospice A · HCHB<br>178 patients · Aug 2026</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ═══════════════════ COST OF CARE ═══════════════════ -->
+    <section id="view-cost">
+      <div class="crumb">Sample Hospice A / Cost of care</div>
+      <div class="page-head">
+        <div>
+          <h1>DME cost ledger</h1>
+          <div class="sub">Every code you bought, priced against every vendor that could have supplied it.</div>
+        </div>
+        <button class="btn" onclick="toast('Exports the visible ledger as CSV for procurement review')">Export ledger</button>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="controls">
+        <div class="filters" role="tablist" aria-label="Time period">
+          <span class="ctl-label">Period</span>
+          <button class="tab on" role="tab" aria-selected="true" data-p="m1" onclick="setPeriod(this)">1 month</button>
+          <button class="tab" role="tab" aria-selected="false" data-p="m3" onclick="setPeriod(this)">3 months</button>
+          <button class="tab" role="tab" aria-selected="false" data-p="m6" onclick="setPeriod(this)">6 months</button>
+          <button class="tab" role="tab" aria-selected="false" data-p="y1" onclick="setPeriod(this)">1 year</button>
+        </div>
+        <button class="switch" id="cmp" aria-pressed="false" onclick="toggleCompare()">
+          <span class="knob" aria-hidden="true"></span>
+          <span>Show competing vendor pricing</span>
+        </button>
+      </div>
+
+      <div class="tablewrap">
+        <table id="matrix">
+          <caption class="sr">Unit price by HCPCS code and vendor, with extended totals for the selected period.</caption>
+          <thead><tr id="mhead"></tr></thead>
+          <tbody id="mbody"></tbody>
+          <tfoot id="mfoot"></tfoot>
+        </table>
+      </div>
+      <div class="card-note" style="margin-top:9px" id="matrix-note"></div>
+
+      <div class="drawer" id="drawer" hidden>
+        <div class="drawer-top">
+          <div>
+            <h2 id="d-title"></h2>
+            <div class="why" id="d-why"></div>
+          </div>
+          <button class="x" aria-label="Close details" onclick="closeDrawer()">✕</button>
+        </div>
+        <div class="ladder" id="d-ladder"></div>
+        <div class="drawer-actions">
+          <button class="btn primary" id="d-act" onclick="toast(this.dataset.msg)">Model this switch</button>
+          <button class="btn" onclick="toast('Quote request drafted — sends the exact volumes above to all four vendors')">Request re-quote</button>
+        </div>
+      </div>
+
+      <div class="section-gap"></div>
+
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Spend over time</div>
+            <div class="card-note" id="trend-note"></div>
+          </div>
+          <div class="legend" id="trend-legend">
+            <span><i class="lk"></i>Northstar DME (contracted)</span>
+          </div>
+        </div>
+        <div class="chart" id="trend">
+          <div class="tip" id="trend-tip"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ BUDGETS ═══════════════════ -->
+    <section id="view-budgets" hidden>
+      <div class="crumb">Sample Hospice A / Budget configuration</div>
+      <div class="page-head">
+        <div>
+          <h1>Budget configuration</h1>
+          <div class="sub">Each account's DME ceiling is derived from the patients they carry — not a flat number someone guessed.</div>
+        </div>
+        <button class="btn" onclick="toast('Change log — every cap adjustment, who made it, and why')">View change log</button>
+      </div>
+
+      <div class="rulebar">
+        <div class="formula">
+          <span class="term"><b>Monthly cap</b></span>
+          <span class="op">=</span>
+          <span class="term">PPD allowance</span>
+          <span class="op">×</span>
+          <span class="term">assigned patients</span>
+          <span class="op">×</span>
+          <span class="term">days in period</span>
+        </div>
+        <div class="card-note" style="margin-left:auto">Period: <b id="bud-period"></b> · caps recompute live</div>
+      </div>
+
+      <div class="filters" style="margin-bottom:21px" role="tablist" aria-label="Budget period">
+        <span class="ctl-label">Period</span>
+        <button class="tab on" role="tab" aria-selected="true" data-p="m1" onclick="setPeriod(this)">1 month</button>
+        <button class="tab" role="tab" aria-selected="false" data-p="m3" onclick="setPeriod(this)">3 months</button>
+        <button class="tab" role="tab" aria-selected="false" data-p="m6" onclick="setPeriod(this)">6 months</button>
+        <button class="tab" role="tab" aria-selected="false" data-p="y1" onclick="setPeriod(this)">1 year</button>
+      </div>
+
+      <div class="roles" id="roles"></div>
+
+      <div class="tablewrap">
+        <table id="acct">
+          <caption class="sr">DME budget by account. Edit a PPD rate to recompute that account's cap.</caption>
+          <thead><tr id="ahead"></tr></thead>
+          <tbody id="abody"></tbody>
+          <tfoot id="afoot"></tfoot>
+        </table>
+      </div>
+      <div class="card-note" style="margin-top:9px">
+        Editing a rate here overrides the role default for that account only. Overrides are marked and logged.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   DATA MODEL — synthetic. This is the shape the production codebase
+   should lift: nothing below is a hardcoded total, every figure on
+   screen is derived from these four structures.
+   ══════════════════════════════════════════════════════════════════ */
+
+const CENSUS = 178;               // patients on service
+const SERVICE_FLOOR = 85;         // min on-time % for a vendor to count as a *qualified* alternative
+
+const VENDORS = [
+  { id:"north",  name:"Northstar DME",          contracted:true,  onTime:84, pickup:71 },
+  { id:"cascade",name:"Cascade Home Medical",   contracted:false, onTime:93, pickup:89 },
+  { id:"merid",  name:"Meridian Medical Supply",contracted:false, onTime:88, pickup:82 },
+  { id:"rotera", name:"Rotera Health",          contracted:false, onTime:67, pickup:58 },
+];
+
+// unit price = monthly rental per unit, by HCPCS code
+const PRICES = {
+  E0601: { north:142.00, cascade:120.00, merid:131.50, rotera:108.00 },
+  E0250: { north:168.00, cascade:149.00, merid:158.00, rotera:138.50 },
+  E1130: { north: 62.00, cascade: 58.50, merid: 55.00, rotera: 47.00 },
+  E0277: { north:210.00, cascade:188.00, merid:196.00, rotera:175.00 },
+  E0431: { north: 88.00, cascade: 79.00, merid: 84.50, rotera: 71.00 },
+  E0143: { north: 24.00, cascade: 22.50, merid: 21.00, rotera: 18.50 },
+  E0163: { north: 31.00, cascade: 29.00, merid: 27.50, rotera: 24.00 },
+};
+
+// unit-months purchased, oldest → newest, 12 monthly buckets
+const BASKET = [
+  { hcpcs:"E0250", name:"Hospital bed, semi-electric", cat:"Beds & surfaces",
+    m:[58,60,63,61,66,69,67,71,70,72,74,76], w:[.24,.26,.25,.25] },                    // steady growth with census
+  { hcpcs:"E0601", name:"CPAP / oxygen concentrator",  cat:"Respiratory",
+    m:[38,41,44,43,47,49,50,54,57,60,63,67], w:[.22,.24,.26,.28] },                    // fastest-growing line — and the priciest gap
+  { hcpcs:"E0277", name:"Alternating pressure mattress",cat:"Beds & surfaces",
+    m:[34,33,30,26,24,25,27,30,33,35,36,34], w:[.28,.26,.24,.22] },                    // winter dip
+  { hcpcs:"E0431", name:"Portable oxygen, gaseous",    cat:"Respiratory",
+    m:[35,34,36,35,34,36,35,37,34,36,35,36], w:[.25,.25,.25,.25] },                    // flat
+  { hcpcs:"E1130", name:"Wheelchair, standard",        cat:"Mobility",
+    m:[56,54,53,50,49,47,46,44,43,41,40,38], w:[.27,.26,.24,.23] },                    // declining — acuity mix shifting
+  { hcpcs:"E0143", name:"Walker, folding wheeled",     cat:"Mobility",
+    m:[44,47,49,52,54,57,58,61,63,65,67,70], w:[.23,.24,.26,.27] },                    // growth
+  { hcpcs:"E0163", name:"Commode chair",               cat:"Personal care",
+    m:[47,45,48,46,52,49,47,50,48,51,49,48], w:[.26,.23,.27,.24] },                    // noisy, flat
+];
+
+const MONTHS = ["Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug"];
+
+const PERIODS = {
+  m1: { label:"1 month",  months:1,  days:31,  bucketLabels:["Aug wk 1","Aug wk 2","Aug wk 3","Aug wk 4"] },
+  m3: { label:"3 months", months:3,  days:92,  bucketLabels:MONTHS.slice(9) },
+  m6: { label:"6 months", months:6,  days:183, bucketLabels:MONTHS.slice(6) },
+  y1: { label:"1 year",   months:12, days:365, bucketLabels:MONTHS },
+};
+
+const ROLE_PPD = { "Case Manager":8.00, "Field Nurse":7.25, "Administrator":9.00 };
+
+// share = this account's slice of total DME spend. Kept as a fraction so spend and
+// cap both scale with the selected period and utilization stays meaningful.
+const ACCOUNTS = [
+  { id:"a1", name:"Dana Whitfield",     role:"Case Manager",  census:24, share:0.1489, override:null },
+  { id:"a2", name:"Marcus Ellery",      role:"Field Nurse",   census:19, share:0.0942, override:null },
+  { id:"a3", name:"Priya Raghunathan",  role:"Case Manager",  census:27, share:0.1733, override:8.75,
+    note:"Cap raised by M. Alvarez, Aug 2 — census +4 from the Cedar Ridge transfer." },
+  { id:"a4", name:"Tomas Beltran",      role:"Field Nurse",   census:16, share:0.1083, override:null },
+  { id:"a5", name:"Alice Nwosu",        role:"Case Manager",  census:22, share:0.1159, override:null },
+  { id:"a6", name:"Grethe Lindqvist",   role:"Field Nurse",   census:14, share:0.0643, override:null },
+  { id:"a7", name:"Samuel Ocampo",      role:"Field Nurse",   census:21, share:0.1322, override:null },
+  { id:"a8", name:"Renée Duval",        role:"Administrator", census:35, share:0.1629, override:null },
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   DERIVATION — everything on screen comes from here
+   ══════════════════════════════════════════════════════════════════ */
+
+// unit-months per bucket for one code, in the selected period.
+// Each code carries its own weekly distribution (item.w) — beds and CPAP do not
+// arrive on the same rhythm, and a shared split would make every sparkline identical.
+function bucketQty(item, pk) {
+  if (pk === "m1") {
+    const last = item.m[11];
+    return item.w.map(w => last * w);
+  }
+  return item.m.slice(12 - PERIODS[pk].months);
+}
+const totalQty = (item, pk) => bucketQty(item, pk).reduce((a,b) => a+b, 0);
+
+// cheapest vendor for a code that clears the service floor
+function bestQualified(hcpcs) {
+  return VENDORS
+    .filter(v => !v.contracted && v.onTime >= SERVICE_FLOOR)
+    .sort((a,b) => PRICES[hcpcs][a.id] - PRICES[hcpcs][b.id])[0];
+}
+// cheapest vendor outright, service ignored
+function cheapestAny(hcpcs) {
+  return VENDORS.filter(v => !v.contracted)
+    .sort((a,b) => PRICES[hcpcs][a.id] - PRICES[hcpcs][b.id])[0];
+}
+
+function spendAt(vendorId, pk) {
+  return BASKET.reduce((sum, it) => sum + totalQty(it, pk) * PRICES[it.hcpcs][vendorId], 0);
+}
+// what the same basket would cost using each code's best *qualified* vendor
+function bestQualifiedSpend(pk) {
+  return BASKET.reduce((sum, it) => sum + totalQty(it, pk) * PRICES[it.hcpcs][bestQualified(it.hcpcs).id], 0);
+}
+function trendBuckets(pk, vendorSelector) {
+  const n = pk === "m1" ? 4 : PERIODS[pk].months;
+  return Array.from({length:n}, (_, i) =>
+    BASKET.reduce((sum, it) => sum + bucketQty(it, pk)[i] * PRICES[it.hcpcs][vendorSelector(it)], 0));
+}
+
+const capFor  = (a, pk) => ppdOf(a) * a.census * PERIODS[pk].days;
+const ppdOf   = a => a.override != null ? a.override : ROLE_PPD[a.role];
+const spentBy = (a, pk) => a.share * spendAt("north", pk);
+
+/* ── formatting ── */
+const fmt  = n => "$" + Math.round(n).toLocaleString("en-US");
+const fmtc = n => "$" + n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
+const pct  = n => Math.round(n) + "%";
+const fmtk = n => n === 0 ? "$0"
+              : n >= 1000 ? "$" + (n/1000).toLocaleString("en-US",{maximumFractionDigits:1}) + "k"
+              : "$" + Math.round(n);
+
+/* Axis ticks land on round numbers, not on data-max × 1.12 */
+function niceScale(max, ticks = 4) {
+  const raw = max / ticks;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 1.5, 2, 2.5, 3, 4, 5, 7.5, 10].map(c => c * p).find(c => c >= raw) || 10 * p;
+  return { step, top: step * ticks };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════════════════════ */
+let period = "m1";
+let compare = false;
+let sortKey = "name", sortDir = 1;
+
+/* ══════════════════════════════════════════════════════════════════
+   COST VIEW
+   ══════════════════════════════════════════════════════════════════ */
+
+function renderStats() {
+  const P = PERIODS[period];
+  const cur  = spendAt("north", period);
+  const best = bestQualifiedSpend(period);
+  const save = cur - best;
+  const capTotal = ACCOUNTS.reduce((s,a) => s + capFor(a, period), 0);
+  const util = cur / capTotal * 100;
+
+  document.getElementById("stats").innerHTML = `
+    <div class="stat">
+      <div class="k">Total DME spend</div>
+      <div class="v">${fmt(cur)}</div>
+      <div class="d">Northstar DME · ${P.label}</div>
+    </div>
+    <div class="stat">
+      <div class="k">Cost per patient-day</div>
+      <div class="v">${fmtc(cur / (CENSUS * P.days))}</div>
+      <div class="d">${CENSUS} patients × ${P.days} days</div>
+    </div>
+    <div class="stat good">
+      <div class="k">Savings available</div>
+      <div class="v">↓ ${fmt(save)}</div>
+      <div class="d">${(save/cur*100).toFixed(1)}% · qualified vendors only</div>
+    </div>
+    <div class="stat${util >= 90 ? " alert" : ""}">
+      <div class="k">Budget utilization</div>
+      <div class="v">${pct(util)}</div>
+      <div class="d">of ${fmt(capTotal)} across 8 accounts</div>
+    </div>`;
+}
+
+function renderMatrix() {
+  const shown = compare ? VENDORS : VENDORS.filter(v => v.contracted);
+
+  document.getElementById("mhead").innerHTML =
+    `<th scope="col">Code</th><th scope="col">Equipment</th><th scope="col" class="num">Units</th>` +
+    shown.map(v => `<th scope="col" class="num${v.contracted ? " contracted" : ""}">
+        <span class="vh">
+          <span class="vn">${v.name.split(" ")[0]}</span>
+          <span class="vm">${v.contracted ? "contracted · " : ""}${v.onTime}% on-time</span>
+        </span></th>`).join("") +
+    `<th scope="col">Trend</th>` +
+    (compare ? `<th scope="col" class="num">Δ if switched</th>` : "");
+
+  const body = BASKET.map(it => {
+    const q    = totalQty(it, period);
+    const bq   = bestQualified(it.hcpcs);
+    const cheap= cheapestAny(it.hcpcs);
+    const save = q * (PRICES[it.hcpcs].north - PRICES[it.hcpcs][bq.id]);
+
+    const cells = shown.map(v => {
+      const unit = PRICES[it.hcpcs][v.id];
+      let cls = v.contracted ? "contracted" : "";
+      let mark = "";
+      if (compare && !v.contracted) {
+        if (v.id === bq.id)          { cls += " best";      mark = ' <span aria-hidden="true">↓</span>'; }
+        else if (v.id === cheap.id)  { cls += " riskprice"; mark = ' <span class="sr">service risk</span>'; }
+      }
+      return `<td class="num ${cls}">
+                <span class="u">${fmtc(unit)}${mark}</span>
+                <span class="ext">${fmt(q * unit)}</span>
+              </td>`;
+    }).join("");
+
+    return `<tr tabindex="0" data-code="${it.hcpcs}">
+      <td class="code">${it.hcpcs}</td>
+      <td>${it.name}<span class="ext">${it.cat}</span></td>
+      <td class="num mono">${Math.round(q).toLocaleString()}</td>
+      ${cells}
+      <td>${sparkline(bucketQty(it, period).map((u,i) => u * PRICES[it.hcpcs].north))}</td>
+      ${compare ? `<td class="num"><span class="delta${save < 1 ? " zero" : ""}">${save < 1 ? "—" : "↓ " + fmt(save)}</span></td>` : ""}
+    </tr>`;
+  }).join("");
+  document.getElementById("mbody").innerHTML = body;
+
+  const totalSave = spendAt("north", period) - bestQualifiedSpend(period);
+  document.getElementById("mfoot").innerHTML = `<tr>
+    <td colspan="3">Basket total · ${PERIODS[period].label}</td>
+    ${shown.map(v => `<td class="num${v.contracted ? " contracted" : ""}">${fmt(spendAt(v.id, period))}</td>`).join("")}
+    <td></td>
+    ${compare ? `<td class="num"><span class="delta">↓ ${fmt(totalSave)}</span></td>` : ""}
+  </tr>`;
+
+  document.getElementById("matrix-note").innerHTML = compare
+    ? `<b>Qualified</b> means on-time ≥ ${SERVICE_FLOOR}%. Rotera Health is cheapest on every code but runs 67% on-time and 58% on pickup —
+       switching to it would trade ${fmt(spendAt("north",period) - spendAt("rotera",period))} of savings for the late-delivery and
+       lingering-equipment failures this platform exists to prevent. Its cells are marked, not recommended.`
+    : `Showing your contracted vendor only. Turn on <b>competing vendor pricing</b> to re-price this exact basket against the other three vendors in your market.`;
+
+  document.querySelectorAll("#mbody tr").forEach(tr => {
+    tr.onclick = () => openDrawer(tr.dataset.code);
+    tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openDrawer(tr.dataset.code); } };
+  });
+}
+
+/* Small-multiple sparkline: 7 trends read as one shape, no 7 separate charts */
+function sparkline(vals) {
+  const w = 76, h = 22, pad = 2;
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
+  const pts = vals.map((v,i) => [
+    pad + i * (w - pad*2) / Math.max(vals.length - 1, 1),
+    h - pad - (v - lo) / span * (h - pad*2)
+  ]);
+  const d = pts.map((p,i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  const last = pts[pts.length - 1];
+  const dir = vals[vals.length-1] >= vals[0] ? "rising" : "falling";
+  return `<svg width="${w}" height="${h}" role="img" aria-label="Spend trend, ${dir}, ${fmt(vals[0])} to ${fmt(vals[vals.length-1])}">
+    <path d="${d}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".55"/>
+    <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="2" fill="currentColor"/>
+  </svg>`;
+}
+
+/* Area chart — contracted spend, plus the qualified-alternative line when comparing.
+   The filled gap between the two lines is the savings, made visible. */
+function renderTrend() {
+  const P = PERIODS[period];
+  const cur = trendBuckets(period, () => "north");
+  const alt = trendBuckets(period, it => bestQualified(it.hcpcs).id);
+  const labels = P.bucketLabels;
+
+  const W = 900, H = 240, L = 62, R = 16, T = 14, B = 30;
+  const sc = niceScale(Math.max(...cur));
+  const hi = sc.top, lo = 0;
+  const x = i => L + i * (W - L - R) / Math.max(cur.length - 1, 1);
+  const y = v => T + (1 - (v - lo) / (hi - lo)) * (H - T - B);
+
+  const line = a => a.map((v,i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+  const gridVals = Array.from({length:5}, (_, i) => i * sc.step);
+
+  const svg = `
+  <svg viewBox="0 0 ${W} ${H}" role="img"
+       aria-label="Spend per ${period==="m1"?"week":"month"} over the ${P.label}, ${fmt(cur[0])} to ${fmt(cur[cur.length-1])}${compare?", with the qualified-alternative line below it":""}.">
+    ${gridVals.map(v => `
+      <line x1="${L}" x2="${W-R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
+      <text x="${L-10}" y="${(y(v)+4).toFixed(1)}" text-anchor="end" font-size="11" fill="var(--ink-3)">${fmtk(v)}</text>`).join("")}
+
+    ${compare ? `<path d="${line(cur)} L ${x(cur.length-1).toFixed(1)} ${y(alt[alt.length-1]).toFixed(1)}
+        ${alt.map((v,i)=>"L "+x(alt.length-1-i).toFixed(1)+" "+y(alt[alt.length-1-i]).toFixed(1)).join(" ")} Z"
+        fill="var(--good)" opacity=".13"/>` : ""}
+
+    <path d="${line(cur)} L ${x(cur.length-1).toFixed(1)} ${y(0)} L ${L} ${y(0)} Z" fill="var(--ink)" opacity=".07"/>
+    <path d="${line(cur)}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${compare ? `<path d="${line(alt)}" fill="none" stroke="var(--good)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>` : ""}
+
+    ${cur.map((v,i) => `<circle class="pt" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.5" fill="var(--bg)" stroke="var(--ink)" stroke-width="2"/>`).join("")}
+    ${compare ? alt.map((v,i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3" fill="var(--bg)" stroke="var(--good)" stroke-width="2"/>`).join("") : ""}
+
+    ${labels.map((l,i) => `<text x="${x(i).toFixed(1)}" y="${H-9}" text-anchor="middle" font-size="11" fill="var(--ink-3)">${l}</text>`).join("")}
+
+    ${cur.map((v,i) => {
+      const bw = (W-L-R)/cur.length;
+      const x0 = Math.max(L, x(i) - bw/2), x1 = Math.min(W-R, x(i) + bw/2);   // clamped to the plot area
+      return `<rect class="hit" data-i="${i}" x="${x0.toFixed(1)}" y="${T}"
+        width="${(x1-x0).toFixed(1)}" height="${H-T-B}" fill="transparent" tabindex="0" role="button"
+        aria-label="${labels[i]}: ${fmt(v)}${compare ? ", qualified alternative " + fmt(alt[i]) : ""}"/>`;
+    }).join("")}
+  </svg>`;
+
+  const host = document.getElementById("trend");
+  host.innerHTML = svg + `<div class="tip" id="trend-tip"></div>`;
+
+  document.getElementById("trend-legend").innerHTML =
+    `<span><i class="lk"></i>Northstar DME (contracted)</span>` +
+    (compare ? `<span><i class="lk dash"></i>Best qualified alternative</span>` : "");
+  document.getElementById("trend-note").textContent = compare
+    ? `The shaded gap is money left on the table — ${fmt(spendAt("north",period) - bestQualifiedSpend(period))} across the ${P.label}.`
+    : `Spend per ${period === "m1" ? "week" : "month"}, contracted vendor.`;
+
+  const tip = document.getElementById("trend-tip");
+  const show = (i, el) => {
+    const r = el.getBoundingClientRect(), hr = host.getBoundingClientRect();
+    tip.innerHTML = `<span class="tl">${labels[i]}</span><b>${fmt(cur[i])}</b>` +
+      (compare ? `<span class="tl">alt ${fmt(alt[i])} · save ${fmt(cur[i]-alt[i])}</span>` : "");
+    tip.style.left = (r.left - hr.left + r.width/2) + "px";
+    tip.style.top  = (hr.height * (y(cur[i]) / H)) + "px";
+    tip.classList.add("show");
+  };
+  host.querySelectorAll(".hit").forEach(el => {
+    const i = +el.dataset.i;
+    el.addEventListener("mouseenter", () => show(i, el));
+    el.addEventListener("focus",      () => show(i, el));
+    el.addEventListener("mouseleave", () => tip.classList.remove("show"));
+    el.addEventListener("blur",       () => tip.classList.remove("show"));
+  });
+}
+
+/* Drawer — the full price ladder for one code, service data attached */
+function openDrawer(code) {
+  const it = BASKET.find(b => b.hcpcs === code);
+  const q  = totalQty(it, period);
+  const bq = bestQualified(code);
+  const ranked = [...VENDORS].sort((a,b) => PRICES[code][a.id] - PRICES[code][b.id]);
+  const max = Math.max(...VENDORS.map(v => q * PRICES[code][v.id]));
+  const save = q * (PRICES[code].north - PRICES[code][bq.id]);
+
+  document.getElementById("drawer").hidden = false;
+  document.getElementById("d-title").textContent = `${code} · ${it.name}`;
+  document.getElementById("d-why").innerHTML =
+    `${Math.round(q).toLocaleString()} unit-months over the ${PERIODS[period].label}. ` +
+    (save >= 1
+      ? `Moving this code to <b>${bq.name}</b> saves <b>${fmt(save)}</b> and improves on-time delivery from 84% to ${bq.onTime}%.`
+      : `Your contracted rate is already the best qualified price for this code.`);
+
+  document.getElementById("d-ladder").innerHTML = ranked.map(v => {
+    const tot = q * PRICES[code][v.id];
+    const disq = !v.contracted && v.onTime < SERVICE_FLOOR;
+    const cls = v.contracted ? "" : disq ? "rsk" : (v.id === bq.id ? "bst" : "alt");
+    return `<div class="lrow">
+      <div class="lname">${v.contracted ? `<b>${v.name}</b>` : v.name}
+        ${v.contracted ? `<span class="pill">contracted</span>`
+          : disq ? `<span class="pill warn">service risk</span>`
+          : v.id === bq.id ? `<span class="pill good">best qualified</span>` : ""}</div>
+      <div class="lbar" role="img" aria-label="${v.name}: ${fmt(tot)}, ${v.onTime}% on-time, ${v.pickup}% on-time pickup">
+        <i class="${cls}" style="width:${(tot/max*100).toFixed(1)}%"></i></div>
+      <div class="lval">${fmt(tot)}<span class="ext">${v.onTime}% / ${v.pickup}%</span></div>
+    </div>`;
+  }).join("") +
+  `<div class="card-note" style="margin-top:8px">Right column: on-time delivery % / on-time pickup %, trailing 30 days.</div>`;
+
+  const act = document.getElementById("d-act");
+  act.dataset.msg = save >= 1
+    ? `Switch modeled — ${code} to ${bq.name}: ${fmt(save)} saved over the ${PERIODS[period].label}, on-time 84% → ${bq.onTime}%.`
+    : `${code} already at best qualified price — no switch modeled.`;
+  document.getElementById("drawer").scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+const closeDrawer = () => document.getElementById("drawer").hidden = true;
+
+/* ══════════════════════════════════════════════════════════════════
+   BUDGET VIEW
+   ══════════════════════════════════════════════════════════════════ */
+
+function renderRoles() {
+  document.getElementById("roles").innerHTML = Object.entries(ROLE_PPD).map(([role, rate]) => {
+    const n = ACCOUNTS.filter(a => a.role === role).length;
+    const ov = ACCOUNTS.filter(a => a.role === role && a.override != null).length;
+    return `<div class="role">
+      <label for="role-${role.replace(/\s/g,"")}">${role} — default PPD</label>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span class="rr">$<input class="rate-in" id="role-${role.replace(/\s/g,"")}" type="number" step="0.25" min="0"
+          value="${rate.toFixed(2)}" data-role="${role}" oninput="setRoleRate(this)"
+          aria-label="${role} default per-patient-day allowance"></span>
+      </div>
+      <div class="rd">per patient · per day · applies to ${n} account${n>1?"s":""}${ov ? ` · ${ov} override` : ""}</div>
+    </div>`;
+  }).join("");
+}
+
+function setRoleRate(input) {
+  const v = parseFloat(input.value);
+  if (!isNaN(v) && v >= 0) { ROLE_PPD[input.dataset.role] = v; renderAccounts(); renderStats(); }
+}
+function setAcctRate(input) {
+  const a = ACCOUNTS.find(x => x.id === input.dataset.id);
+  const v = parseFloat(input.value);
+  if (isNaN(v) || v < 0) return;
+  a.override = (v === ROLE_PPD[a.role]) ? null : v;
+  renderAccounts(); renderRoles(); renderStats();
+}
+
+const ACOLS = [
+  { k:"name",   t:"Account" },
+  { k:"role",   t:"Role" },
+  { k:"census", t:"Patients", num:true },
+  { k:"ppd",    t:"PPD rate", num:true },
+  { k:"cap",    t:"Period cap", num:true },
+  { k:"spent",  t:"Spent", num:true },
+  { k:"util",   t:"Utilization" },
+  { k:"status", t:"Status" },
+];
+
+function renderAccounts() {
+  document.getElementById("bud-period").textContent = `${PERIODS[period].label} · ${PERIODS[period].days} days`;
+
+  document.getElementById("ahead").innerHTML = ACOLS.map(c =>
+    `<th scope="col" class="${c.num?"num":""}" role="button" tabindex="0" data-k="${c.k}"
+         onclick="sortBy('${c.k}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();sortBy('${c.k}')}"
+         aria-sort="${sortKey===c.k ? (sortDir>0?"ascending":"descending") : "none"}">
+       ${c.t}<span class="sortmark">${sortKey===c.k ? (sortDir>0?"↑":"↓") : ""}</span></th>`).join("");
+
+  const rows = ACCOUNTS.map(a => {
+    const cap = capFor(a, period), spent = spentBy(a, period), u = spent / cap * 100;
+    return { a, cap, spent, u, ppd: ppdOf(a) };
+  }).sort((r1, r2) => {
+    const g = k => ({ name:r1.a.name, role:r1.a.role, census:r1.a.census, ppd:r1.ppd, cap:r1.cap, spent:r1.spent, util:r1.u, status:r1.u })[k];
+    const h = k => ({ name:r2.a.name, role:r2.a.role, census:r2.a.census, ppd:r2.ppd, cap:r2.cap, spent:r2.spent, util:r2.u, status:r2.u })[k];
+    const x = g(sortKey), y = h(sortKey);
+    return (typeof x === "string" ? x.localeCompare(y) : x - y) * sortDir;
+  });
+
+  document.getElementById("abody").innerHTML = rows.map(({a, cap, spent, u, ppd}) => {
+    const state = u >= 100 ? ["Over cap","warn","w"] : u >= 90 ? ["Near cap","warn","w"] : ["Under","good","g"];
+    return `<tr tabindex="0" data-id="${a.id}">
+      <td><b>${a.name}</b>${a.override != null ? `<span class="ovr" title="${a.note || "Rate overridden"}">override</span>` : ""}</td>
+      <td class="muted">${a.role}</td>
+      <td class="num mono">${a.census}</td>
+      <td class="num">$<input class="rate-in" style="width:66px" type="number" step="0.25" min="0"
+            value="${ppd.toFixed(2)}" data-id="${a.id}" onclick="event.stopPropagation()" oninput="setAcctRate(this)"
+            aria-label="PPD rate for ${a.name}"></td>
+      <td class="num mono">${fmt(cap)}</td>
+      <td class="num mono">${fmt(spent)}</td>
+      <td><div class="mcell"><div class="meter"><i class="${state[2]}" style="width:${Math.min(u,100).toFixed(1)}%"></i></div>
+          <span class="pct">${pct(u)}</span></div></td>
+      <td><span class="pill ${state[1]}">${u >= 90 ? "▲" : "✓"} ${state[0]}</span></td>
+    </tr>`;
+  }).join("");
+
+  const capT = rows.reduce((s,r) => s + r.cap, 0), spT = rows.reduce((s,r) => s + r.spent, 0);
+  document.getElementById("afoot").innerHTML = `<tr>
+    <td colspan="2">All accounts</td>
+    <td class="num">${CENSUS}</td><td></td>
+    <td class="num">${fmt(capT)}</td><td class="num">${fmt(spT)}</td>
+    <td><div class="mcell"><div class="meter"><i class="${spT/capT>=.9?"w":"g"}" style="width:${Math.min(spT/capT*100,100).toFixed(1)}%"></i></div>
+        <span class="pct">${pct(spT/capT*100)}</span></div></td>
+    <td></td></tr>`;
+
+  document.querySelectorAll("#abody tr").forEach(tr => {
+    const a = ACCOUNTS.find(x => x.id === tr.dataset.id);
+    const msg = () => {
+      const cap = capFor(a, period), spent = spentBy(a, period);
+      return `${a.name}: ${a.census} patients × ${fmtc(ppdOf(a))}/day × ${PERIODS[period].days} days = ${fmt(cap)} cap. ` +
+             `Spent ${fmt(spent)} (${pct(spent/cap*100)}).` + (a.note ? ` ${a.note}` : "");
+    };
+    tr.onclick = () => toast(msg());
+    tr.onkeydown = e => { if (e.key === "Enter") toast(msg()); };
+  });
+}
+
+function sortBy(k) { sortDir = (sortKey === k) ? -sortDir : 1; sortKey = k; renderAccounts(); }
+
+/* ══════════════════════════════════════════════════════════════════
+   SHELL
+   ══════════════════════════════════════════════════════════════════ */
+
+function setPeriod(btn) {
+  period = btn.dataset.p;
+  document.querySelectorAll(".tab").forEach(t => {
+    const on = t.dataset.p === period;
+    t.classList.toggle("on", on);
+    t.setAttribute("aria-selected", on);
+  });
+  closeDrawer();
+  renderAll();
+}
+
+function toggleCompare() {
+  compare = !compare;
+  document.getElementById("cmp").setAttribute("aria-pressed", compare);
+  closeDrawer();
+  renderStats(); renderMatrix(); renderTrend();
+  toast(compare
+    ? "Comparing your exact purchased basket against three other vendors in this market."
+    : "Showing contracted vendor only.");
+}
+
+function go(view) {
+  document.getElementById("view-cost").hidden    = view !== "cost";
+  document.getElementById("view-budgets").hidden = view !== "budgets";
+  document.getElementById("nav-cost").classList.toggle("active", view === "cost");
+  document.getElementById("nav-budgets").classList.toggle("active", view === "budgets");
+  window.scrollTo({top:0, behavior:"instant"});
+  renderAll();
+}
+
+function renderAll() {
+  renderStats();
+  if (!document.getElementById("view-cost").hidden)    { renderMatrix(); renderTrend(); }
+  if (!document.getElementById("view-budgets").hidden) { renderRoles(); renderAccounts(); }
+}
+
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 4200);
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeDrawer(); });
+window.addEventListener("resize", () => { if (!document.getElementById("view-cost").hidden) renderTrend(); });
+
+go(location.hash === "#budgets" ? "budgets" : "cost");
+</script>
+</body>
+</html>
