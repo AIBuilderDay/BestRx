@@ -99,7 +99,7 @@ Don't memorize these — open the doc when the task touches it.
 | What we're building and why (master doc, read first) | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) |
 | Colors, type, patterns, tone (visual reference, open in a browser) | [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html) |
 | PPD — the metric the buyer judges us on, and our five levers | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §6, [docs/bounty/BOUNTY_FAQ.md](docs/bounty/BOUNTY_FAQ.md) §11 |
-| Our own scope decisions: P0/P1/P2, per-view owners | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §7, [docs/WORKFLOW.md](docs/WORKFLOW.md), [docs/whiteboards/](docs/whiteboards/) |
+| Our own scope decisions: P0/P1/P2, per-view owners | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §7, [docs/WORKFLOW.md](docs/WORKFLOW.md) |
 | Bounty rules, judging rubric, required features | [docs/bounty/BOUNTY_BRIEF.md](docs/bounty/BOUNTY_BRIEF.md) |
 | Organizer answers that override the brief (scope, pickup trigger, vendor UX) | [docs/bounty/BOUNTY_FAQ.md](docs/bounty/BOUNTY_FAQ.md) |
 | Live Q&A notes: personas, devices, usability bar, what's already integrated | [docs/bounty/BRIEFING_NOTES.md](docs/bounty/BRIEFING_NOTES.md) |
@@ -129,7 +129,6 @@ BestRx/
 │   ├── WORKFLOW.md              how specs and tickets get made
 │   ├── DESIGN_SYSTEM.html       tokens, patterns, tone — the one HTML doc agents read too
 │   ├── bounty/                  the organizers' source material
-│   ├── whiteboards/             photos of our planning session
 │   ├── specs/                   one spec per feature area
 │   └── tickets/                 small, self-contained units of work
 ├── mockups/               HTML mockups for humans
