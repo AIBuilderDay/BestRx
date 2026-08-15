@@ -7,6 +7,7 @@ import type { User } from './types/domain';
 import Cart from './views/Cart';
 import Catalog from './views/Catalog';
 import Login from './views/Login';
+import Orders from './views/Orders';
 import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
 
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/catalog/:offerId" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
             <Route path="/catalog" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
             <Route path="/cart" element={user ? <Cart user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/orders" element={user ? <Orders user={user} onSignOut={signOut} /> : toLogin} />
             <Route path="/patients" element={user ? <Patients user={user} onSignOut={signOut} /> : toLogin} />
             <Route
               path="/patients/:patientId"
