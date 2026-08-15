@@ -55,15 +55,17 @@ export function ProductCard({
             }}
             className="absolute bottom-2.5 right-2.5 border border-solid-bg bg-solid-bg px-2.5 py-1.5 text-[10px] uppercase tracking-[0.08em] text-solid-ink opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:opacity-100"
           >
-            Order now
+            Add to cart
           </button>
         </div>
 
-        <div className="grid content-start gap-2 pt-3.5">
+        {/* Fixed row heights keep every card the same total height regardless of how
+            long the product name or vendor name is. */}
+        <div className="product-card-meta">
           <div className="flex items-start justify-between gap-3">
             <Link
               to={`/catalog/${offer.id}`}
-              className="min-w-0 line-clamp-2 text-[13.5px] font-medium leading-5 tracking-tight transition-colors hover:text-ink-2"
+              className="product-card-name min-w-0 text-[13.5px] font-medium tracking-tight transition-colors hover:text-ink-2"
             >
               {offer.productName}
             </Link>
@@ -73,9 +75,10 @@ export function ProductCard({
             </div>
           </div>
 
-          <div className="flex items-baseline justify-between gap-3 text-xs">
-            <span className="text-ink-3">
-              {offer.deliveryLeadDays} {offer.deliveryLeadDays === 1 ? 'day' : 'days'} to deliver
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-ink-3">
+              <span className="text-sm font-semibold text-ink">{offer.deliveryLeadDays}</span>{' '}
+              {offer.deliveryLeadDays === 1 ? 'day' : 'days'} to deliver
             </span>
             <ItemStarRating rating={rating} variant="compact" />
           </div>

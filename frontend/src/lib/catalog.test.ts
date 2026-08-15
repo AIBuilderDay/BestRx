@@ -41,7 +41,7 @@ describe('buildCatalogItems', () => {
 
   it('reads price, vendor label, and item rating from JSON', () => {
     const bed = items.find((it) => it.offer.id === 'OFR-001')!;
-    expect(bed.price).toEqual({ amount: 72, unit: '/mo' });
+    expect(bed.price).toEqual({ amount: 1045, unit: 'one-time' });
     expect(bed.vendor.displayName).toBe('Vendor 1');
     expect(bed.offer.deliveryLeadDays).toBe(1);
     expect(bed.offer.productName).toBe('Hospital Bed');
@@ -56,6 +56,12 @@ describe('offerPrice', () => {
     const items = buildCatalogItems();
     const walker = items.find((it) => it.offer.id === 'OFR-015')!;
     expect(offerPrice(walker.offer)).toEqual({ amount: 55, unit: 'one-time' });
+  });
+
+  it('maps a monthly rental offer to the /mo unit', () => {
+    const items = buildCatalogItems();
+    const concentrator = items.find((it) => it.offer.id === 'OFR-002')!;
+    expect(offerPrice(concentrator.offer)).toEqual({ amount: 124.5, unit: '/mo' });
   });
 });
 
