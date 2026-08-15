@@ -21,7 +21,7 @@ open in a browser and react to in ten seconds.
 
 ## Who owns what
 
-From the planning session ([whiteboards/whiteboard-2-views.png](whiteboards/whiteboard-2-views.png)).
+From the planning session, captured in [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §7–8.
 Unassigned rows are up for grabs — put your name on one before you start, in a PR.
 
 | Area | View | Owner |
