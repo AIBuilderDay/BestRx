@@ -79,7 +79,7 @@ export const canViewVendorScorecard = (user: User | null): boolean => can(user, 
 export const findUserByEmail = (email: string): User | undefined => {
   const needle = email.trim().toLowerCase();
   if (needle === '') return undefined;
-  const staff = users.find((u) => u.email.toLowerCase() === needle);
+  const staff = users().find((u) => u.email.toLowerCase() === needle);
   if (staff) return staff;
   const family = findFamilyMemberByEmail(needle);
   return family ? familyMemberToUser(family) : undefined;
@@ -95,7 +95,7 @@ export const readSession = (): User | null => {
   try {
     const id = window.localStorage.getItem(SESSION_KEY);
     if (!id) return null;
-    const staff = users.find((u) => u.id === id);
+    const staff = users().find((u) => u.id === id);
     if (staff) return staff;
     const family = getFamilyMember(id);
     return family ? (familyMemberToUser(family) ?? null) : null;

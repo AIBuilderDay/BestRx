@@ -6,12 +6,13 @@
     "productName": "Hospital Bed",
     "description": "Fixed height, side rails, mattress",
     "category": "bed",
-    "priceUsd": 1045.0,
+    "rentalPriceUsd": 130,
+    "purchasePriceUsd": 1045.0,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 6,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0250-hospital-bed-vnd-001.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "id": "OFR-002",
@@ -20,12 +21,13 @@
     "productName": "Oxygen Concentrator",
     "description": "Single port, 85% or greater concentration",
     "category": "respiratory",
-    "priceUsd": 124.5,
+    "rentalPriceUsd": 124.5,
+    "purchasePriceUsd": 999,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 5,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator-vnd-001.svg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.png"
   },
   {
     "id": "OFR-003",
@@ -34,12 +36,13 @@
     "productName": "Standard Wheelchair",
     "description": "Fixed full-length arms, swing-away footrests",
     "category": "mobility",
-    "priceUsd": 70,
+    "rentalPriceUsd": 70,
+    "purchasePriceUsd": 280,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 8,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1130-wheelchair-vnd-001.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "id": "OFR-004",
@@ -48,12 +51,13 @@
     "productName": "Powered Air Mattress",
     "description": "Powered pressure-reducing mattress overlay",
     "category": "bed",
-    "priceUsd": 1395.0,
+    "rentalPriceUsd": 175,
+    "purchasePriceUsd": 1395.0,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 10,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0277-air-mattress.svg"
+    "imagePath": "/images/equipment/e0277-air-mattress.png"
   },
   {
     "id": "OFR-005",
@@ -62,12 +66,12 @@
     "productName": "Walker",
     "description": "Folding, wheeled, adjustable or fixed height",
     "category": "mobility",
-    "priceUsd": 68,
+    "purchasePriceUsd": 68,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 8,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0143-walker-vnd-001.svg"
+    "imagePath": "/images/equipment/e0143-walker.png"
   },
   {
     "id": "OFR-006",
@@ -76,12 +80,12 @@
     "productName": "Commode Chair",
     "description": "Stationary, fixed arms",
     "category": "bathroom_safety",
-    "priceUsd": 71,
+    "purchasePriceUsd": 71,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 8,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0163-commode-vnd-001.svg"
+    "imagePath": "/images/equipment/e0163-commode.png"
   },
   {
     "id": "OFR-007",
@@ -90,12 +94,13 @@
     "productName": "Hospital Bed",
     "description": "Fixed height, side rails, mattress",
     "category": "bed",
-    "priceUsd": 925.0,
+    "rentalPriceUsd": 110,
+    "purchasePriceUsd": 925.0,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 14,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0250-hospital-bed-vnd-002.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "id": "OFR-008",
@@ -104,12 +109,13 @@
     "productName": "CPAP Device",
     "description": "Continuous positive airway pressure device. Most-fulfilled DME code nationally.",
     "category": "respiratory",
-    "priceUsd": 44,
+    "rentalPriceUsd": 44,
+    "purchasePriceUsd": 950,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 9,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0601-cpap.svg"
+    "imagePath": "/images/equipment/e0601-cpap.png"
   },
   {
     "id": "OFR-009",
@@ -118,12 +124,13 @@
     "productName": "BiPAP / Respiratory Assist Device",
     "description": "Bi-level pressure device without backup rate",
     "category": "respiratory",
-    "priceUsd": 118,
+    "rentalPriceUsd": 118,
+    "purchasePriceUsd": 1650,
     "unit": "month",
     "inStock": false,
     "deliveryEtaHours": 36,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0470-bipap.svg"
+    "imagePath": "/images/equipment/e0470-bipap.png"
   },
   {
     "id": "OFR-010",
@@ -132,12 +139,13 @@
     "productName": "Oxygen Concentrator",
     "description": "Single port, 85% or greater concentration",
     "category": "respiratory",
-    "priceUsd": 109,
+    "rentalPriceUsd": 109,
+    "purchasePriceUsd": 850,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 12,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator-vnd-002.svg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.png"
   },
   {
     "id": "OFR-011",
@@ -146,12 +154,12 @@
     "productName": "Full Face CPAP Mask",
     "description": "Consumable. Payer-approved resupply cadence.",
     "category": "consumable",
-    "priceUsd": 115,
+    "purchasePriceUsd": 115,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 24,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/a7030-cpap-mask.svg"
+    "imagePath": "/images/equipment/a7030-cpap-mask.png"
   },
   {
     "id": "OFR-012",
@@ -160,12 +168,13 @@
     "productName": "Portable Oxygen",
     "description": "Portable gaseous oxygen system, regulator and cannula",
     "category": "respiratory",
-    "priceUsd": 19.5,
+    "rentalPriceUsd": 19.5,
+    "purchasePriceUsd": 349,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 9,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
+    "imagePath": "/images/equipment/e0431-portable-oxygen.png"
   },
   {
     "id": "OFR-017",
@@ -174,12 +183,13 @@
     "productName": "Standard Wheelchair",
     "description": "Fixed full-length arms, swing-away footrests",
     "category": "mobility",
-    "priceUsd": 66,
+    "rentalPriceUsd": 66,
+    "purchasePriceUsd": 249,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 10,
     "deliveryLeadDays": 1,
-    "imagePath": "/images/equipment/e1130-wheelchair-vnd-002.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "id": "OFR-013",
@@ -188,12 +198,13 @@
     "productName": "Hospital Bed",
     "description": "Fixed height, side rails, mattress",
     "category": "bed",
-    "priceUsd": 848.0,
+    "rentalPriceUsd": 95,
+    "purchasePriceUsd": 848.0,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 30,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0250-hospital-bed-vnd-003.svg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.png"
   },
   {
     "id": "OFR-014",
@@ -202,12 +213,13 @@
     "productName": "Standard Wheelchair",
     "description": "Fixed full-length arms, swing-away footrests",
     "category": "mobility",
-    "priceUsd": 61,
+    "rentalPriceUsd": 61,
+    "purchasePriceUsd": 199,
     "unit": "month",
     "inStock": true,
     "deliveryEtaHours": 28,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e1130-wheelchair-vnd-003.svg"
+    "imagePath": "/images/equipment/e1130-wheelchair.png"
   },
   {
     "id": "OFR-015",
@@ -216,12 +228,12 @@
     "productName": "Walker",
     "description": "Folding, wheeled, adjustable or fixed height",
     "category": "mobility",
-    "priceUsd": 55,
+    "purchasePriceUsd": 55,
     "unit": "purchase",
     "inStock": true,
     "deliveryEtaHours": 26,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0143-walker-vnd-003.svg"
+    "imagePath": "/images/equipment/e0143-walker.png"
   },
   {
     "id": "OFR-016",
@@ -230,11 +242,11 @@
     "productName": "Commode Chair",
     "description": "Stationary, fixed arms",
     "category": "bathroom_safety",
-    "priceUsd": 59,
+    "purchasePriceUsd": 59,
     "unit": "purchase",
     "inStock": false,
     "deliveryEtaHours": 48,
     "deliveryLeadDays": 2,
-    "imagePath": "/images/equipment/e0163-commode-vnd-003.svg"
+    "imagePath": "/images/equipment/e0163-commode.png"
   }
 ]

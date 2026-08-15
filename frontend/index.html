@@ -6,6 +6,18 @@
     <title>BestRx</title>
     <link rel="icon" type="image/svg+xml" href="/images/brand/bestrx-mark.svg" />
     <meta name="description" content="Shared DME visibility for hospices and vendors, order to pickup." />
+
+    <!--
+      PWA manifest. Required for Web Push on iOS: Safari only delivers push to a site that has been
+      added to the Home Screen (iOS 16.4+), and only an installed site gets a service worker there.
+    -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <!-- Apple ignores the manifest icons and reads these two tags instead. -->
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="BestRx" />
   </head>
   <body>
     <div id="root"></div>

@@ -1,6 +1,12 @@
-import type { CartGroupVM, CartTotals } from '../../lib/catalog';
+import { useEffect, useState } from 'react';
+import type { CartGroupVM, CartTotals, PriceUnit } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
 import type { AgentOrderAction } from '../../types/ai';
+
+/** Matches the panel's slide-in duration below: contents only start moving once the drawer has landed. */
+const PANEL_SLIDE_MS = 500;
+
+const staggerMs = (n: number) => PANEL_SLIDE_MS + Math.min(n, 12) * 60;
 
 export function CartDrawer({
   open,
@@ -11,21 +17,33 @@ export function CartDrawer({
   onClose,
   onViewCart,
   onPlaceOrder,
+  placing = false,
   agentAdded = null,
 }: {
   open: boolean;
   groups: CartGroupVM[];
   totals: CartTotals;
-  onQtyChange: (offerId: string, patientId: string, qty: number) => void;
-  onRemove: (offerId: string, patientId: string) => void;
+  onQtyChange: (offerId: string, patientId: string, unit: PriceUnit, qty: number) => void;
+  onRemove: (offerId: string, patientId: string, unit: PriceUnit) => void;
   onClose: () => void;
   onViewCart: () => void;
   onPlaceOrder: () => void;
+  /** True while checkout is in flight, so a double-tap cannot place the order twice. */
+  placing?: boolean;
   /** The line the AI agent just added — spotlighted so the nurse can verify it. */
   agentAdded?: AgentOrderAction | null;
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;
+
+  // The panel stays mounted between opens, so the entrance animations need a fresh key each time it opens.
+  const [openCount, setOpenCount] = useState(0);
+  useEffect(() => {
+    if (open) setOpenCount((n) => n + 1);
+  }, [open]);
+
+  // Running position through the flattened header/line sequence, consumed as the list renders.
+  let step = 0;
 
   return (
     <>
@@ -63,10 +81,14 @@ export function CartDrawer({
         <div className="flex-1 overflow-y-auto px-5.5 py-4">
           <div className="grid gap-5.5">
             {groups.map((g) => (
-              <div key={g.patientId} className="animate-chip-in motion-reduce:animate-none">
-                <div className="flex items-baseline justify-between gap-2.5 border-b border-ink pb-1.5">
-                  <span className="font-mono text-[12.5px] tabular-nums">{g.patientName}</span>
-                  <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
+              <div
+                key={`${g.patientId}-${openCount}`}
+                style={{ animationDelay: `${staggerMs(step++)}ms` }}
+                className="animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+              >
+                <div className="border-b border-ink pb-1.5">
+                  <div className="font-mono text-[12.5px] tabular-nums">{g.patientName}</div>
+                  <div className="mt-0.5 text-[11px] text-ink-3">{g.patientMetaLine}</div>
                 </div>
                 <div className="mt-3 grid gap-3">
                   {g.lines.map((l) => {
@@ -80,7 +102,8 @@ export function CartDrawer({
                     return (
                     <div
                       key={l.offerId}
-                      className={`grid grid-cols-[46px_1fr_auto] items-center gap-2.5 ${byAgent ? 'agent-added rounded-sm p-1 -m-1' : ''}`}
+                      style={{ animationDelay: `${staggerMs(step++)}ms` }}
+                      className={`grid animate-[lineIn_0.4s_cubic-bezier(0.2,0.7,0.2,1)_both] grid-cols-[46px_1fr_auto] items-center gap-2.5 ${byAgent ? 'agent-added rounded-sm p-1 -m-1' : ''}`}
                     >
                       <img
                         src={l.imagePath}
@@ -106,7 +129,7 @@ export function CartDrawer({
                             <button
                               type="button"
                               aria-label="Decrease quantity"
-                              onClick={() => onQtyChange(l.offerId, l.patientId, l.qty - 1)}
+                              onClick={() => onQtyChange(l.offerId, l.patientId, l.unit, l.qty - 1)}
                               className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               −
@@ -116,14 +139,14 @@ export function CartDrawer({
                               min={1}
                               max={99}
                               value={l.qty}
-                              onChange={(e) => onQtyChange(l.offerId, l.patientId, Math.max(1, parseInt(e.target.value, 10) || 1))}
+                              onChange={(e) => onQtyChange(l.offerId, l.patientId, l.unit, Math.max(1, parseInt(e.target.value, 10) || 1))}
                               aria-label="Quantity"
                               className="quantity-input w-7 border-0 bg-transparent text-center font-mono text-xs tabular-nums focus:bg-hover focus:outline-none"
                             />
                             <button
                               type="button"
                               aria-label="Increase quantity"
-                              onClick={() => onQtyChange(l.offerId, l.patientId, l.qty + 1)}
+                              onClick={() => onQtyChange(l.offerId, l.patientId, l.unit, l.qty + 1)}
                               className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               +
@@ -131,7 +154,7 @@ export function CartDrawer({
                           </span>
                           <button
                             type="button"
-                            onClick={() => onRemove(l.offerId, l.patientId)}
+                            onClick={() => onRemove(l.offerId, l.patientId, l.unit)}
                             className="text-[11px] text-ink-3 underline decoration-1 underline-offset-2 transition-colors hover:text-ink"
                           >
                             Remove
@@ -187,9 +210,10 @@ export function CartDrawer({
             <button
               type="button"
               onClick={onPlaceOrder}
-              className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
+              disabled={placing}
+              className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Add to cart
+              {placing ? 'Placing…' : 'Place order'}
             </button>
           </div>
         </div>

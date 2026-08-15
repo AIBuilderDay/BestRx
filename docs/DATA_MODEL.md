@@ -13,6 +13,10 @@ usable.
 
 - **Import from [`data/db.ts`](../frontend/src/data/db.ts), never from a raw `.json` file.** One
   module owns loading and lookups, so swapping in a real API later touches one file.
+- **Views that need live or writable data go through [`lib/api.ts`](../frontend/src/lib/api.ts).**
+  It calls the deployed backend when `VITE_API_BASE_URL` is set and falls back to `db.ts` when it is
+  not, so the app still works with no backend running. See
+  [Where the data actually lives](#where-the-data-actually-lives).
 - **Lookups return `undefined`, not a throw.** Every caller handles the missing case and renders
   something sane. A broken foreign key must never blank the screen.
 - **Types live in [`types/domain.ts`](../frontend/src/types/domain.ts)** and mirror the tables
@@ -27,6 +31,7 @@ usable.
 | `equipment_catalog.json` | 10 | `hcpcs` | — |
 | `hospices.json` | 3 | `id` (HSP-) | — |
 | `vendors.json` | 3 | `id` (VND-) | — |
+| `real_vendors.json` | 8 | `id` (RVND-) | `hcpcsCarried` → `equipment_catalog.hcpcs`. Reference only — see below |
 | `users.json` | 13 | `id` (USR-) | `orgId` → hospice or vendor. `email` is the login identity; permissions derive from `role` in `src/lib/auth.ts`, not from this table |
 | `patients.json` | 30 | `id` (PT-) | `hospiceId`, `caseManagerId` |
 | `orders.json` | 66 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
@@ -53,6 +58,33 @@ patient_notes   ──> patients, users             care-team sticky notes on a 
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
+## Two vendor tables, on purpose
+
+**`vendors.json`** is the simulated storefront: three fictional vendors (`Sample Vendor 1…3`) that
+orders point at. It carries operational telemetry — `fleet`, `sla`, `performance30d`,
+`overallRating` — that drives the scorecard and risk math.
+
+**`real_vendors.json`** is reference data: eight real, publicly-listed DME suppliers (four Utah,
+four national/multi-region), scraped from each vendor's own site or a directory listing. Nothing
+points at it and nothing derives from it.
+
+They are separate because **no supplier publishes the telemetry `vendors.json` carries.** Truck
+counts, on-time percentages, POD capture rates, and contracted SLA hours are private operational
+data. Filling those in for a named real company would be inventing vendor facts about a real
+business — the exact thing CLAUDE.md forbids. So `RealVendor` has no such fields: every value is
+either sourced or `null`, and each row records `sourceUrl` and `sourceRetrieved`.
+
+Consequences for anyone extending this:
+
+- Don't merge the two tables, and don't widen `Vendor` to accept real rows. An order's `vendorId`
+  must stay a `VND-` id.
+- `serviceAreaDescription` is prose, not `serviceAreaZips`. Suppliers publish "the Wasatch Front",
+  not ZIP lists. Do not synthesize ZIPs from it.
+- `hcpcsCarried` is a mapping from each vendor's published product lines onto our catalog codes, so
+  it is a coverage claim, not a price list. There are no prices — nobody publishes hospice contract
+  rates. If a screen needs a price, it belongs in `vendor_offers.json`.
+- If a field is `null`, the source did not state it. Render it as unknown; never backfill a guess.
+
 ## The tables that carry the product
 
 **`orders`** is the spine. `status` is one of the six lifecycle stages
@@ -78,9 +110,17 @@ arrived 47 minutes *after* the field nurse already triggered the pickup, and one
 That gap is the argument for nurse-initiated pickup with the EMR event as a fallback.
 
 **`vendor_offers`** is the storefront. One self-contained row per vendor SKU (one vendor, one
-product — never multiple vendors on one card): `productName`, `description`, `category`, `priceUsd`,
-`deliveryEtaHours`, `deliveryLeadDays`, `inStock`, and `imagePath`. Foreign keys `vendorId` and
-`hcpcs` must still resolve. `product_reviews.json` holds individual 1–5 star ratings plus a written `comment` from nurses,
+product — never multiple vendors on one card): `productName`, `description`, `category`,
+`rentalPriceUsd`, `purchasePriceUsd`, `unit`, `deliveryEtaHours`, `deliveryLeadDays`, `inStock`, and
+`imagePath`. Foreign keys `vendorId` and `hcpcs` must still resolve.
+
+**Both prices are optional, but never both absent.** An item with `rental: true` in
+`equipment_catalog` carries a monthly rate and a purchase price, because rent-versus-buy is a real
+PPD lever — a short length of stay favors renting, a long one favors buying. The cheap items
+(walker, commode, mask) carry only `purchasePriceUsd`. `unit` is the arrangement an offer defaults
+to, not the only one it sells; the catalog's rent/buy toggle overrides it, and a cart line stores
+which one was chosen. Where the numbers came from is recorded in
+[PRICE_SOURCES.md](PRICE_SOURCES.md). `product_reviews.json` holds individual 1–5 star ratings plus a written `comment` from nurses,
 each linked to one `offerId` (one vendor SKU). The catalog averages these per offer and shows
 that item rating next to the product name. Admissions nurses and case managers see item ratings only.
 
@@ -104,9 +144,38 @@ patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patie
 
 PPD (per patient day) is the number the hospice buyer manages against, so cost views express spend
 that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator,
-`orders[].equipment` joined to `vendor_offers[].priceUsd` for the numerator, and
+`orders[].equipment` joined to the matching `vendor_offers` price for its unit for the numerator, and
 `budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
 [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
+
+## Where the data actually lives
+
+The JSON files are still the source of truth. What changes is who reads them.
+
+| | No backend configured | Backend deployed |
+|---|---|---|
+| Reference tables (patients, vendors, offers, catalog, reviews) | `db.ts` reads the JSON | the API reads the same JSON, bundled into its image |
+| `orders`, `order_events` | `db.ts` reads the JSON | the API's memory, seeded from the JSON at startup |
+| Writes (create order, change status) | rejected — no backend to write to | the API's memory, plus an SQS message for push |
+| Push subscriptions | n/a | DynamoDB — the one table |
+
+**Nothing about orders is persisted.** The API is a long-running container, so it holds them in
+memory; a restart reloads the fixtures and discards every write. Deliberate for a demo, and stated
+in [backend/README.md](../backend/README.md) rather than hidden.
+
+Push subscriptions are the exception: the API container writes them and the push Lambda in AWS reads
+them, so they need storage both processes can reach.
+
+The Dockerfile copies `frontend/src/data/*.json` into the image at build time, and `backend/data/`
+is gitignored — there is only ever one copy of a table under version control.
+
+One field exists at runtime that is not in the JSON: each event carries a monotonic `seq`, assigned
+in timeline order at startup. SSE pages forward on it, so a reconnecting browser resumes exactly
+where it left off.
+
+See [infra/README.md](../infra/README.md) for the deployment, and
+[docs/superpowers/specs/2026-08-14-order-status-notifications-design.md](superpowers/specs/2026-08-14-order-status-notifications-design.md)
+for why it is shaped this way.
 
 ## Adding data
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { budgetCapUsd, getBudgetsForHospice, getHospice, getPatient } from '../data/db';
 import { isFamilyMember } from '../lib/auth';
@@ -9,8 +9,6 @@ import type { User, UserRole } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CartLineRow } from '../components/catalog/CartLineRow';
 import { CartSummary, type CartBudgetVM } from '../components/catalog/CartSummary';
-import { CartDrawer } from '../components/catalog/CartDrawer';
-import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
 
 const ROLE_BUDGET_LABEL: Partial<Record<UserRole, string>> = {
@@ -21,22 +19,29 @@ const ROLE_BUDGET_LABEL: Partial<Record<UserRole, string>> = {
 
 const MONTH_FMT = new Intl.DateTimeFormat('en-US', { month: 'long' });
 
+/** Patient headers and their lines trickle in one after another; capped so a long cart is not slow to settle. */
+const staggerMs = (n: number) => Math.min(n, 12) * 60;
+
 export default function Cart({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const hospice = getHospice(user.orgId);
   const family = isFamilyMember(user);
-  const { lines, cartGroups, cartTotals: totals, setCartLineQty, clearCart, cartOpen, setCartOpen } = useCart();
+  const {
+    lines,
+    cartGroups,
+    cartTotals: totals,
+    orderCount,
+    placing,
+    setCartLineQty,
+    clearCart,
+    setCartOpen,
+    placeOrder,
+    say,
+  } = useCart();
   const navigate = useNavigate();
 
   // Family only: ask the hospice to send it, or buy it themselves. Chosen here at checkout.
   const [fulfillment, setFulfillment] = useState<'request' | 'buy'>('request');
 
-  const [toast, setToast] = useState('');
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const say = (message: string) => {
-    clearTimeout(toastTimer.current);
-    setToast(message);
-    toastTimer.current = setTimeout(() => setToast(''), 3000);
-  };
 
   const firstMonthTotal = totals.monthly + totals.oneTime;
 
@@ -75,14 +80,19 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
     return n;
   }, [cartGroups]);
 
-  const placeOrder = () => {
-    if (lines.length === 0) {
-      say('Cart is empty');
-      return;
-    }
-
-    // Family "Request from hospice": each line becomes a request on the patient chart, not an order.
+  /**
+   * Family "Request from hospice": each line becomes a request on the patient chart, not an order.
+   * Staff (and family buying themselves) check out through the API.
+   *
+   * The cart page has nothing left to show once the order is placed, so it leaves. Navigating only
+   * after checkout resolves means a failed order leaves the cart intact to retry.
+   */
+  const placeOrderAndLeave = async () => {
     if (family && fulfillment === 'request') {
+      if (lines.length === 0) {
+        say('Cart is empty');
+        return;
+      }
       let n = 0;
       for (const g of cartGroups) {
         for (const l of g.lines) {
@@ -104,20 +114,14 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
       return;
     }
 
-    const lineCount = lines.length;
-    const patientCount = cartGroups.length;
-    clearCart();
-    setCartOpen(false);
-    say(
-      family
-        ? `Order placed — charged to ${familyCardLabel}`
-        : `Order placed — ${lineCount} line${lineCount > 1 ? 's' : ''} across ${patientCount} patient${patientCount > 1 ? 's' : ''}`,
-    );
-    navigate(family ? '/family' : '/catalog');
+    if (await placeOrder()) navigate(family ? '/family' : '/orders');
   };
 
   const unitCount = totalUnitsInCart(lines);
   const empty = cartGroups.length === 0;
+
+  // Running position through the flattened header/line sequence, consumed as the list renders.
+  let step = 0;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -150,18 +154,23 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
           <div className="mt-7 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
             <div className="min-w-0">
               {cartGroups.map((g) => (
-                <section key={g.patientId} className="mb-2">
-                  <div className="flex items-baseline justify-between gap-3 border-b border-ink pb-2.5 pt-3">
-                    <span className="text-sm font-semibold">{g.patientName}</span>
-                    <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
+                <section
+                  key={g.patientId}
+                  style={{ animationDelay: `${staggerMs(step++)}ms` }}
+                  className="mb-2 animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                >
+                  <div className="border-b border-ink pb-2.5 pt-3">
+                    <div className="text-sm font-semibold">{g.patientName}</div>
+                    <div className="mt-1 text-[11px] text-ink-3">{g.patientMetaLine}</div>
                   </div>
                   {g.lines.map((l) => (
                     <CartLineRow
-                      key={`${l.hcpcs}-${l.patientId}`}
+                      key={`${l.offerId}-${l.patientId}`}
                       line={l}
+                      delayMs={staggerMs(step++)}
                       patient={getPatient(g.patientId)}
-                      onQtyChange={(q) => setCartLineQty(l.hcpcs, l.patientId, q)}
-                      onRemove={() => setCartLineQty(l.hcpcs, l.patientId, 0)}
+                      onQtyChange={(q) => setCartLineQty(l.offerId, l.patientId, l.unit, q)}
+                      onRemove={() => setCartLineQty(l.offerId, l.patientId, l.unit, 0)}
                     />
                   ))}
                 </section>
@@ -179,7 +188,9 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
               atRiskCount={atRiskCount}
               budget={family ? null : budget}
               ppd={ppd}
-              onPlaceOrder={placeOrder}
+              orderCount={orderCount}
+              placing={placing}
+              onPlaceOrder={placeOrderAndLeave}
               payWithCard={family && fulfillment === 'buy' ? familyCardLabel : undefined}
               fulfillment={family ? fulfillment : undefined}
               onFulfillmentChange={family ? setFulfillment : undefined}
@@ -194,19 +205,6 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
           </div>
         )}
       </div>
-
-      <CartDrawer
-        open={cartOpen}
-        groups={cartGroups}
-        totals={totals}
-        onQtyChange={(hcpcs, patientId, qty) => setCartLineQty(hcpcs, patientId, qty)}
-        onRemove={(hcpcs, patientId) => setCartLineQty(hcpcs, patientId, 0)}
-        onClose={() => setCartOpen(false)}
-        onViewCart={() => setCartOpen(false)}
-        onPlaceOrder={placeOrder}
-      />
-
-      <Toast message={toast} />
     </div>
   );
 }

@@ -4,22 +4,41 @@ import { cartLineTiming, moneyCents } from '../../lib/catalog';
 import type { Patient } from '../../types/domain';
 
 /** One equipment line on the full cart page: image, item facts, delivery-vs-discharge check, controls. */
+const REMOVE_MS = 260;
+
 export function CartLineRow({
   line,
   patient,
+  delayMs = 0,
   onQtyChange,
   onRemove,
 }: {
   line: CartLineVM;
   patient: Patient | undefined;
+  /** Entrance delay, set by the list so rows trickle in after their patient header. */
+  delayMs?: number;
   onQtyChange: (qty: number) => void;
   onRemove: () => void;
 }) {
   const [imgBroken, setImgBroken] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const timing = patient ? cartLineTiming(patient, line.leadDays, line.priceUnit) : null;
 
+  // Play the collapse-out first, then drop the line from the cart so the row is not yanked mid-animation.
+  const remove = () => {
+    setLeaving(true);
+    window.setTimeout(onRemove, REMOVE_MS);
+  };
+
   return (
-    <div className="grid grid-cols-[84px_minmax(0,1fr)_auto] gap-4 border-b border-line py-5 sm:gap-5">
+    <div
+      style={
+        leaving
+          ? { animation: `lineOut ${REMOVE_MS}ms cubic-bezier(0.4, 0, 1, 1) both` }
+          : { animation: 'lineIn 0.4s cubic-bezier(0.2,0.7,0.2,1) both', animationDelay: `${delayMs}ms` }
+      }
+      className="grid grid-cols-[84px_minmax(0,1fr)_auto] gap-4 overflow-hidden border-b border-line py-5 sm:gap-5"
+    >
       <div className="aspect-[3/4] w-full overflow-hidden border border-line bg-bg-subtle">
         {!imgBroken ? (
           <img
@@ -75,7 +94,7 @@ export function CartLineRow({
           </span>
           <button
             type="button"
-            onClick={onRemove}
+            onClick={remove}
             className="text-xs text-ink-3 underline decoration-1 underline-offset-2 transition-colors hover:text-ink"
           >
             Remove

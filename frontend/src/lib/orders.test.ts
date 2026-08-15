@@ -3,8 +3,8 @@ import { users } from '../data/db';
 import { buildOrderListItemVM, filterAndSortOrders, getVisibleOrders, orderFilterOptions } from './orders';
 
 describe('getVisibleOrders', () => {
-  const dana = users.find((u) => u.id === 'USR-001')!;
-  const don = users.find((u) => u.id === 'USR-012')!;
+  const dana = users().find((u) => u.id === 'USR-001')!;
+  const don = users().find((u) => u.id === 'USR-012')!;
 
   it('returns caseload orders for a case manager', () => {
     const visible = getVisibleOrders(dana);
@@ -21,24 +21,8 @@ describe('getVisibleOrders', () => {
 });
 
 describe('filterAndSortOrders', () => {
-  const dana = users.find((u) => u.id === 'USR-001')!;
-  const items = getVisibleOrders(dana).map((order) => ({
-    orderId: order.id,
-    name: order.equipment[0]?.name ?? '—',
-    statusLabel: order.status,
-    icon: 'ordered' as const,
-    pillTone: 'plain' as const,
-    vendor: '—',
-    phone: '—',
-    whenLabel: 'Expected',
-    when: '—',
-    history: '—',
-    patientId: order.patientId,
-    patientName: order.patientId,
-    imagePath: null,
-    category: null,
-    orderedAtLabel: '—',
-  }));
+  const dana = users().find((u) => u.id === 'USR-001')!;
+  const items = getVisibleOrders(dana).map(buildOrderListItemVM);
 
   it('filters to one patient only', () => {
     const patientId = items[0]?.patientId;
@@ -55,7 +39,7 @@ describe('filterAndSortOrders', () => {
 });
 
 describe('orderFilterOptions', () => {
-  const dana = users.find((u) => u.id === 'USR-001')!;
+  const dana = users().find((u) => u.id === 'USR-001')!;
   const items = getVisibleOrders(dana).map(buildOrderListItemVM);
 
   it('updates patient counts when a category is selected', () => {

@@ -19,6 +19,8 @@ export function CartSummary({
   atRiskCount,
   budget,
   ppd,
+  orderCount,
+  placing = false,
   onPlaceOrder,
   payWithCard,
   fulfillment,
@@ -32,6 +34,9 @@ export function CartSummary({
   atRiskCount: number;
   budget: CartBudgetVM | null;
   ppd: CartPpdImpact;
+  /** Orders this cart will become — one per patient and vendor, matching the backend's split. */
+  orderCount: number;
+  placing?: boolean;
   onPlaceOrder: () => void;
   /**
    * Set for a family member paying themselves (the card label, e.g. "Visa ···· 4242"). Swaps the
@@ -146,9 +151,10 @@ export function CartSummary({
       <button
         type="button"
         onClick={onPlaceOrder}
-        className="mt-4 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
+        disabled={placing}
+        className="mt-4 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {placeOrderLabel}
+        {placing ? 'Placing order…' : placeOrderLabel}
       </button>
       <div className="mt-3 text-[11px] leading-relaxed text-ink-3">
         {fulfillment === 'request' ? (
@@ -157,10 +163,11 @@ export function CartSummary({
           <>Charged to {payWithCard}. Ships to the home; vendors are confirmed at dispatch.</>
         ) : (
           <>
-            {patientCount > 1
-              ? `${patientCount} orders will be created — one per patient.`
+            {orderCount > 1
+              ? `${orderCount} orders will be created — one per patient and vendor.`
               : 'One order will be created.'}{' '}
-            Vendors are confirmed at dispatch. {lineCount} line{lineCount > 1 ? 's' : ''} total.
+            {lineCount} line{lineCount > 1 ? 's' : ''} total across {patientCount} patient
+            {patientCount > 1 ? 's' : ''}.
           </>
         )}
       </div>

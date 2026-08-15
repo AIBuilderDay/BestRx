@@ -4,6 +4,7 @@ import { can, isFamilyMember, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
+import { Tooltip } from "../ui/Tooltip";
 import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
@@ -263,46 +264,48 @@ export function TopNav({
       </div>
 
       <div className="flex shrink-0 items-center gap-3 justify-self-end [grid-area:actions]">
-        <button
-          type="button"
-          onClick={onOpenCart}
-          aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
-          data-testid="cart-button"
-          className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
-        >
-          <svg
-            width="36"
-            height="36"
-            viewBox="0 0 32 32"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
+        <Tooltip label={`Cart · ${cartCount} item${cartCount === 1 ? "" : "s"}`}>
+          <button
+            type="button"
+            onClick={onOpenCart}
+            aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
+            data-testid="cart-button"
+            className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
           >
-            <path
-              className="fill-current"
-              stroke="none"
-              d="M7.5 10.5h19l-2.2 10.2a2 2 0 0 1-2 1.6H11.4a2 2 0 0 1-2-1.6L7.5 10.5Z"
-            />
-            <path d="M7.5 10.5 6.2 6.8H3.5" />
-            <circle cx="12.5" cy="26.7" r="1.7" />
-            <circle cx="22" cy="26.7" r="1.7" />
-            <text
-              x="16.9"
-              y="16.6"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="10.5"
-              fontWeight="700"
-              stroke="none"
-              className="fill-bg"
+            <svg
+              width="36"
+              height="36"
+              viewBox="0 0 32 32"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              {cartCount > 99 ? "99" : cartCount}
-            </text>
-          </svg>
-        </button>
+              <path
+                className="fill-current"
+                stroke="none"
+                d="M7.5 10.5h19l-2.2 10.2a2 2 0 0 1-2 1.6H11.4a2 2 0 0 1-2-1.6L7.5 10.5Z"
+              />
+              <path d="M7.5 10.5 6.2 6.8H3.5" />
+              <circle cx="12.5" cy="26.7" r="1.7" />
+              <circle cx="22" cy="26.7" r="1.7" />
+              <text
+                x="16.9"
+                y="16.6"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize="10.5"
+                fontWeight="700"
+                stroke="none"
+                className="fill-bg"
+              >
+                {cartCount > 99 ? "99" : cartCount}
+              </text>
+            </svg>
+          </button>
+        </Tooltip>
 
         <ProfileMenu user={user} onSignOut={onSignOut} />
       </div>

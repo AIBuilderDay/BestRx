@@ -29,7 +29,9 @@ function offerFacts(item: CatalogProductVM) {
     product: item.offer.productName,
     description: item.offer.description,
     category: item.offer.category,
-    priceUsd: item.offer.priceUsd,
+    // Both arrangements, so the model can rank a rental against a purchase.
+    rentalPriceUsd: item.offer.rentalPriceUsd ?? null,
+    purchasePriceUsd: item.offer.purchasePriceUsd ?? null,
     priceUnit: item.offer.unit,
     inStock: item.offer.inStock,
     deliveryEtaHours: item.offer.deliveryEtaHours,
