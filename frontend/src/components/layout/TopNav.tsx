@@ -96,8 +96,8 @@ export function TopNav({
           className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
         >
           <svg
-            width="30"
-            height="30"
+            width="36"
+            height="36"
             viewBox="0 0 32 32"
             fill="none"
             stroke="currentColor"

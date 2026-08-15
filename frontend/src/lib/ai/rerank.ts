@@ -19,7 +19,8 @@ Order the offers best-first for THIS query and, when given, THIS patient. Weigh,
 2. Delivery speed — a patient pending discharge needs equipment before the discharge time; closer ZIP and shorter lead time win.
 3. Nurse rating, then price.
 Only use the data provided. Never invent products, prices, or delivery times.
-Give a short plain-English reason (max 12 words) for each of your top choices; reasons must only cite facts present in the data.`;
+Give a short plain-English reason (max 12 words) for each of your top choices; reasons must only cite facts present in the data.
+Reasons are read by nurses — never mention internal ids like OFR-001; name products or vendors instead.`;
 
 /** Compact, stable view of an offer — everything the model may consider, nothing else. */
 function offerFacts(item: CatalogProductVM) {

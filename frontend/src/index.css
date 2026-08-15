@@ -393,9 +393,19 @@ button:not(:disabled) {
 
 /* Every row uses the same line-height so the three rows sit on an even rhythm. Without
    this, the delivery row's larger bold day count grows its line box past the smaller text
-   around it, adding space below that row only and making the gaps look unequal. */
+   around it, adding space below that row only and making the gaps look unequal.
+   min-width: 0 lets each row shrink to the column — without it, a long no-wrap line
+   (the AI reason) widens the whole meta block and rows bleed into neighboring cards. */
 .product-card-meta > * {
   line-height: 1.25rem;
+  min-width: 0;
+}
+
+/* AI-ranked view adds a reason row per card — pull the rhythm tighter so the
+   taller cards don't read as airy. */
+.product-card-meta.has-ai {
+  row-gap: 0.45rem;
+  padding-top: 0.7rem;
 }
 
 .product-card-meta > * > * {
