@@ -1,5 +1,11 @@
+import { useEffect, useState } from 'react';
 import type { CartGroupVM, CartTotals } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
+
+/** Matches the panel's slide-in duration below: contents only start moving once the drawer has landed. */
+const PANEL_SLIDE_MS = 500;
+
+const staggerMs = (n: number) => PANEL_SLIDE_MS + Math.min(n, 12) * 60;
 
 export function CartDrawer({
   open,
@@ -22,6 +28,15 @@ export function CartDrawer({
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;
+
+  // The panel stays mounted between opens, so the entrance animations need a fresh key each time it opens.
+  const [openCount, setOpenCount] = useState(0);
+  useEffect(() => {
+    if (open) setOpenCount((n) => n + 1);
+  }, [open]);
+
+  // Running position through the flattened header/line sequence, consumed as the list renders.
+  let step = 0;
 
   return (
     <>
@@ -59,14 +74,22 @@ export function CartDrawer({
         <div className="flex-1 overflow-y-auto px-5.5 py-4">
           <div className="grid gap-5.5">
             {groups.map((g) => (
-              <div key={g.patientId} className="animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]">
-                <div className="flex items-baseline justify-between gap-2.5 border-b border-ink pb-1.5">
-                  <span className="font-mono text-[12.5px] tabular-nums">{g.patientName}</span>
-                  <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
+              <div
+                key={`${g.patientId}-${openCount}`}
+                style={{ animationDelay: `${staggerMs(step++)}ms` }}
+                className="animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+              >
+                <div className="border-b border-ink pb-1.5">
+                  <div className="font-mono text-[12.5px] tabular-nums">{g.patientName}</div>
+                  <div className="mt-0.5 text-[11px] text-ink-3">{g.patientMetaLine}</div>
                 </div>
                 <div className="mt-3 grid gap-3">
                   {g.lines.map((l) => (
-                    <div key={l.offerId} className="grid grid-cols-[46px_1fr_auto] items-center gap-2.5">
+                    <div
+                      key={l.offerId}
+                      style={{ animationDelay: `${staggerMs(step++)}ms` }}
+                      className="grid animate-[lineIn_0.4s_cubic-bezier(0.2,0.7,0.2,1)_both] grid-cols-[46px_1fr_auto] items-center gap-2.5"
+                    >
                       <img
                         src={l.imagePath}
                         alt=""

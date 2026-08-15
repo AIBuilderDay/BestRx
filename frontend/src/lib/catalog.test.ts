@@ -3,6 +3,7 @@ import { equipmentCatalog, patients, vendors } from '../data/db';
 import {
   buildCatalogItems,
   catalogFilterOptions,
+  CATEGORY_LABELS,
   filterAndSortCatalog,
   itemPrice,
   moneyLabel,
@@ -190,10 +191,13 @@ describe('catalogFilterOptions', () => {
     expect(vendor1Respiratory).toBeLessThanOrEqual(vendor1All);
   });
 
-  it('hides categories and vendors with zero matching items', () => {
-    const options = catalogFilterOptions(items, filters, vendors);
-    expect(options.categories.every((c) => c.key === 'All' || c.count > 0)).toBe(true);
-    expect(options.vendors.every((v) => v.count > 0)).toBe(true);
+  it('keeps every category and vendor listed even when a filter zeroes them out', () => {
+    // A $1 ceiling matches no offer at all, so every count lands on zero.
+    const options = catalogFilterOptions(items, { ...filters, maxPrice: 1 }, vendors);
+    expect(options.categories.map((c) => c.key)).toEqual(['All', ...Object.keys(CATEGORY_LABELS)]);
+    expect(options.vendors.map((v) => v.id)).toEqual(vendors.map((v) => v.id));
+    expect(options.categories.every((c) => c.count === 0)).toBe(true);
+    expect(options.vendors.every((v) => v.count === 0)).toBe(true);
   });
 });
 

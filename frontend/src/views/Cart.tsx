@@ -18,6 +18,9 @@ const ROLE_BUDGET_LABEL: Partial<Record<UserRole, string>> = {
 
 const MONTH_FMT = new Intl.DateTimeFormat('en-US', { month: 'long' });
 
+/** Patient headers and their lines trickle in one after another; capped so a long cart is not slow to settle. */
+const staggerMs = (n: number) => Math.min(n, 12) * 60;
+
 export default function Cart({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const hospice = getHospice(user.orgId);
   const { lines, cartGroups, cartTotals: totals, setCartLineQty, clearCart, cartOpen, setCartOpen } = useCart();
@@ -84,6 +87,9 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
   const unitCount = totalUnitsInCart(lines);
   const empty = cartGroups.length === 0;
 
+  // Running position through the flattened header/line sequence, consumed as the list renders.
+  let step = 0;
+
   return (
     <div className="min-h-screen bg-bg">
       <TopNav user={user} cartCount={unitCount} activeSection="catalog" onOpenCart={() => setCartOpen(true)} onSignOut={onSignOut} />
@@ -111,15 +117,20 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
           <div className="mt-7 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
             <div className="min-w-0">
               {cartGroups.map((g) => (
-                <section key={g.patientId} className="mb-2">
-                  <div className="flex items-baseline justify-between gap-3 border-b border-ink pb-2.5 pt-3">
-                    <span className="text-sm font-semibold">{g.patientName}</span>
-                    <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
+                <section
+                  key={g.patientId}
+                  style={{ animationDelay: `${staggerMs(step++)}ms` }}
+                  className="mb-2 animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                >
+                  <div className="border-b border-ink pb-2.5 pt-3">
+                    <div className="text-sm font-semibold">{g.patientName}</div>
+                    <div className="mt-1 text-[11px] text-ink-3">{g.patientMetaLine}</div>
                   </div>
                   {g.lines.map((l) => (
                     <CartLineRow
                       key={`${l.hcpcs}-${l.patientId}`}
                       line={l}
+                      delayMs={staggerMs(step++)}
                       patient={getPatient(g.patientId)}
                       onQtyChange={(q) => setCartLineQty(l.hcpcs, l.patientId, q)}
                       onRemove={() => setCartLineQty(l.hcpcs, l.patientId, 0)}

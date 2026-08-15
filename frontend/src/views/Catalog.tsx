@@ -11,7 +11,6 @@ import {
   catalogFilterOptions,
   defaultCatalogFilters,
   filterAndSortCatalog,
-  resolveCatalogFilters,
   RESET_CATALOG_FILTERS_STATE,
   paginateCatalog,
   searchCatalog,
@@ -134,7 +133,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const applyFilters = (patch: Partial<CatalogFilterState>) => {
     exitDetail();
-    setFilters((f) => resolveCatalogFilters(catalogItems, f, patch));
+    setFilters((f) => ({ ...f, ...patch }));
     setCurrentPage(1);
   };
 

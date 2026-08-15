@@ -381,7 +381,10 @@ function matchesCatalogFilters(
   return true;
 }
 
-/** Sidebar counts reflect every active filter except the group being counted. */
+/**
+ * Sidebar counts reflect every active filter except the group being counted. Every category and
+ * vendor stays listed even at count 0, so the sidebar doesn't reshuffle as filters narrow.
+ */
 export function catalogFilterOptions(
   items: CatalogProductVM[],
   filters: CatalogFilterState,
@@ -390,71 +393,21 @@ export function catalogFilterOptions(
   const forCategory = items.filter((it) => matchesCatalogFilters(it, filters, ['category']));
   const categories: CategoryOption[] = [
     { key: 'All', label: 'All', count: forCategory.length },
-    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[])
-      .map((key) => ({
-        key,
-        label: CATEGORY_LABELS[key],
-        count: forCategory.filter((it) => it.offer.category === key).length,
-      }))
-      .filter((c) => c.count > 0),
+    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[]).map((key) => ({
+      key,
+      label: CATEGORY_LABELS[key],
+      count: forCategory.filter((it) => it.offer.category === key).length,
+    })),
   ];
 
   const forVendor = items.filter((it) => matchesCatalogFilters(it, filters, ['vendorIds']));
-  const vendors: VendorFilterOption[] = allVendors
-    .map((v) => ({
-      id: v.id,
-      displayName: v.displayName,
-      count: forVendor.filter((it) => it.vendor.id === v.id).length,
-    }))
-    .filter((v) => v.count > 0);
+  const vendors: VendorFilterOption[] = allVendors.map((v) => ({
+    id: v.id,
+    displayName: v.displayName,
+    count: forVendor.filter((it) => it.vendor.id === v.id).length,
+  }));
 
   return { categories, vendors };
-}
-
-/**
- * Keeps category and vendor selections consistent when both change at once.
- */
-export function resolveCatalogFilters(
-  items: CatalogProductVM[],
-  current: CatalogFilterState,
-  patch: Partial<CatalogFilterState>,
-): CatalogFilterState {
-  const merged: CatalogFilterState = { ...current, ...patch };
-  const categoryChanged = 'category' in patch;
-  const vendorsChanged = 'vendorIds' in patch;
-
-  if (categoryChanged && !vendorsChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
-    const applies = items.some(
-      (item) => merged.vendorIds.includes(item.vendor.id) && item.offer.category === merged.category,
-    );
-    if (!applies) merged.category = 'All';
-  }
-
-  if (vendorsChanged && !categoryChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
-    const validIds = new Set(
-      items
-        .filter((item) => item.offer.category === merged.category)
-        .map((item) => item.vendor.id),
-    );
-    merged.vendorIds = merged.vendorIds.filter((id) => validIds.has(id));
-  }
-
-  if (categoryChanged && vendorsChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
-    const validIds = new Set(
-      items
-        .filter((item) => item.offer.category === merged.category)
-        .map((item) => item.vendor.id),
-    );
-    merged.vendorIds = merged.vendorIds.filter((id) => validIds.has(id));
-    if (merged.vendorIds.length > 0) {
-      const applies = items.some(
-        (item) => merged.vendorIds.includes(item.vendor.id) && item.offer.category === merged.category,
-      );
-      if (!applies) merged.category = 'All';
-    }
-  }
-
-  return merged;
 }
 
 /** Text search from the top-nav bar: every word must match name, vendor, or category. */
