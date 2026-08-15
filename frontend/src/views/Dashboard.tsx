@@ -156,6 +156,7 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             columns={columns}
             trend={trend}
             budgetTotals={budgetTotals}
+            accountRows={accountRows}
             compareEnabled={compareEnabled}
             onToggleCompare={toggleCompare}
             openHcpcs={openHcpcs}

@@ -1,4 +1,10 @@
-import { generateTrendSeries, TREND_RANGES, type MetricKey, type TrendRange } from '../../lib/costTrendMock';
+import {
+  generateTrendSeries,
+  partitionsCurrentValue,
+  TREND_RANGES,
+  type MetricKey,
+  type TrendRange,
+} from '../../lib/costTrendMock';
 import { SimpleTrendChart } from './SimpleTrendChart';
 
 export interface TrendMetricVM {
@@ -23,6 +29,7 @@ export function MetricTrendPanel({
   onRangeChange: (range: TrendRange) => void;
 }) {
   const series = generateTrendSeries(metric.key, range, metric.currentValue);
+  const partitioned = partitionsCurrentValue(metric.key, range);
 
   return (
     <section className="mt-4 rounded-card border border-ink bg-surface p-4">
@@ -30,9 +37,12 @@ export function MetricTrendPanel({
         <div>
           <h2 className="text-[15px] text-ink">{metric.label} over time</h2>
           <p className="mt-1 text-[12px] text-ink-3">
-            Illustrative history — only the current value on the tile above is real. The dataset
-            covers Aug 1–22, 2026 only, so everything else on this chart is placeholder trend data
-            standing in until historical figures exist.
+            Illustrative history — the dataset covers Aug 1–22, 2026 only, so everything on this
+            chart before the real figure is placeholder trend data standing in until historical
+            figures exist.{' '}
+            {partitioned
+              ? "These points are split so they sum to the real total on the tile above."
+              : 'The most recent point matches the real value on the tile above exactly.'}
           </p>
         </div>
 

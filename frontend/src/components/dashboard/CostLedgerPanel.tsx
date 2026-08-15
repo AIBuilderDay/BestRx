@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { moneyCents, moneyLabel } from '../../lib/catalog';
-import type { AccountTotals } from '../../lib/budgetLedger';
+import { accountBreakdown, productBreakdown } from '../../lib/budgetBreakdown';
+import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, TrendBucket, VendorColumn } from '../../lib/costLedger';
 import { ledgerPpd, SERVICE_FLOOR_PCT } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
 import type { MetricKey, TrendRange } from '../../lib/costTrendMock';
+import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
 import { MetricTrendPanel, type TrendMetricVM } from './MetricTrendPanel';
@@ -24,6 +26,7 @@ export function CostLedgerPanel({
   columns,
   trend,
   budgetTotals,
+  accountRows,
   compareEnabled,
   onToggleCompare,
   openHcpcs,
@@ -38,6 +41,7 @@ export function CostLedgerPanel({
   columns: VendorColumn[];
   trend: TrendBucket[];
   budgetTotals: AccountTotals;
+  accountRows: AccountBudgetRow[];
   compareEnabled: boolean;
   onToggleCompare: () => void;
   openHcpcs: string | null;
@@ -121,11 +125,20 @@ export function CostLedgerPanel({
     setSelectedMetric((current) => (current === key ? null : (key as MetricKey)));
   };
 
+  const productSlices = useMemo(() => productBreakdown(lines), [lines]);
+  const accountSlices = useMemo(() => accountBreakdown(accountRows), [accountRows]);
+
   return (
     <div className="mt-5">
       <StatTiles tiles={tiles} selectedKey={selectedMetric} onSelect={selectMetric} />
 
-      {selectedMetric ? (
+      {selectedMetric === 'budget' ? (
+        <BudgetBreakdownPanel
+          productSlices={productSlices}
+          accountSlices={accountSlices}
+          totalUsd={totals.actualUsd}
+        />
+      ) : selectedMetric ? (
         <MetricTrendPanel
           metric={trendMetrics[selectedMetric]}
           range={trendRange}
