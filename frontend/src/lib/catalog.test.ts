@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { equipmentCatalog, patients } from '../data/db';
+import { equipmentCatalog, patients, vendors } from '../data/db';
 import {
   buildCatalogItems,
+  catalogFilterOptions,
   filterAndSortCatalog,
   itemPrice,
   moneyLabel,
@@ -142,6 +143,57 @@ describe('filterAndSortCatalog', () => {
     });
     const leadDays = result.map((it) => it.offer.deliveryLeadDays);
     expect(leadDays).toEqual([...leadDays].sort((a, b) => a - b));
+  });
+});
+
+describe('catalogFilterOptions', () => {
+  const items = buildCatalogItems();
+  const filters = {
+    category: 'respiratory' as const,
+    vendorIds: [],
+    speed: 'any' as const,
+    maxPrice: 10_000,
+    sort: 'featured' as const,
+  };
+
+  it('updates category counts when a vendor is selected', () => {
+    const unfiltered = catalogFilterOptions(items, {
+      category: 'All',
+      vendorIds: [],
+      speed: 'any',
+      maxPrice: 10_000,
+      sort: 'featured',
+    }, vendors);
+    const withVendor = catalogFilterOptions(items, {
+      category: 'All',
+      vendorIds: ['VND-001'],
+      speed: 'any',
+      maxPrice: 10_000,
+      sort: 'featured',
+    }, vendors);
+
+    const respiratoryAll = unfiltered.categories.find((c) => c.key === 'respiratory')!.count;
+    const respiratoryVendor1 = withVendor.categories.find((c) => c.key === 'respiratory')!.count;
+    expect(respiratoryVendor1).toBeLessThanOrEqual(respiratoryAll);
+  });
+
+  it('updates vendor counts when a category is selected', () => {
+    const options = catalogFilterOptions(items, filters, vendors);
+    const vendor1Respiratory = options.vendors.find((v) => v.id === 'VND-001')!.count;
+    const vendor1All = catalogFilterOptions(items, {
+      category: 'All',
+      vendorIds: [],
+      speed: 'any',
+      maxPrice: 10_000,
+      sort: 'featured',
+    }, vendors).vendors.find((v) => v.id === 'VND-001')!.count;
+    expect(vendor1Respiratory).toBeLessThanOrEqual(vendor1All);
+  });
+
+  it('hides categories and vendors with zero matching items', () => {
+    const options = catalogFilterOptions(items, filters, vendors);
+    expect(options.categories.every((c) => c.key === 'All' || c.count > 0)).toBe(true);
+    expect(options.vendors.every((v) => v.count > 0)).toBe(true);
   });
 });
 

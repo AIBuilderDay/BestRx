@@ -146,7 +146,8 @@ function equipmentLabel(order: Order): string {
   return order.equipment.map((e) => `${e.hcpcs} ${e.name}`).join(' + ');
 }
 
-function buildEquipmentVM(order: Order): PatientEquipmentVM {
+/** Shared order row display — used on patient detail and the orders list. */
+export function buildOrderEquipmentVM(order: Order): PatientEquipmentVM {
   const vendor = getVendor(order.vendorId);
   const { label, icon, tone } = displayStatus(order);
   return {
@@ -197,7 +198,7 @@ export function buildPatientDetailVM(patientId: string): PatientDetailVM | null 
     fullName,
     addressLine1: addr.line1,
     addressLine2: addr.line2,
-    equipment: patientOrders.map(buildEquipmentVM),
+    equipment: patientOrders.map(buildOrderEquipmentVM),
     attentionCount: patientAttentionCount(patientOrders),
     facts: buildPatientFacts(patient),
   };

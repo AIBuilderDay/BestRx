@@ -6,14 +6,40 @@ import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
 import { ProfileMenu } from "./ProfileMenu";
 
-export type NavSection = "catalog" | "patients";
+export type NavSection = "catalog" | "orders" | "patients";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: "Orders", permissions: ["storefront:purchase", "pickup:trigger"] },
+  { label: "Pickups", permissions: ["pickup:trigger"] },
+  { label: "Costs", permissions: ["reporting"] },
+  { label: "Vendors", permissions: ["vendors:manage"] },
 ];
 
-/** Sticky app header: brand, section nav, catalog search, cart icon, and the profile menu. */
+const canViewOrders = (user: User): boolean =>
+  can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
+
+const SEARCH_BY_SECTION: Record<
+  NavSection,
+  { path: string; placeholder: string; label: string }
+> = {
+  catalog: {
+    path: "/catalog",
+    placeholder: "Search equipment…",
+    label: "Search equipment",
+  },
+  orders: {
+    path: "/orders",
+    placeholder: "Search orders, patients, or MRN…",
+    label: "Search orders",
+  },
+  patients: {
+    path: "/patients",
+    placeholder: "Search patients or MRN…",
+    label: "Search patients",
+  },
+};
+
+/** Sticky app header: brand, section nav, contextual search, cart icon, and the profile menu. */
 export function TopNav({
   user,
   cartCount,
@@ -40,8 +66,11 @@ export function TopNav({
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
-    navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : "/catalog");
+    const { path } = SEARCH_BY_SECTION[activeSection];
+    navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path);
   };
+
+  const searchMeta = SEARCH_BY_SECTION[activeSection];
 
   const linkClass = (section: NavSection) =>
     section === activeSection
@@ -64,6 +93,15 @@ export function TopNav({
           >
             Catalog
           </Link>
+          {canViewOrders(user) ? (
+            <Link
+              to="/orders"
+              aria-current={activeSection === "orders" ? "page" : undefined}
+              className={linkClass("orders")}
+            >
+              Orders
+            </Link>
+          ) : null}
           {can(user, "orders:own-patients") ? (
             <Link
               to="/patients"
@@ -108,8 +146,8 @@ export function TopNav({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search equipment…"
-          aria-label="Search equipment"
+          placeholder={searchMeta.placeholder}
+          aria-label={searchMeta.label}
           className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
         />
       </form>

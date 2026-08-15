@@ -37,6 +37,7 @@ export function ProductsOrderedSection({
               <div key={item.orderId} className="border-b border-line last:border-b-0">
                 <button
                   type="button"
+                  aria-expanded={open}
                   onClick={() => setOpenId(open ? null : item.orderId)}
                   className="flex w-full cursor-pointer items-center gap-3 px-4 py-3.5 text-left text-ink transition-colors hover:bg-bg-subtle"
                 >
@@ -46,9 +47,6 @@ export function ProductsOrderedSection({
                     className={`ml-auto inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium ${pillClasses(item.pillTone)}`}
                   >
                     {item.statusLabel}
-                  </span>
-                  <span className="w-2.5 flex-none text-right text-[11px] text-ink-3">
-                    {open ? '▴' : '▾'}
                   </span>
                 </button>
                 {open ? (

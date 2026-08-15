@@ -7,10 +7,11 @@ import type { ProductReview } from '../types/domain';
 import {
   buildCartGroups,
   buildCatalogItems,
-  CATEGORY_LABELS,
   cartTotals,
+  catalogFilterOptions,
   defaultCatalogFilters,
   filterAndSortCatalog,
+  resolveCatalogFilters,
   RESET_CATALOG_FILTERS_STATE,
   paginateCatalog,
   searchCatalog,
@@ -22,9 +23,9 @@ import {
   type CatalogFilterState,
   type SortKey,
 } from '../lib/catalog';
-import type { EquipmentCategory, User } from '../types/domain';
+import type { User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
-import { CatalogFilters, type CategoryOption } from '../components/catalog/CatalogFilters';
+import { CatalogFilters } from '../components/catalog/CatalogFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
@@ -133,7 +134,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const applyFilters = (patch: Partial<CatalogFilterState>) => {
     exitDetail();
-    setFilters((f) => ({ ...f, ...patch }));
+    setFilters((f) => resolveCatalogFilters(catalogItems, f, patch));
     setCurrentPage(1);
   };
 
@@ -148,14 +149,10 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const cartGroups = buildCartGroups(lines, catalogItems, patients);
   const totals = cartTotals(lines, catalogItems);
 
-  const categories: CategoryOption[] = [
-    { key: 'All', label: 'All', count: catalogItems.length },
-    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[]).map((key) => ({
-      key,
-      label: CATEGORY_LABELS[key],
-      count: catalogItems.filter((it) => it.offer.category === key).length,
-    })),
-  ];
+  const filterOptions = useMemo(
+    () => catalogFilterOptions(catalogItems, filters, vendors),
+    [catalogItems, filters],
+  );
 
   if (!can(user, 'storefront:purchase')) {
     return <Navigate to="/patients" replace />;
@@ -174,8 +171,8 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
         <CatalogFilters
           filters={filters}
-          categories={categories}
-          vendors={vendors}
+          categories={filterOptions.categories}
+          vendors={filterOptions.vendors}
           priceMax={priceMax}
           onChange={applyFilters}
           onReset={resetFilters}
