@@ -52,15 +52,15 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --bg: #0a0a0a;
-    --bg-subtle: #111111;
-    --surface: #0f0f0f;
-    --hover: #171717;
-    --track: #222222;
-    --line: #484848;
-    --line-strong: #666666;
+    --bg-subtle: #141414;
+    --surface: #161616;
+    --hover: #1f1f1f;
+    --track: #2a2a2a;
+    --line: #555555;
+    --line-strong: #777777;
     --ink: #fafafa;
-    --ink-2: #a3a3a3;
-    --ink-3: #737373;
+    --ink-2: #c8c8c8;
+    --ink-3: #9a9a9a;
     --solid-bg: #fafafa;
     --solid-ink: #0a0a0a;
     --good: #4ade80;
@@ -78,15 +78,15 @@
 
 :root[data-theme='dark'] {
   --bg: #0a0a0a;
-  --bg-subtle: #111111;
-  --surface: #0f0f0f;
-  --hover: #171717;
-  --track: #222222;
-  --line: #484848;
-  --line-strong: #666666;
+  --bg-subtle: #141414;
+  --surface: #161616;
+  --hover: #1f1f1f;
+  --track: #2a2a2a;
+  --line: #555555;
+  --line-strong: #777777;
   --ink: #fafafa;
-  --ink-2: #a3a3a3;
-  --ink-3: #737373;
+  --ink-2: #c8c8c8;
+  --ink-3: #9a9a9a;
   --solid-bg: #fafafa;
   --solid-ink: #0a0a0a;
   --good: #4ade80;

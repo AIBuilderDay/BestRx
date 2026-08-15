@@ -28,7 +28,7 @@ export function TopNav({
   const linkClass = (section: NavSection) =>
     section === activeSection
       ? 'text-ink'
-      : 'text-ink-3 transition-colors hover:text-ink';
+      : 'text-ink-2 transition-colors hover:text-ink';
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between gap-6 border-b border-line bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
@@ -36,7 +36,7 @@ export function TopNav({
         <Logo height={26} />
       </div>
 
-      <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-ink-3">
+      <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
         <Link to="/catalog" aria-current={activeSection === 'catalog' ? 'page' : undefined} className={linkClass('catalog')}>
           Catalog
         </Link>
@@ -50,7 +50,7 @@ export function TopNav({
           </Link>
         ) : null}
         {GATED_SECTIONS.filter((s) => can(user, s.permission)).map((s) => (
-          <span key={s.label} className="cursor-default text-ink-3" title="Coming soon">
+          <span key={s.label} className="cursor-default text-ink-2" title="Coming soon">
             {s.label}
           </span>
         ))}
