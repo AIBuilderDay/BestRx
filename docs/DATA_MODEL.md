@@ -28,9 +28,9 @@ usable.
 | `hospices.json` | 3 | `id` (HSP-) | — |
 | `vendors.json` | 3 | `id` (VND-) | — |
 | `users.json` | 13 | `id` (USR-) | `orgId` → hospice or vendor. `email` is the login identity; permissions derive from `role` in `src/lib/auth.ts`, not from this table |
-| `patients.json` | 8 | `id` (PT-) | `hospiceId`, `caseManagerId` |
-| `orders.json` | 10 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
-| `order_events.json` | 30 | `id` (EVT-) | `orderId`, `actorId` |
+| `patients.json` | 30 | `id` (PT-) | `hospiceId`, `caseManagerId` |
+| `orders.json` | 66 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
+| `order_events.json` | 188 | `id` (EVT-) | `orderId`, `actorId` |
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
 | `vendor_offers.json` | 16 | `id` (OFR-) | `vendorId`, `hcpcs` |
@@ -99,3 +99,13 @@ Extend a table rather than inventing a new shape. If a feature needs a field tha
 that is a data ticket: add the field to the JSON, add it to the type, note it here, all in one PR.
 Keep new rows internally consistent — an order needs a patient that exists, a vendor that serves
 that zip, and events whose timestamps agree with its status.
+
+## Patients view
+
+**Caseload:** the Patients list filters by `caseManagerId` matching the logged-in user. Sign in as
+**Dana Whitfield** (`USR-001`, case manager) or **Bea Cordova** (`USR-010`, admissions nurse) on the
+login page to see a full HSP-001 caseload with orders. This is the nurse/case-manager assignment key
+until a dedicated `assignedNurseId` exists.
+
+**`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
+`public/images/patients/`. When absent, the card shows a striped fallback with the patient id.

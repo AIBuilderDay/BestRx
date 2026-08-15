@@ -74,6 +74,9 @@ export const getOrderEvents = (orderId: string): OrderEvent[] =>
 export const getOrdersForHospice = (hospiceId: string): Order[] =>
   orders.filter((o) => o.hospiceId === hospiceId);
 
+export const getOrdersForPatient = (patientId: string): Order[] =>
+  orders.filter((o) => o.patientId === patientId);
+
 export const getInventoryForVendor = (vendorId: string): InventoryUnit[] =>
   inventory.filter((u) => u.vendorId === vendorId);
 

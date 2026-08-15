@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { can, permissionsFor, ROLE_LABELS, type Permission } from '../../lib/auth';
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
+
+export type NavSection = 'catalog' | 'patients';
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permission: Permission }[] = [
@@ -16,16 +19,23 @@ export function TopNav({
   hospiceName,
   user,
   cartCount,
+  activeSection,
   onOpenCart,
   onSignOut,
 }: {
   hospiceName: string;
   user: User;
   cartCount: number;
+  activeSection: NavSection;
   onOpenCart: () => void;
   onSignOut: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const linkClass = (section: NavSection) =>
+    section === activeSection
+      ? 'text-[var(--color-ink)]'
+      : 'text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-ink)]';
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between gap-6 border-b border-[var(--color-line)] bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
@@ -34,11 +44,20 @@ export function TopNav({
       </div>
 
       <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-[var(--color-ink-3)]">
-        <span aria-current="page" className="text-[var(--color-ink)]">
+        <Link to="/catalog" aria-current={activeSection === 'catalog' ? 'page' : undefined} className={linkClass('catalog')}>
           Catalog
-        </span>
+        </Link>
+        {can(user, 'orders:own-patients') ? (
+          <Link
+            to="/patients"
+            aria-current={activeSection === 'patients' ? 'page' : undefined}
+            className={linkClass('patients')}
+          >
+            Patients
+          </Link>
+        ) : null}
         {GATED_SECTIONS.filter((s) => can(user, s.permission)).map((s) => (
-          <span key={s.label} className="cursor-default" title="Coming soon">
+          <span key={s.label} className="cursor-default text-[var(--color-ink-3)]" title="Coming soon">
             {s.label}
           </span>
         ))}

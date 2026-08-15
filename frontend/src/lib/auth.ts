@@ -47,7 +47,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   case_manager: ['storefront:purchase', 'orders:own-patients', 'notes', 'pickup:trigger'],
   // Field nurses share the case manager's job in the field — see PROJECT_DESCRIPTION §3.
   field_nurse: ['storefront:purchase', 'orders:own-patients', 'notes', 'pickup:trigger'],
-  admissions_nurse: ['storefront:purchase', 'orders:own'],
+  admissions_nurse: ['storefront:purchase', 'orders:own', 'orders:own-patients', 'notes'],
   // Vendors never log in — they respond to text/email links (PROJECT_DESCRIPTION §3).
   vendor_dispatcher: [],
 };
