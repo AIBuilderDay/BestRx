@@ -148,4 +148,25 @@ describe('mock database integrity', () => {
       expect(vendor.performance30d.onTimeDeliveryPct).toBeGreaterThan(0);
     }
   });
+
+  it('names exactly one contracted vendor, the cost ledger baseline', () => {
+    expect(vendors.filter((v) => v.contracted).map((v) => v.id)).toEqual(['VND-002']);
+  });
+
+  it('prices every code a hospice ordered against every vendor, so the ledger has no blank cells', () => {
+    const orderedCodes = new Set(
+      orders.filter((o) => o.hospiceId === 'HSP-001').flatMap((o) => o.equipment.map((e) => e.hcpcs)),
+    );
+    for (const hcpcs of orderedCodes) {
+      const pricedBy = new Set(getOffersForItem(hcpcs).map((o) => o.vendorId));
+      expect([...pricedBy].sort(), hcpcs).toEqual(vendors.map((v) => v.id).sort());
+    }
+  });
+
+  it('sells rentals by the month and everything else outright', () => {
+    for (const offer of vendorOffers) {
+      const expected = getCatalogEntry(offer.hcpcs)?.rental ? 'month' : 'purchase';
+      expect(offer.unit, offer.id).toBe(expected);
+    }
+  });
 });

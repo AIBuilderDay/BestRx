@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { equipmentCatalog, patients } from '../data/db';
+import { equipmentCatalog, patients, vendorOffers } from '../data/db';
 import {
   buildCatalogItems,
   filterAndSortCatalog,
@@ -28,8 +28,8 @@ describe('buildCatalogItems', () => {
   const items = buildCatalogItems();
 
   it('creates one storefront card per vendor offer row', () => {
-    expect(items).toHaveLength(16);
-    expect(new Set(items.map((it) => it.offer.id)).size).toBe(16);
+    expect(items).toHaveLength(vendorOffers.length);
+    expect(new Set(items.map((it) => it.offer.id)).size).toBe(vendorOffers.length);
   });
 
   it('lists three separate hospital beds from three vendors', () => {
