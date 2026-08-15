@@ -1,17 +1,28 @@
+import { Link } from 'react-router-dom';
+
 const OTHER_SECTIONS = ['Orders', 'Vendors', 'Pickups'] as const;
+
+export type NavSection = 'catalog' | 'patients';
 
 /** Sticky app header: brand, section nav, org/user identity, and the cart toggle. */
 export function TopNav({
   hospiceName,
   userName,
   cartCount,
+  activeSection,
   onOpenCart,
 }: {
   hospiceName: string;
   userName: string;
   cartCount: number;
+  activeSection: NavSection;
   onOpenCart: () => void;
 }) {
+  const linkClass = (section: NavSection) =>
+    section === activeSection
+      ? 'text-[var(--color-ink)]'
+      : 'text-[var(--color-ink-3)] transition-colors hover:text-[var(--color-ink)]';
+
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between gap-6 border-b border-[var(--color-line)] bg-white/92 px-8 py-4 backdrop-blur-sm">
       <div className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
@@ -19,12 +30,19 @@ export function TopNav({
         BetterRx
       </div>
 
-      <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-[var(--color-ink-3)]">
-        <span aria-current="page" className="text-[var(--color-ink)]">
+      <nav className="flex gap-6 text-xs uppercase tracking-[0.09em]">
+        <Link to="/catalog" aria-current={activeSection === 'catalog' ? 'page' : undefined} className={linkClass('catalog')}>
           Catalog
-        </span>
+        </Link>
+        <Link
+          to="/patients"
+          aria-current={activeSection === 'patients' ? 'page' : undefined}
+          className={linkClass('patients')}
+        >
+          Patients
+        </Link>
         {OTHER_SECTIONS.map((label) => (
-          <span key={label} className="cursor-default" title="Coming soon">
+          <span key={label} className="cursor-default text-[var(--color-ink-3)]" title="Coming soon">
             {label}
           </span>
         ))}

@@ -11,7 +11,8 @@
     "dischargeAt": "2026-08-04T14:00:00-06:00",
     "primaryDiagnosis": { "codeType": "icd10Code", "code": "C34.90", "description": "Malignant neoplasm of lung" },
     "address": { "street1": "1148 E Fairbanks Ave", "city": "Salt Lake City", "state": "UT", "zip": "84103" },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88421.svg"
   },
   {
     "id": "PT-88190",
@@ -38,7 +39,8 @@
     "dischargeAt": "2026-08-14T16:30:00-06:00",
     "primaryDiagnosis": { "codeType": "icd10Code", "code": "J44.9", "description": "COPD, unspecified" },
     "address": { "street1": "2201 S West Temple", "city": "Salt Lake City", "state": "UT", "zip": "84115" },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88502.svg"
   },
   {
     "id": "PT-87950",
@@ -91,7 +93,8 @@
     "dischargeAt": "2026-08-15T10:00:00-06:00",
     "primaryDiagnosis": { "codeType": "icd10Code", "code": "N18.6", "description": "End stage renal disease" },
     "address": { "street1": "4482 S Highland Dr", "city": "Salt Lake City", "state": "UT", "zip": "84117" },
-    "caseManagerId": "USR-002"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88530.svg"
   },
   {
     "id": "PT-88544",

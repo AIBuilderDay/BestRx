@@ -1,5 +1,6 @@
 [
   { "id": "EVT-0001", "orderId": "DME-10231", "at": "2026-08-03T09:14:00-06:00", "event": "ordered", "actorId": "USR-001", "detail": "Hospital bed ordered for a discharge home on Aug 4 at 2:00 PM." },
+  { "id": "EVT-0001b", "orderId": "DME-10231", "at": "2026-08-03T10:30:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Accepted by Sample Vendor 1 dispatch." },
 
   { "id": "EVT-0002", "orderId": "DME-10198", "at": "2026-08-14T08:02:00-06:00", "event": "ordered", "actorId": "USR-003", "detail": "Routine wheelchair order." },
   { "id": "EVT-0003", "orderId": "DME-10198", "at": "2026-08-14T09:15:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Assigned to route 4, ETA 3:40 PM." },
@@ -27,6 +28,7 @@
   { "id": "EVT-0021", "orderId": "DME-09803", "at": "2026-08-14T08:30:00-06:00", "event": "family_contact", "actorId": null, "detail": "Second family call logged." },
 
   { "id": "EVT-0022", "orderId": "DME-10310", "at": "2026-08-14T11:45:00-06:00", "event": "ordered", "actorId": "USR-002", "detail": "Oxygen concentrator and walker for a morning admission." },
+  { "id": "EVT-0022b", "orderId": "DME-10310", "at": "2026-08-14T12:10:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Sample Vendor 1 confirmed for tomorrow morning delivery." },
 
   { "id": "EVT-0023", "orderId": "DME-10298", "at": "2026-08-13T15:20:00-06:00", "event": "ordered", "actorId": "USR-003", "detail": "Powered air mattress, routine." },
   { "id": "EVT-0024", "orderId": "DME-10298", "at": "2026-08-14T07:40:00-06:00", "event": "dispatched", "actorId": "USR-007", "detail": "Added to today's route." },

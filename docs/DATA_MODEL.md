@@ -99,3 +99,12 @@ Extend a table rather than inventing a new shape. If a feature needs a field tha
 that is a data ticket: add the field to the JSON, add it to the type, note it here, all in one PR.
 Keep new rows internally consistent — an order needs a patient that exists, a vendor that serves
 that zip, and events whose timestamps agree with its status.
+
+## Patients view
+
+**Caseload:** the Patients list filters by `caseManagerId` matching the logged-in user (demo session
+uses `USR-001`). This is the nurse/case-manager assignment key until a dedicated `assignedNurseId`
+exists.
+
+**`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
+`public/images/patients/`. When absent, the card shows a striped fallback with the patient id.

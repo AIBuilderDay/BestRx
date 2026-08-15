@@ -13,7 +13,6 @@ import {
   totalUnitsInCart,
   unitsInCartFor,
   upsertCartLine,
-  type CartLine,
   type CatalogFilterState,
   type SortKey,
 } from '../lib/catalog';
@@ -25,11 +24,8 @@ import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
-
-// Ordering happens in the context of one hospice case manager's session. No auth yet, so this
-// stands in for "who's logged in" — matches the seed data's Dana Whitfield at Sample Hospice A.
-const HOSPICE_ID = 'HSP-001';
-const CURRENT_USER_ID = 'USR-001';
+import { useCart } from '../context/CartContext';
+import { CURRENT_USER_ID, HOSPICE_ID } from '../lib/session';
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'featured', label: 'Featured' },
@@ -57,11 +53,10 @@ export default function Catalog() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [picks, setPicks] = useState<Record<string, number>>({});
-  const [lines, setLines] = useState<CartLine[]>([]);
+  const { lines, setLines, cartOpen, setCartOpen, clearCart } = useCart();
   const [sheetHcpcs, setSheetHcpcs] = useState<string | null>(null);
   const [sheetQty, setSheetQty] = useState(1);
   const [checkoutAfter, setCheckoutAfter] = useState(false);
-  const [cartOpen, setCartOpen] = useState(false);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -110,7 +105,7 @@ export default function Catalog() {
     }
     const patientCount = new Set(lines.map((l) => l.patientId)).size;
     const lineCount = lines.length;
-    setLines([]);
+    clearCart();
     setCartOpen(false);
     say(`Order placed — ${lineCount} line${lineCount > 1 ? 's' : ''} across ${patientCount} patient${patientCount > 1 ? 's' : ''}`);
   };
@@ -141,6 +136,7 @@ export default function Catalog() {
         hospiceName={hospice?.name ?? 'Hospice'}
         userName={currentUser?.name ?? 'Case manager'}
         cartCount={totalUnitsInCart(lines)}
+        activeSection="catalog"
         onOpenCart={() => setCartOpen(true)}
       />
 

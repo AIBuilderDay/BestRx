@@ -123,6 +123,8 @@ export interface Patient {
   primaryDiagnosis: { codeType: string; code: string; description: string };
   address: Address;
   caseManagerId: string;
+  /** Optional placeholder portrait for the patient card UI. */
+  imagePath?: string;
 }
 
 export interface RiskAssessment {

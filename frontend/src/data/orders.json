@@ -6,7 +6,7 @@
     "riskState": null,
     "patientId": "PT-88421",
     "hospiceId": "HSP-001",
-    "vendorId": null,
+    "vendorId": "VND-001",
     "orderedById": "USR-001",
     "orderType": "admission",
     "urgency": "routine",
@@ -15,7 +15,7 @@
     "targetBy": "2026-08-04T14:00:00-06:00",
     "eta": null,
     "dischargeReadiness": { "required": true, "confirmed": false },
-    "notes": "Discharge scheduled for tomorrow afternoon. No vendor assigned yet."
+    "notes": "Discharge scheduled for tomorrow afternoon. Sample Vendor 1 is preparing delivery."
   },
   {
     "id": "DME-10198",
@@ -139,7 +139,7 @@
     "riskState": null,
     "patientId": "PT-88530",
     "hospiceId": "HSP-001",
-    "vendorId": null,
+    "vendorId": "VND-001",
     "orderedById": "USR-002",
     "orderType": "admission",
     "urgency": "urgent",
@@ -151,7 +151,7 @@
     "targetBy": "2026-08-15T10:00:00-06:00",
     "eta": null,
     "dischargeReadiness": { "required": true, "confirmed": false },
-    "notes": "New admission tomorrow morning. Awaiting vendor assignment."
+    "notes": "New admission tomorrow morning. Sample Vendor 1 confirmed delivery."
   },
   {
     "id": "DME-10298",
