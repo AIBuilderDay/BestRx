@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { OrderSortKey } from '../../lib/orders';
+import { Tooltip } from '../ui/Tooltip';
 
 const SORTS: { key: OrderSortKey; label: string }[] = [
   { key: 'recent', label: 'Most recent' },
@@ -58,20 +59,21 @@ export function OrderSortMenu({
 
   return (
     <div ref={rootRef} className="relative">
-      <button
-        type="button"
-        aria-label={`Sort orders — ${activeLabel}`}
-        aria-expanded={open}
-        aria-haspopup="listbox"
-        title="Sort"
-        onClick={() => setOpen((v) => !v)}
-        className={`flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border px-3.5 text-[13px] transition-colors hover:border-ink sm:w-10 sm:px-0 ${
-          open || sort !== 'recent' ? 'border-ink bg-hover text-ink' : 'border-line-strong bg-surface text-ink-2'
-        }`}
-      >
-        <SortIcon />
-        <span className="sm:hidden">Sort</span>
-      </button>
+      <Tooltip label={`Sort orders — ${activeLabel}`} placement="left" hidden={open}>
+        <button
+          type="button"
+          aria-label={`Sort orders — ${activeLabel}`}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          onClick={() => setOpen((v) => !v)}
+          className={`flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border px-3.5 text-[13px] transition-colors hover:border-ink sm:w-10 sm:px-0 ${
+            open || sort !== 'recent' ? 'border-ink bg-hover text-ink' : 'border-line-strong bg-surface text-ink-2'
+          }`}
+        >
+          <SortIcon />
+          <span className="sm:hidden">Sort</span>
+        </button>
+      </Tooltip>
 
       {open ? (
         <div

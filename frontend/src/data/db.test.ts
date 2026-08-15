@@ -24,7 +24,7 @@ import { offerRatingSummary, vendorRatingSummary } from '../lib/reviews';
 
 describe('mock database integrity', () => {
   it('keeps the six canonical bounty orders', () => {
-    const canonical = orders.filter((o) => o.canonical).map((o) => o.id);
+    const canonical = orders().filter((o) => o.canonical).map((o) => o.id);
     expect(canonical).toEqual([
       'DME-10231',
       'DME-10198',
@@ -36,23 +36,23 @@ describe('mock database integrity', () => {
   });
 
   it('resolves every foreign key on every order', () => {
-    for (const order of orders) {
+    for (const order of orders()) {
       expect(getPatient(order.patientId), `patient for ${order.id}`).toBeDefined();
       if (order.vendorId) expect(getVendor(order.vendorId), `vendor for ${order.id}`).toBeDefined();
       if (order.orderedById) {
-        expect(users.some((u) => u.id === order.orderedById), `orderer for ${order.id}`).toBe(true);
+        expect(users().some((u) => u.id === order.orderedById), `orderer for ${order.id}`).toBe(true);
       }
     }
   });
 
   it('points every patient at a real hospice and case manager', () => {
-    for (const patient of patients) {
-      expect(users.some((u) => u.id === patient.caseManagerId), patient.id).toBe(true);
+    for (const patient of patients()) {
+      expect(users().some((u) => u.id === patient.caseManagerId), patient.id).toBe(true);
     }
   });
 
   it('gives every order at least one timeline event, in chronological order', () => {
-    for (const order of orders) {
+    for (const order of orders()) {
       const events = getOrderEvents(order.id);
       expect(events.length, `events for ${order.id}`).toBeGreaterThan(0);
       const timestamps = events.map((e) => e.at);
@@ -72,7 +72,7 @@ describe('mock database integrity', () => {
   });
 
   it('sells only catalog items, from vendors that exist, with auditable storefront fields', () => {
-    for (const offer of vendorOffers) {
+    for (const offer of vendorOffers()) {
       const vendor = getVendor(offer.vendorId);
       const catalogEntry = getCatalogEntry(offer.hcpcs);
       expect(vendor, offer.id).toBeDefined();
@@ -88,9 +88,9 @@ describe('mock database integrity', () => {
   });
 
   it('stores individual product reviews linked to one vendor offer each', () => {
-    for (const review of productReviews) {
-      expect(vendorOffers.some((o) => o.id === review.offerId), review.id).toBe(true);
-      expect(users.some((u) => u.id === review.reviewerId), review.id).toBe(true);
+    for (const review of productReviews()) {
+      expect(vendorOffers().some((o) => o.id === review.offerId), review.id).toBe(true);
+      expect(users().some((u) => u.id === review.reviewerId), review.id).toBe(true);
       expect(review.rating).toBeGreaterThanOrEqual(1);
       expect(review.rating).toBeLessThanOrEqual(5);
       expect(Number.isInteger(review.rating), review.id).toBe(true);
@@ -109,7 +109,7 @@ describe('mock database integrity', () => {
   it('stores patient notes linked to patients and authors', () => {
     for (const note of patientNotes) {
       expect(getPatient(note.patientId), note.id).toBeDefined();
-      expect(users.some((u) => u.id === note.authorId), note.id).toBe(true);
+      expect(users().some((u) => u.id === note.authorId), note.id).toBe(true);
       expect(note.title.trim().length, note.id).toBeGreaterThan(0);
       expect(note.body.trim().length, note.id).toBeGreaterThan(0);
       expect(note.date, note.id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
@@ -118,7 +118,7 @@ describe('mock database integrity', () => {
   });
 
   it('stores vendor overall ratings for scorecards, matching review aggregates', () => {
-    for (const vendor of vendors) {
+    for (const vendor of vendors()) {
       const computed = vendorRatingSummary(vendor.id);
       expect(computed, vendor.id).not.toBeNull();
       expect(vendor.overallRating).toBe(computed?.average);
@@ -127,7 +127,7 @@ describe('mock database integrity', () => {
   });
 
   it('offers every canonical order item from at least one vendor', () => {
-    const canonicalCodes = orders
+    const canonicalCodes = orders()
       .filter((o) => o.canonical)
       .flatMap((o) => o.equipment.map((e) => e.hcpcs));
     for (const hcpcs of new Set(canonicalCodes)) {
@@ -136,26 +136,26 @@ describe('mock database integrity', () => {
   });
 
   it('scopes every budget to a real hospice, and to a role or a real patient', () => {
-    for (const budget of budgets) {
-      expect(hospices.some((h) => h.id === budget.hospiceId), budget.id).toBe(true);
+    for (const budget of budgets()) {
+      expect(hospices().some((h) => h.id === budget.hospiceId), budget.id).toBe(true);
       if (budget.scope === 'patient_purchase') {
         expect(getPatient(budget.scopeRef), budget.id).toBeDefined();
       } else {
-        expect(users.some((u) => u.role === budget.scopeRef), budget.id).toBe(true);
+        expect(users().some((u) => u.role === budget.scopeRef), budget.id).toBe(true);
       }
       expect(budget.spentUsd).toBeLessThanOrEqual(budget.limitUsd);
     }
   });
 
   it('derives every role budget cap from PPD x patients x days', () => {
-    for (const budget of budgets.filter((b) => b.derivedFrom)) {
+    for (const budget of budgets().filter((b) => b.derivedFrom)) {
       expect(budgetCapUsd(budget), budget.id).toBeCloseTo(budget.limitUsd, 2);
       expect(budgetUtilizationPct(budget), budget.id).toBeLessThanOrEqual(100);
     }
   });
 
   it('gives every vendor an SLA and a 30-day performance record', () => {
-    for (const vendor of vendors) {
+    for (const vendor of vendors()) {
       expect(vendor.sla.pickupHours).toBeGreaterThan(0);
       expect(vendor.performance30d.onTimeDeliveryPct).toBeGreaterThan(0);
     }

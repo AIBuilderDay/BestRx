@@ -1,38 +1,37 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getPatient, patients, vendors } from '../data/db';
 import { can, isFamilyMember } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
 import {
-  buildCartGroups,
   buildCatalogItems,
-  cartTotals,
   catalogFilterOptions,
   defaultCatalogFilters,
   filterAndSortCatalog,
-  resolveCatalogFilters,
   RESET_CATALOG_FILTERS_STATE,
   paginateCatalog,
   searchCatalog,
   patientFullName,
   priceCeiling,
-  setCartLineQty,
+  rescaleMaxPrice,
   totalUnitsInCart,
   upsertCartLine,
+  UNIT_FOR_MODE,
   type CatalogFilterState,
+  type PriceUnit,
+  type PricingMode,
   type SortKey,
 } from '../lib/catalog';
 import type { User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CatalogFilters } from '../components/catalog/CatalogFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
+import { PricingModeToggle } from '../components/catalog/PricingModeToggle';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
 import { FamilyPurchaseSheet } from '../components/catalog/FamilyPurchaseSheet';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
-import { CartDrawer } from '../components/catalog/CartDrawer';
-import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
 import { useAiRerank } from '../hooks/useAiRerank';
 
@@ -58,25 +57,23 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         ? familyPatient
           ? [familyPatient]
           : []
-        : patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
+        : patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
     [isFamily, familyPatient, user.orgId],
   );
   const [sessionReviews, setSessionReviews] = useState<ProductReview[]>([]);
-  const catalogItems = useMemo(() => buildCatalogItems(sessionReviews), [sessionReviews]);
+  const [mode, setMode] = useState<PricingMode>('rent');
+  /** Per-card overrides of the page mode, keyed by offer id. Cleared whenever the page mode moves. */
+  const [unitOverrides, setUnitOverrides] = useState<Record<string, PriceUnit>>({});
+  const catalogItems = useMemo(() => buildCatalogItems(sessionReviews, mode), [sessionReviews, mode]);
   const priceMax = useMemo(() => priceCeiling(catalogItems), [catalogItems]);
+
+  /** The arrangement a given card is showing: its own override, else the page mode. */
+  const unitFor = (id: string): PriceUnit => unitOverrides[id] ?? UNIT_FOR_MODE[mode];
 
   const [filters, setFilters] = useState<CatalogFilterState>(() => defaultCatalogFilters(priceMax));
   const [currentPage, setCurrentPage] = useState(1);
-  const { lines, setLines, cartOpen, setCartOpen, clearCart, agentAdded, setAgentAdded } = useCart();
+  const { lines, setLines, setCartOpen, say } = useCart();
   const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
-  const [toast, setToast] = useState('');
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  const say = (message: string) => {
-    clearTimeout(toastTimer.current);
-    setToast(message);
-    toastTimer.current = setTimeout(() => setToast(''), 3000);
-  };
 
   const resetFiltersToDefault = () => {
     setFilters(defaultCatalogFilters(priceMax));
@@ -118,13 +115,14 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       return;
     }
 
+    const unit = unitFor(sheetProduct.offer.id);
     setLines((prev) =>
-      selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, qty), prev),
+      selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, unit, qty), prev),
     );
     const names =
       selectedPatientIds.length === 1
-        ? (patients.find((p) => p.id === selectedPatientIds[0]) &&
-            patientFullName(patients.find((p) => p.id === selectedPatientIds[0])!)) ||
+        ? (patients().find((p) => p.id === selectedPatientIds[0]) &&
+            patientFullName(patients().find((p) => p.id === selectedPatientIds[0])!)) ||
           selectedPatientIds[0]
         : `${selectedPatientIds.length} patients`;
     say(`${sheetProduct.offer.productName} ${qty} added for ${names}`);
@@ -133,26 +131,30 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const familyAddToCart = (qty: number) => {
     if (!sheetProduct || !familyPatient) return;
-    setLines((prev) => upsertCartLine(prev, sheetProduct.offer.id, familyPatient.id, qty));
+    const unit = unitFor(sheetProduct.offer.id);
+    setLines((prev) => upsertCartLine(prev, sheetProduct.offer.id, familyPatient.id, unit, qty));
     say(`${sheetProduct.offer.productName} added to your cart`);
     setSheetOfferId(null);
   };
 
-  const placeOrder = () => {
-    if (lines.length === 0) {
-      say('Cart is empty');
-      return;
-    }
-    const patientCount = new Set(lines.map((l) => l.patientId)).size;
-    const lineCount = lines.length;
-    clearCart();
-    setCartOpen(false);
-    say(`Order placed — ${lineCount} line${lineCount > 1 ? 's' : ''} across ${patientCount} patient${patientCount > 1 ? 's' : ''}`);
+  /**
+   * Switching the page mode rescales the max-price filter, because rental and purchase are
+   * different orders of magnitude and a slider left at "$300" would mean opposite things either
+   * side of it. Per-card overrides clear: one control, one meaning.
+   */
+  const switchMode = (next: PricingMode) => {
+    if (next === mode) return;
+    const nextItems = buildCatalogItems(sessionReviews, next);
+    const nextMax = priceCeiling(nextItems);
+    setFilters((f) => ({ ...f, maxPrice: rescaleMaxPrice(f.maxPrice, priceMax, nextMax) }));
+    setUnitOverrides({});
+    setMode(next);
+    setCurrentPage(1);
   };
 
   const applyFilters = (patch: Partial<CatalogFilterState>) => {
     exitDetail();
-    setFilters((f) => resolveCatalogFilters(catalogItems, f, patch));
+    setFilters((f) => ({ ...f, ...patch }));
     setCurrentPage(1);
   };
 
@@ -188,11 +190,9 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   }
   const aiReasons = aiActive && aiRerank.result ? aiRerank.result.reasons : {};
   const catalogPage = paginateCatalog(filteredSorted, currentPage);
-  const cartGroups = buildCartGroups(lines, catalogItems, patients);
-  const totals = cartTotals(lines, catalogItems);
 
   const filterOptions = useMemo(
-    () => catalogFilterOptions(catalogItems, filters, vendors),
+    () => catalogFilterOptions(catalogItems, filters, vendors()),
     [catalogItems, filters],
   );
 
@@ -227,6 +227,10 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                 product={detailProduct}
                 user={user}
                 sessionReviews={sessionReviews}
+                unit={unitFor(detailProduct.offer.id)}
+                onUnitChange={(next) =>
+                  setUnitOverrides((prev) => ({ ...prev, [detailProduct.offer.id]: next }))
+                }
                 onAddReview={addReview}
                 onAddToCart={() => openCartSheet(detailProduct.offer.id)}
               />
@@ -274,7 +278,9 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                     </div>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <PricingModeToggle mode={mode} onChange={switchMode} />
+                  <span className="mx-1 h-5 w-px bg-line" aria-hidden />
                   {SORTS.map((s) => (
                     <button
                       key={s.key}
@@ -304,6 +310,10 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                     >
                       <ProductCard
                         item={item}
+                        unit={unitFor(item.offer.id)}
+                        onUnitChange={(next) =>
+                          setUnitOverrides((prev) => ({ ...prev, [item.offer.id]: next }))
+                        }
                         onOrderNow={() => openCartSheet(item.offer.id)}
                         aiReason={aiReasons[item.offer.id]}
                       />
@@ -346,33 +356,6 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         />
       )}
 
-      <CartDrawer
-        open={cartOpen}
-        groups={cartGroups}
-        totals={totals}
-        onQtyChange={(id, patientId, qty) => setLines((prev) => setCartLineQty(prev, id, patientId, qty))}
-        onRemove={(id, patientId) => setLines((prev) => setCartLineQty(prev, id, patientId, 0))}
-        onClose={() => {
-          setCartOpen(false);
-          setAgentAdded(null); // the spotlight is a one-time confirmation, not a permanent badge
-        }}
-        onViewCart={() => {
-          setCartOpen(false);
-          navigate('/cart');
-        }}
-        onPlaceOrder={
-          isFamily
-            ? () => {
-                // Family choose request-vs-buy on the cart page, so send them there, not straight to checkout.
-                setCartOpen(false);
-                navigate('/cart');
-              }
-            : placeOrder
-        }
-        agentAdded={agentAdded}
-      />
-
-      <Toast message={toast} />
     </div>
   );
 }

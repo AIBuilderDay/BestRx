@@ -105,6 +105,10 @@ Don't memorize these — open the doc when the task touches it.
 | Live Q&A notes: personas, devices, usability bar, what's already integrated | [docs/bounty/BRIEFING_NOTES.md](docs/bounty/BRIEFING_NOTES.md) |
 | Canonical sample orders from the organizers | [docs/bounty/SAMPLE_ORDERS.md](docs/bounty/SAMPLE_ORDERS.md) |
 | Data shapes, table relationships, where the mock DB lives | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) |
+| Where catalog prices came from, and what is scraped vs. derived | [docs/PRICE_SOURCES.md](docs/PRICE_SOURCES.md) |
+| API endpoints, SSE, status lifecycle, running the backend | [backend/README.md](backend/README.md) |
+| Why push is its own service, and what the Lambda does | [notification-service/README.md](notification-service/README.md) |
+| Deploying: Render, Cloudflare Pages, AWS, and the known limits | [infra/README.md](infra/README.md) |
 | How we work: description → mockup → spec → tickets | [docs/WORKFLOW.md](docs/WORKFLOW.md) |
 | A feature's agreed scope before building it | [docs/specs/](docs/specs/) |
 | The specific unit of work you were handed | [docs/tickets/](docs/tickets/) |
@@ -132,17 +136,34 @@ BestRx/
 │   ├── specs/                   one spec per feature area
 │   └── tickets/                 small, self-contained units of work
 ├── mockups/               HTML mockups for humans
-└── frontend/
-    ├── Dockerfile
-    ├── src/
-    │   ├── components/    reusable UI, grouped by domain (ui/ = shared primitives, empty so far)
-    │   ├── views/         one file per screen/route
-    │   ├── data/          JSON "tables" + typed loader
-    │   ├── lib/           pure helpers (derivation, formatting, risk math)
-    │   ├── hooks/         reusable React hooks
-    │   └── types/         shared TypeScript types
-    └── public/images/     product/equipment/vendor imagery
+├── frontend/
+│   ├── Dockerfile
+│   ├── src/
+│   │   ├── components/    reusable UI, grouped by domain (ui/ = shared primitives, empty so far)
+│   │   ├── views/         one file per screen/route
+│   │   ├── data/          JSON "tables" + typed loader
+│   │   ├── lib/           pure helpers (derivation, formatting, risk math) + api.ts, push.ts
+│   │   ├── hooks/         reusable React hooks
+│   │   ├── types/         shared TypeScript types
+│   │   └── sw.ts          service worker — renders push notifications
+│   └── public/images/     product/equipment/vendor imagery
+├── backend/               FastAPI: catalog, orders, the SSE stream, and the MCP surface at /mcp
+│   ├── app/               the API
+│   └── scripts/           deploy to ECR, sync fixtures
+├── notification-service/  Web Push sender: SQS-triggered Lambda, separate on purpose
+├── infra/                 Terraform: SQS + Lambda + the one table, and a scoped key for Render
+└── render.yaml            the API's deployment; the frontend goes to Cloudflare Pages
 ```
+
+**The backend is required.** The frontend loads every table from the API once at boot
+(`context/DataContext.tsx` → `lib/api.ts` → `data/store.ts`), and `data/db.ts` reads that snapshot.
+There is no fixture fallback: a failed load shows an error with a retry rather than quietly
+rendering bundled JSON, so a broken backend can never look like a working one. `task start` runs
+both services, and the frontend waits on the API's healthcheck.
+
+The JSON files in `frontend/src/data/` are still the one copy of the data under version control —
+the API serves them, and the tests read them directly through `data/testSnapshot.ts`. Nothing in
+`src/` imports them at runtime.
 
 **Markdown is for agents. HTML is for humans.** Specs and tickets are `.md`; mockups are `.html`.
 The one exception is [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html), which is written to be read
@@ -157,12 +178,25 @@ everyone.
 
 ```bash
 task              # list every task
-task start        # build + start everything (frontend on http://localhost:5173)
+task start        # build + start everything (frontend :5173, API :8000)
 task logs         # tail container logs
 task restart      # clean:all, reinstall, start again
-task test         # typecheck + unit tests
+task test         # typecheck + unit tests, both sides
 task clean        # stop containers, drop node_modules
 task clean:all    # clean + docker volumes/images + build artifacts
+```
+
+Both services run in Docker. The frontend waits for the API's healthcheck, so it never starts
+pointing at a backend that is not ready. The API needs no AWS account — it serves the JSON tables in
+`frontend/src/data/` straight from disk.
+
+```bash
+task backend:start   # build + start only the API (no frontend container)
+task backend:stop    # stop just the API
+task backend:logs    # tail just the API
+task backend:shell   # a shell inside the API container
+task test:backend    # pytest inside the container
+task infra:plan      # what Terraform would change (creates nothing)
 ```
 
 Run pnpm directly (from `frontend/`) only when you need something task doesn't cover — adding a

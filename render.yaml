@@ -1,0 +1,62 @@
+# Render blueprint for the BestRx API.
+#
+# Render builds the image from backend/Dockerfile with the repo root as context — the JSON fixtures
+# live in frontend/src/data and Docker cannot copy from outside its build context.
+#
+# Secrets are deliberately absent. `sync: false` means Render prompts for the value once and stores
+# it; nothing sensitive belongs in a committed file. Get them with:
+#
+#     terraform -chdir=infra output -raw render_env
+#
+# Free tier: the service spins down after 15 minutes of inactivity and takes 30-60s to wake. Orders
+# live in memory, so a spin-down also resets them to the seeded fixtures. Both are documented in
+# backend/README.md rather than hidden.
+
+services:
+  - type: web
+    name: bestrx-api
+    runtime: docker
+    plan: free
+    region: ohio # same region as the SQS queue and DynamoDB table, so calls stay local
+
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: . # the repo root; see above
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+
+    healthCheckPath: /health
+
+    # Only rebuild when something the image contains actually changes.
+    buildFilter:
+      paths:
+        - backend/**
+        - frontend/src/data/**
+        - render.yaml
+
+    envVars:
+      # Render assigns the port; uvicorn must bind to it rather than a hardcoded 8000.
+      - key: PORT
+        value: 8000
+
+      - key: AWS_REGION
+        value: us-east-2
+
+      # Least-privilege key from module.render_access: SendMessage on the one queue, and
+      # PutItem/DeleteItem/Scan on the one table. Nothing else.
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
+      - key: PUSH_QUEUE_URL
+        sync: false
+      - key: PUSH_SUBSCRIPTIONS_TABLE
+        value: bestrx-push-subscriptions
+
+      # Public half of the VAPID pair. Safe to expose — the browser needs it to subscribe.
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+
+      # The Cloudflare Pages origin. The frontend and API are on different hosts, so this is what
+      # makes the browser allow the call at all.
+      - key: CORS_ORIGINS
+        sync: false

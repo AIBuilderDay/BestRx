@@ -1,0 +1,32 @@
+{
+  // Cloudflare deployment for the frontend.
+  //
+  // A Worker serving static assets, not a Pages project: Cloudflare has folded Pages into Workers
+  // and new accounts are only offered "Create application", which runs `wrangler deploy` and needs
+  // this file to know what to upload.
+  //
+  // There is deliberately no `main` and no `binding` — this Worker has no script, only assets. The
+  // API lives on Render; this is the built Vite bundle and nothing else.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bestrx",
+  "compatibility_date": "2026-08-14",
+
+  "assets": {
+    // Relative to this file, so `wrangler deploy` must run from frontend/ — see package.json.
+    "directory": "./dist",
+
+    // React Router owns the paths, so an unmatched request serves index.html and lets the app
+    // resolve it. Without this a refresh on /patients returns 404.
+    //
+    // This is what replaced public/_redirects. That file's `/* /index.html 200` catch-all is
+    // rejected outright here: static-assets reads it as a rule that strips `/index` and then
+    // re-matches itself, and fails the upload with "Infinite loop detected in this rule".
+    "not_found_handling": "single-page-application"
+  },
+
+  // public/_headers still applies: it keeps sw.js uncached, which matters because a stale service
+  // worker keeps running the old push handler for as long as the browser holds it.
+  "observability": {
+    "enabled": true
+  }
+}

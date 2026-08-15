@@ -19,14 +19,14 @@ const ASSIGNABLE_STATUSES: PatientStatus[] = ['active', 'pending_discharge'];
 export type AssignmentMap = Record<string, string>;
 
 export function getAssignableNurses(hospiceId: string): User[] {
-  return users
+  return users()
     .filter((u) => u.orgId === hospiceId && ASSIGNABLE_ROLES.includes(u.role))
     .slice()
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function getAssignablePatients(hospiceId: string): Patient[] {
-  return patients
+  return patients()
     .filter((p) => p.hospiceId === hospiceId && ASSIGNABLE_STATUSES.includes(p.status))
     .slice()
     .sort((a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName));

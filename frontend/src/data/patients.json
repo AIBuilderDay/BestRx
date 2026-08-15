@@ -290,7 +290,8 @@
       "zip": "84107"
     },
     "caseManagerId": "USR-001",
-    "dischargeAt": "2026-08-15T20:00:00-06:00"
+    "dischargeAt": "2026-08-15T20:00:00-06:00",
+    "imagePath": "/images/patients/pt-88605.png"
   },
   {
     "id": "PT-88606",
@@ -312,7 +313,8 @@
       "state": "UT",
       "zip": "84111"
     },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88606.png"
   },
   {
     "id": "PT-88607",
@@ -334,7 +336,8 @@
       "state": "UT",
       "zip": "84115"
     },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88607.png"
   },
   {
     "id": "PT-88608",
@@ -356,7 +359,8 @@
       "state": "UT",
       "zip": "84117"
     },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88608.png"
   },
   {
     "id": "PT-88609",
@@ -378,7 +382,8 @@
       "state": "UT",
       "zip": "84121"
     },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88609.png"
   },
   {
     "id": "PT-88610",
@@ -400,7 +405,8 @@
       "state": "UT",
       "zip": "84124"
     },
-    "caseManagerId": "USR-001"
+    "caseManagerId": "USR-001",
+    "imagePath": "/images/patients/pt-88610.png"
   },
   {
     "id": "PT-88611",
@@ -423,7 +429,8 @@
       "zip": "84102"
     },
     "caseManagerId": "USR-010",
-    "dischargeAt": "2026-08-16T02:00:00-06:00"
+    "dischargeAt": "2026-08-16T02:00:00-06:00",
+    "imagePath": "/images/patients/pt-88611.png"
   },
   {
     "id": "PT-88612",
@@ -445,7 +452,8 @@
       "state": "UT",
       "zip": "84103"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88612.png"
   },
   {
     "id": "PT-88613",
@@ -467,7 +475,8 @@
       "state": "UT",
       "zip": "84105"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88613.png"
   },
   {
     "id": "PT-88614",
@@ -489,7 +498,8 @@
       "state": "UT",
       "zip": "84106"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88614.png"
   },
   {
     "id": "PT-88615",
@@ -511,7 +521,8 @@
       "state": "UT",
       "zip": "84107"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88615.png"
   },
   {
     "id": "PT-88616",
@@ -533,7 +544,8 @@
       "state": "UT",
       "zip": "84111"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88616.png"
   },
   {
     "id": "PT-88617",
@@ -556,7 +568,8 @@
       "zip": "84115"
     },
     "caseManagerId": "USR-010",
-    "dischargeAt": "2026-08-16T08:00:00-06:00"
+    "dischargeAt": "2026-08-16T08:00:00-06:00",
+    "imagePath": "/images/patients/pt-88617.png"
   },
   {
     "id": "PT-88618",
@@ -578,7 +591,8 @@
       "state": "UT",
       "zip": "84117"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88618.png"
   },
   {
     "id": "PT-88619",
@@ -600,7 +614,8 @@
       "state": "UT",
       "zip": "84121"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88619.png"
   },
   {
     "id": "PT-88620",
@@ -622,7 +637,8 @@
       "state": "UT",
       "zip": "84124"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88620.png"
   },
   {
     "id": "PT-88621",
@@ -644,7 +660,8 @@
       "state": "UT",
       "zip": "84102"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88621.png"
   },
   {
     "id": "PT-88622",
@@ -666,6 +683,7 @@
       "state": "UT",
       "zip": "84103"
     },
-    "caseManagerId": "USR-010"
+    "caseManagerId": "USR-010",
+    "imagePath": "/images/patients/pt-88622.png"
   }
 ]

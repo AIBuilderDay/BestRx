@@ -40,7 +40,7 @@ export function CatalogFilters({
               type="button"
               onClick={() => onChange({ category: c.key })}
               className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover hover:text-ink ${
-                filters.category === c.key ? 'bg-hover text-ink' : 'text-ink-2'
+                filters.category === c.key ? 'bg-hover text-ink' : c.count === 0 ? 'text-ink-3' : 'text-ink-2'
               }`}
             >
               <span>{c.label}</span>
@@ -70,7 +70,7 @@ export function CatalogFilters({
                     ✓
                   </span>
                 </span>
-                <span className={`min-w-0 flex-1 truncate ${on ? 'text-ink' : 'text-ink-2'}`}>
+                <span className={`min-w-0 flex-1 truncate ${on ? 'text-ink' : v.count === 0 ? 'text-ink-3' : 'text-ink-2'}`}>
                   {v.displayName}
                 </span>
                 <span className="font-mono text-xs tabular-nums text-ink-3">{v.count}</span>

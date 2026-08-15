@@ -1,6 +1,7 @@
 packages:
   - "frontend"
   # - "backend"  # future: Python FastAPI, not a pnpm package
-# Vite's bundler ships a native binary that needs its postinstall script.
+# Vite's bundler and Wrangler's runtime both ship native binaries that need their postinstall.
 allowBuilds:
   esbuild: true
+  workerd: true
