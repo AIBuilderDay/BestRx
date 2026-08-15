@@ -22,17 +22,21 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Manifest first so the dependency layer caches across source edits.
-COPY backend/pyproject.toml ./
-RUN uv pip install --system \
-    fastapi pydantic "uvicorn[standard]" boto3 fastmcp anthropic
+# Manifest and lockfile first so the dependency layer caches across source edits. Installed from
+# the lock rather than a hand-written list: a dependency added to pyproject.toml ships without a
+# second edit here, which is how psycopg once reached Render missing.
+#
+# --no-install-project: the app is copied in below and run from WORKDIR, so the package itself
+# never needs installing — and skipping it keeps this layer independent of every source edit.
+COPY backend/pyproject.toml backend/uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
 
 
 # ── Development ─────────────────────────────────────────────────────────────────
 FROM base AS dev
 
-# pytest here so `task test:backend` runs inside the container.
-RUN uv pip install --system pytest pytest-asyncio httpx "moto[dynamodb,sqs]" ruff
+# The dev extra (pytest and friends) so `task test:backend` runs inside the container.
+RUN uv sync --frozen --extra dev --no-install-project
 
 COPY backend/app ./app
 COPY backend/tests ./tests
