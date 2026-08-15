@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { patients, vendors } from '../data/db';
-import { can } from '../lib/auth';
+import { getPatient, patients, vendors } from '../data/db';
+import { can, isFamilyMember } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
 import {
@@ -30,8 +30,10 @@ import { ProductCard } from '../components/catalog/ProductCard';
 import { PricingModeToggle } from '../components/catalog/PricingModeToggle';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
+import { FamilyPurchaseSheet } from '../components/catalog/FamilyPurchaseSheet';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { useCart } from '../context/CartContext';
+import { useAiRerank } from '../hooks/useAiRerank';
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'featured', label: 'Featured' },
@@ -45,9 +47,18 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
+  const aiMode = searchParams.get('ai') === '1';
+  const isFamily = isFamilyMember(user);
+  // A family member only ever orders for their own loved one; staff order across their hospice.
+  const familyPatient = isFamily ? getPatient(user.patientId) : undefined;
   const assignablePatients = useMemo(
-    () => patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
-    [user.orgId],
+    () =>
+      isFamily
+        ? familyPatient
+          ? [familyPatient]
+          : []
+        : patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
+    [isFamily, familyPatient, user.orgId],
   );
   const [sessionReviews, setSessionReviews] = useState<ProductReview[]>([]);
   const [mode, setMode] = useState<PricingMode>('rent');
@@ -113,15 +124,23 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         ? (patients().find((p) => p.id === selectedPatientIds[0]) &&
             patientFullName(patients().find((p) => p.id === selectedPatientIds[0])!)) ||
           selectedPatientIds[0]
-        : `${selectedPatientIds.length} patients()`;
+        : `${selectedPatientIds.length} patients`;
     say(`${sheetProduct.offer.productName} ${qty} added for ${names}`);
     setSheetOfferId(null);
   };
 
+  const familyAddToCart = (qty: number) => {
+    if (!sheetProduct || !familyPatient) return;
+    const unit = unitFor(sheetProduct.offer.id);
+    setLines((prev) => upsertCartLine(prev, sheetProduct.offer.id, familyPatient.id, unit, qty));
+    say(`${sheetProduct.offer.productName} added to your cart`);
+    setSheetOfferId(null);
+  };
+
   /**
-   * Switching the page mode rescales the max-price filter, because rent and buy are different
-   * orders of magnitude and a slider left at "$300" would mean opposite things either side of it.
-   * Per-card overrides clear: one control, one meaning.
+   * Switching the page mode rescales the max-price filter, because rental and purchase are
+   * different orders of magnitude and a slider left at "$300" would mean opposite things either
+   * side of it. Per-card overrides clear: one control, one meaning.
    */
   const switchMode = (next: PricingMode) => {
     if (next === mode) return;
@@ -145,7 +164,31 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     say('Filters cleared');
   };
 
-  const filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
+  // AI search: the model re-orders the (filter-respecting) catalog around the query and,
+  // when the query names one patient, their sanitized context. Deterministic results render
+  // immediately; the AI order is applied when it lands. Any failure = plain keyword search.
+  const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, assignablePatients);
+  const aiFailed = aiMode && !!searchQuery && aiRerank.failed;
+  const aiActive = aiMode && !!searchQuery && !aiRerank.failed;
+  let filteredSorted: typeof catalogItems;
+  if (aiActive) {
+    const base = filterAndSortCatalog(catalogItems, filters);
+    if (aiRerank.result) {
+      const position = new Map(aiRerank.result.orderedOfferIds.map((id, i) => [id, i]));
+      filteredSorted = base
+        .slice()
+        .sort((a, b) => (position.get(a.offer.id) ?? 999) - (position.get(b.offer.id) ?? 999));
+    } else {
+      filteredSorted = base;
+    }
+  } else if (aiFailed) {
+    // AI mode couldn't rank (no API key, or the call failed). The query is natural language, so
+    // keyword-matching it would show zero products — fall back to the full catalog instead.
+    filteredSorted = filterAndSortCatalog(catalogItems, filters);
+  } else {
+    filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
+  }
+  const aiReasons = aiActive && aiRerank.result ? aiRerank.result.reasons : {};
   const catalogPage = paginateCatalog(filteredSorted, currentPage);
 
   const filterOptions = useMemo(
@@ -153,8 +196,8 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     [catalogItems, filters],
   );
 
-  if (!can(user, 'storefront:purchase')) {
-    return <Navigate to="/patients()" replace />;
+  if (!can(user, 'storefront:purchase') && !isFamily) {
+    return <Navigate to="/patients" replace />;
   }
 
   return (
@@ -208,13 +251,30 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
               <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
                 <div>
                   <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
-                  {searchQuery ? (
+                  {searchQuery && !aiFailed ? (
                     <div className="mt-1.5 text-[13px] text-ink-2">
                       {filteredSorted.length} result{filteredSorted.length === 1 ? '' : 's'} for
                       {' '}&ldquo;{searchQuery}&rdquo;{' '}
                       <Link to="/catalog" className="underline underline-offset-2 hover:text-ink">
                         Clear
                       </Link>
+                    </div>
+                  ) : null}
+                  {aiMode && searchQuery ? (
+                    <div className="mt-1.5 flex items-center gap-1.5 text-[12px]" data-testid="ai-rank-status">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="text-ai-ink">
+                        <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+                      </svg>
+                      {aiRerank.busy ? (
+                        <span className="ai-status">Ranking for this search…</span>
+                      ) : aiRerank.failed ? (
+                        <span className="text-ink-3">AI unavailable — showing all equipment</span>
+                      ) : (
+                        <span className="text-ai-ink">
+                          AI-ranked, best match first
+                          {aiRerank.patientLabel ? ` · considered ${aiRerank.patientLabel}` : ''}
+                        </span>
+                      )}
                     </div>
                   ) : null}
                 </div>
@@ -245,7 +305,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                   {catalogPage.items.map((item, i) => (
                     <div
                       key={item.offer.id}
-                      className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                      className="h-full min-w-0 animate-card-in motion-reduce:animate-none"
                       style={{ animationDelay: `${i * 0.045}s` }}
                     >
                       <ProductCard
@@ -255,6 +315,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                           setUnitOverrides((prev) => ({ ...prev, [item.offer.id]: next }))
                         }
                         onOrderNow={() => openCartSheet(item.offer.id)}
+                        aiReason={aiReasons[item.offer.id]}
                       />
                     </div>
                   ))}
@@ -279,12 +340,21 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         </main>
       </div>
 
-      <PatientAssignSheet
-        product={sheetProduct}
-        patients={assignablePatients}
-        onClose={() => setSheetOfferId(null)}
-        onConfirm={confirmSheet}
-      />
+      {isFamily ? (
+        <FamilyPurchaseSheet
+          product={sheetProduct}
+          patientName={familyPatient ? patientFullName(familyPatient) : 'your family member'}
+          onClose={() => setSheetOfferId(null)}
+          onAddToCart={familyAddToCart}
+        />
+      ) : (
+        <PatientAssignSheet
+          product={sheetProduct}
+          patients={assignablePatients}
+          onClose={() => setSheetOfferId(null)}
+          onConfirm={confirmSheet}
+        />
+      )}
 
     </div>
   );

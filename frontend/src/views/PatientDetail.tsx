@@ -5,25 +5,23 @@ import { OrderListSection } from '../components/orders/OrderListSection';
 import { OrderReceiptDialog } from '../components/orders/OrderReceiptDialog';
 import { PatientIdentityRail } from '../components/patients/PatientIdentityRail';
 import { PatientTabs, type PatientTab } from '../components/patients/PatientTabs';
+import { PatientNotesSection } from '../components/patients/PatientNotesSection';
+import { FamilySection } from '../components/patients/FamilySection';
+import { FamilyRequestsSection } from '../components/patients/FamilyRequestsSection';
 import { TopNav } from '../components/layout/TopNav';
+import { DetailReveal } from '../components/ui/DetailReveal';
 import { useCart } from '../context/CartContext';
-import { getOrdersForPatient } from '../data/db';
+import { getOrdersForPatient, patientNotes } from '../data/db';
 import { moneyLabel } from '../lib/catalog';
 import { buildOrderListItemVM, type OrderListItemVM } from '../lib/orders';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
-import type { User } from '../types/domain';
-
-interface SessionNote {
-  meta: string;
-  text: string;
-}
+import type { PatientNote, User } from '../types/domain';
 
 export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const { cartCount, setCartOpen } = useCart();
 
-  const [draft, setDraft] = useState('');
-  const [addedNotes, setAddedNotes] = useState<SessionNote[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<PatientNote[]>([]);
   const [tab, setTab] = useState<PatientTab>('Orders');
   const [invoiceItem, setInvoiceItem] = useState<OrderListItemVM | null>(null);
 
@@ -38,13 +36,6 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
     () => (patientId && inCaseload ? getOrdersForPatient(patientId).map(buildOrderListItemVM) : []),
     [patientId, inCaseload],
   );
-
-  const handleAddNote = () => {
-    const text = draft.trim();
-    if (!text) return;
-    setAddedNotes((prev) => [{ meta: `Just now · ${user.name}`, text }, ...prev]);
-    setDraft('');
-  };
 
   const handleCallVendor = (item: OrderListItemVM) => {
     const digits = item.phone.replace(/\D/g, '');
@@ -123,13 +114,15 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       {topNav}
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-5.5">
-        <Link
-          to="/patients"
-          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
-        >
-          <span className="text-sm leading-none">←</span>
-          <span>All my patients</span>
-        </Link>
+        <DetailReveal step={0}>
+          <Link
+            to="/patients"
+            className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
+          >
+            <span className="text-sm leading-none">←</span>
+            <span>All my patients</span>
+          </Link>
+        </DetailReveal>
 
         <div className="grid grid-cols-1 items-start overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[340px_minmax(0,1fr)]">
           <PatientIdentityRail
@@ -148,43 +141,23 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
             <PatientTabs active={tab} onSelect={setTab} />
 
             <div className="flex flex-col gap-5.5 px-8 pt-6 pb-7.5">
+              {/* What the family asked for outranks the tabs: it needs a staff decision. */}
+              <FamilyRequestsSection patientId={patient.id} />
+
               {tab === 'Orders' ? orderCards : null}
 
               {tab === 'Notes' ? (
-                <div className="flex flex-col gap-3.5">
-                  <textarea
-                    placeholder="Add a note for this patient — visible to the care team."
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    rows={3}
-                    className="w-full resize-y rounded-card border border-line bg-bg-subtle px-3 py-2.5 text-[14.5px] text-ink outline-none focus:border-line-strong"
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={handleAddNote}
-                      className="cursor-pointer rounded-lg border border-solid-bg bg-solid-bg px-4 py-2.5 text-[13.5px] font-semibold text-solid-ink transition-opacity hover:opacity-85"
-                    >
-                      Add note
-                    </button>
-                  </div>
-                  {addedNotes.length === 0 ? (
-                    <p className="text-[13px] text-ink-3">No notes added this session.</p>
-                  ) : (
-                    <div className="flex flex-col">
-                      {addedNotes.map((n, i) => (
-                        <div
-                          key={`added-${i}`}
-                          className="flex gap-3.5 border-b border-line py-3.5 text-[14.5px] last:border-b-0"
-                        >
-                          <span className="w-16 flex-none text-[13px] text-ink-3">{n.meta}</span>
-                          <span className="flex-1 text-pretty">{n.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <PatientNotesSection
+                  patientId={patient.id}
+                  user={user}
+                  storedNotes={patientNotes}
+                  sessionNotes={sessionNotes}
+                  onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
+                  onSessionNotesChange={setSessionNotes}
+                />
               ) : null}
+
+              {tab === 'Family' ? <FamilySection patientId={patient.id} /> : null}
 
               {tab === 'Documents' ? (
                 <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-line-strong px-4 py-10 text-ink-3">

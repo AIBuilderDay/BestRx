@@ -5,7 +5,9 @@ services:
       target: dev
     container_name: bestrx-frontend
     ports:
-      - "5173:5173"
+      # Loopback only: the dev server proxies /api/anthropic with the API key attached,
+      # so it must not be reachable from other machines on the network.
+      - "127.0.0.1:5173:5173"
     volumes:
       # Bind-mount the source for HMR, but keep the container's own node_modules.
       - ./frontend:/app

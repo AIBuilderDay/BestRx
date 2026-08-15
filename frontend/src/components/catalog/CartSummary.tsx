@@ -22,6 +22,10 @@ export function CartSummary({
   orderCount,
   placing = false,
   onPlaceOrder,
+  payWithCard,
+  fulfillment,
+  onFulfillmentChange,
+  placeOrderLabel = 'Place order',
 }: {
   totals: CartTotals;
   firstMonthTotal: number;
@@ -34,7 +38,18 @@ export function CartSummary({
   orderCount: number;
   placing?: boolean;
   onPlaceOrder: () => void;
+  /**
+   * Set for a family member paying themselves (the card label, e.g. "Visa ···· 4242"). Swaps the
+   * hospice budget/PPD/contract framing for a personal-payment one — none of that applies to them.
+   */
+  payWithCard?: string;
+  /** Family only: whether they're asking the hospice to send it, or buying it. Shows a toggle. */
+  fulfillment?: 'request' | 'buy';
+  onFulfillmentChange?: (mode: 'request' | 'buy') => void;
+  placeOrderLabel?: string;
 }) {
+  // A request costs the family nothing, so we hide every dollar figure in that mode.
+  const requestMode = fulfillment === 'request';
   const meterWidth = budget ? Math.min(100, Math.max(0, budget.pct)) : 0;
   const meterColor = budget && budget.pct > 100 ? 'bg-risk' : budget && budget.pct >= 85 ? 'bg-warn' : 'bg-ink';
 
@@ -42,26 +57,66 @@ export function CartSummary({
     <aside className="border border-line bg-surface p-5 lg:sticky lg:top-24">
       <h2 className="text-base font-semibold">Summary</h2>
 
-      <div className="mt-3.5 flex items-baseline justify-between py-1.5 text-[13px] text-ink-2">
-        <span>Monthly rentals</span>
-        <span className="font-mono tabular-nums text-ink">
-          {moneyCents(totals.monthly)}<span className="text-ink-3">/mo</span>
-        </span>
-      </div>
-      {totals.oneTime > 0 && (
-        <div className="flex items-baseline justify-between py-1.5 text-[13px] text-ink-2">
-          <span>One-time purchases</span>
-          <span className="font-mono tabular-nums text-ink">{moneyCents(totals.oneTime)}</span>
+      {fulfillment && onFulfillmentChange && (
+        <div className="mt-3.5">
+          <div className="grid grid-cols-2 gap-0 rounded-control border border-line-strong p-0.5">
+            {(['request', 'buy'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onFulfillmentChange(mode)}
+                className={`rounded-[6px] px-2 py-1.5 text-[12px] font-medium transition-colors ${
+                  fulfillment === mode ? 'bg-solid-bg text-solid-ink' : 'text-ink-2 hover:text-ink'
+                }`}
+              >
+                {mode === 'request' ? 'Request from hospice' : 'Buy myself'}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-ink-3">
+            {fulfillment === 'request'
+              ? 'The hospice reviews your request and sends it at no cost to you.'
+              : 'You pay and it ships straight to the home.'}
+          </p>
         </div>
       )}
-      <div className="flex items-baseline justify-between py-1.5 text-[13px] text-ink-2">
-        <span>Shipping</span>
-        <span className="text-ink">Billed to contract</span>
-      </div>
-      <div className="mt-1 flex items-baseline justify-between border-t border-line-strong py-3 text-[15px] font-semibold">
-        <span>First-month total</span>
-        <span className="font-mono tabular-nums">{moneyCents(firstMonthTotal)}</span>
-      </div>
+
+      {requestMode ? (
+        <div className="mt-3.5 flex items-baseline justify-between border-t border-line-strong py-3 text-[13px] text-ink-2">
+          <span>To request</span>
+          <span className="text-ink">{lineCount} item{lineCount === 1 ? '' : 's'}</span>
+        </div>
+      ) : (
+        <>
+          <div className="mt-3.5 flex items-baseline justify-between py-1.5 text-[13px] text-ink-2">
+            <span>Monthly rentals</span>
+            <span className="font-mono tabular-nums text-ink">
+              {moneyCents(totals.monthly)}<span className="text-ink-3">/mo</span>
+            </span>
+          </div>
+          {totals.oneTime > 0 && (
+            <div className="flex items-baseline justify-between py-1.5 text-[13px] text-ink-2">
+              <span>One-time purchases</span>
+              <span className="font-mono tabular-nums text-ink">{moneyCents(totals.oneTime)}</span>
+            </div>
+          )}
+          <div className="flex items-baseline justify-between py-1.5 text-[13px] text-ink-2">
+            <span>Shipping</span>
+            <span className="text-ink">{payWithCard ? 'Ships to the home' : 'Billed to contract'}</span>
+          </div>
+          <div className="mt-1 flex items-baseline justify-between border-t border-line-strong py-3 text-[15px] font-semibold">
+            <span>First-month total</span>
+            <span className="font-mono tabular-nums">{moneyCents(firstMonthTotal)}</span>
+          </div>
+        </>
+      )}
+
+      {payWithCard && (
+        <div className="mt-1 flex items-center justify-between border border-line bg-bg-subtle px-3 py-2.5 text-[13px]">
+          <span className="text-ink-2">Payment method</span>
+          <span className="font-mono text-[12px] tabular-nums text-ink">{payWithCard}</span>
+        </div>
+      )}
 
       {budget && (
         <div className="mt-1 border border-line bg-bg-subtle p-3">
@@ -80,10 +135,12 @@ export function CartSummary({
         </div>
       )}
 
-      <div className="mt-3 text-[11px] leading-relaxed text-ink-3">
-        Adds ≈ <span className="font-medium text-ink">{moneyCents(ppd.ppdContribution)}</span> to hospice DME PPD
-        ({moneyCents(ppd.perDay)}/day rental across {ppd.census}-patient census). PPD derived from synthetic data.
-      </div>
+      {!fulfillment && (
+        <div className="mt-3 text-[11px] leading-relaxed text-ink-3">
+          Adds ≈ <span className="font-medium text-ink">{moneyCents(ppd.ppdContribution)}</span> to hospice DME PPD
+          ({moneyCents(ppd.perDay)}/day rental across {ppd.census}-patient census). PPD derived from synthetic data.
+        </div>
+      )}
 
       {atRiskCount > 0 && (
         <div className="mt-3 border border-risk bg-risk-bg px-3 py-2 text-[11.5px] leading-snug text-risk">
@@ -97,14 +154,22 @@ export function CartSummary({
         disabled={placing}
         className="mt-4 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {placing ? 'Placing order…' : 'Place order'}
+        {placing ? 'Placing order…' : placeOrderLabel}
       </button>
       <div className="mt-3 text-[11px] leading-relaxed text-ink-3">
-        {orderCount > 1
-          ? `${orderCount} orders will be created — one per patient and vendor.`
-          : 'One order will be created.'}{' '}
-        {lineCount} line{lineCount > 1 ? 's' : ''} total across {patientCount} patient
-        {patientCount > 1 ? 's' : ''}.
+        {fulfillment === 'request' ? (
+          <>Your request goes to the hospice team to review — they&rsquo;ll follow up with you.</>
+        ) : payWithCard ? (
+          <>Charged to {payWithCard}. Ships to the home; vendors are confirmed at dispatch.</>
+        ) : (
+          <>
+            {orderCount > 1
+              ? `${orderCount} orders will be created — one per patient and vendor.`
+              : 'One order will be created.'}{' '}
+            {lineCount} line{lineCount > 1 ? 's' : ''} total across {patientCount} patient
+            {patientCount > 1 ? 's' : ''}.
+          </>
+        )}
       </div>
     </aside>
   );

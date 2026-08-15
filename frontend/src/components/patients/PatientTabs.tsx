@@ -1,4 +1,4 @@
-export const PATIENT_TABS = ['Orders', 'Notes', 'Documents'] as const;
+export const PATIENT_TABS = ['Orders', 'Notes', 'Family', 'Documents'] as const;
 
 export type PatientTab = (typeof PATIENT_TABS)[number];
 

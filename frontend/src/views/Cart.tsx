@@ -1,6 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { budgetCapUsd, getBudgetsForHospice, getHospice, getPatient } from '../data/db';
+import { isFamilyMember } from '../lib/auth';
+import { familyCardLabel } from '../lib/family';
+import { addPurchaseRequest } from '../lib/purchaseRequests';
 import { cartLineTiming, cartPpdImpact, totalUnitsInCart } from '../lib/catalog';
 import type { User, UserRole } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
@@ -21,8 +24,24 @@ const staggerMs = (n: number) => Math.min(n, 12) * 60;
 
 export default function Cart({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const hospice = getHospice(user.orgId);
-  const { lines, cartGroups, cartTotals: totals, orderCount, placing, setCartLineQty, setCartOpen, placeOrder } = useCart();
+  const family = isFamilyMember(user);
+  const {
+    lines,
+    cartGroups,
+    cartTotals: totals,
+    orderCount,
+    placing,
+    setCartLineQty,
+    clearCart,
+    setCartOpen,
+    placeOrder,
+    say,
+  } = useCart();
   const navigate = useNavigate();
+
+  // Family only: ask the hospice to send it, or buy it themselves. Chosen here at checkout.
+  const [fulfillment, setFulfillment] = useState<'request' | 'buy'>('request');
+
 
   const firstMonthTotal = totals.monthly + totals.oneTime;
 
@@ -61,10 +80,41 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
     return n;
   }, [cartGroups]);
 
-  /** The cart page has nothing left to show once the order is placed, so it returns to the catalog.
-   *  Navigating only after checkout resolves means a failed order leaves the cart intact to retry. */
+  /**
+   * Family "Request from hospice": each line becomes a request on the patient chart, not an order.
+   * Staff (and family buying themselves) check out through the API.
+   *
+   * The cart page has nothing left to show once the order is placed, so it leaves. Navigating only
+   * after checkout resolves means a failed order leaves the cart intact to retry.
+   */
   const placeOrderAndLeave = async () => {
-    if (await placeOrder()) navigate('/orders');
+    if (family && fulfillment === 'request') {
+      if (lines.length === 0) {
+        say('Cart is empty');
+        return;
+      }
+      let n = 0;
+      for (const g of cartGroups) {
+        for (const l of g.lines) {
+          addPurchaseRequest({
+            patientId: l.patientId,
+            familyMemberId: user.id,
+            familyMemberName: user.name,
+            offerId: l.offerId,
+            productName: l.name,
+            qty: l.qty,
+          });
+          n += 1;
+        }
+      }
+      clearCart();
+      setCartOpen(false);
+      say(`Request sent to ${hospice?.name ?? 'your hospice'} — ${n} item${n > 1 ? 's' : ''}`);
+      navigate('/family');
+      return;
+    }
+
+    if (await placeOrder()) navigate(family ? '/family' : '/orders');
   };
 
   const unitCount = totalUnitsInCart(lines);
@@ -83,7 +133,11 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
         <div className="mt-1.5 text-[13px] text-ink-2">
           {empty
             ? 'No equipment in this order yet.'
-            : `${unitCount} item${unitCount > 1 ? 's' : ''} for ${cartGroups.length} patient${cartGroups.length > 1 ? 's' : ''} · ordering as ${user.name} · billed to hospice contract`}
+            : family
+              ? `${unitCount} item${unitCount > 1 ? 's' : ''} · ${
+                  fulfillment === 'request' ? `requesting from ${hospice?.name ?? 'your hospice'}` : 'charged to your card'
+                }`
+              : `${unitCount} item${unitCount > 1 ? 's' : ''} for ${cartGroups.length} patient${cartGroups.length > 1 ? 's' : ''} · ordering as ${user.name} · billed to hospice contract`}
         </div>
 
         {empty ? (
@@ -132,11 +186,21 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
               lineCount={lines.length}
               patientCount={cartGroups.length}
               atRiskCount={atRiskCount}
-              budget={budget}
+              budget={family ? null : budget}
               ppd={ppd}
               orderCount={orderCount}
               placing={placing}
               onPlaceOrder={placeOrderAndLeave}
+              payWithCard={family && fulfillment === 'buy' ? familyCardLabel : undefined}
+              fulfillment={family ? fulfillment : undefined}
+              onFulfillmentChange={family ? setFulfillment : undefined}
+              placeOrderLabel={
+                family
+                  ? fulfillment === 'request'
+                    ? 'Send request to hospice'
+                    : `Buy now · ${familyCardLabel}`
+                  : 'Place order'
+              }
             />
           </div>
         )}

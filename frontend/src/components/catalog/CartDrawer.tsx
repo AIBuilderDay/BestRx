@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CartGroupVM, CartTotals, PriceUnit } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
+import type { AgentOrderAction } from '../../types/ai';
 
 /** Matches the panel's slide-in duration below: contents only start moving once the drawer has landed. */
 const PANEL_SLIDE_MS = 500;
@@ -17,6 +18,7 @@ export function CartDrawer({
   onViewCart,
   onPlaceOrder,
   placing = false,
+  agentAdded = null,
 }: {
   open: boolean;
   groups: CartGroupVM[];
@@ -28,6 +30,8 @@ export function CartDrawer({
   onPlaceOrder: () => void;
   /** True while checkout is in flight, so a double-tap cannot place the order twice. */
   placing?: boolean;
+  /** The line the AI agent just added — spotlighted so the nurse can verify it. */
+  agentAdded?: AgentOrderAction | null;
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;
@@ -87,11 +91,19 @@ export function CartDrawer({
                   <div className="mt-0.5 text-[11px] text-ink-3">{g.patientMetaLine}</div>
                 </div>
                 <div className="mt-3 grid gap-3">
-                  {g.lines.map((l) => (
+                  {g.lines.map((l) => {
+                    // Gate on `open` so the ring animation starts when the drawer is
+                    // actually visible — the drawer stays mounted while closed.
+                    const byAgent =
+                      open &&
+                      agentAdded !== null &&
+                      agentAdded.offerId === l.offerId &&
+                      agentAdded.patientId === l.patientId;
+                    return (
                     <div
                       key={l.offerId}
                       style={{ animationDelay: `${staggerMs(step++)}ms` }}
-                      className="grid animate-[lineIn_0.4s_cubic-bezier(0.2,0.7,0.2,1)_both] grid-cols-[46px_1fr_auto] items-center gap-2.5"
+                      className={`grid animate-[lineIn_0.4s_cubic-bezier(0.2,0.7,0.2,1)_both] grid-cols-[46px_1fr_auto] items-center gap-2.5 ${byAgent ? 'agent-added rounded-sm p-1 -m-1' : ''}`}
                     >
                       <img
                         src={l.imagePath}
@@ -101,6 +113,14 @@ export function CartDrawer({
                       <div className="min-w-0">
                         <div className="text-[12.5px]">{l.name}</div>
                         <div className="text-[11px] text-ink-3">{l.metaLine}</div>
+                        {byAgent && (
+                          <div className="mt-0.5 flex items-center gap-1 text-[10.5px] text-ai-ink" data-testid="agent-added-chip">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+                            </svg>
+                            Added by AI — review before ordering
+                          </div>
+                        )}
                         {l.dupe && (
                           <div className="mt-0.5 text-[11px] text-ink">{g.patientName} already has this item</div>
                         )}
@@ -146,7 +166,8 @@ export function CartDrawer({
                         {l.priceUnit === '/mo' ? '/mo' : ''}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

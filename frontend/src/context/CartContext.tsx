@@ -35,6 +35,7 @@ import {
   type PriceUnit,
 } from '../lib/catalog';
 import { checkoutCart, fetchCart, updateCart, type CartLineInput } from '../lib/api';
+import type { AgentOrderAction } from '../types/ai';
 
 interface CartContextValue {
   lines: CartLine[];
@@ -56,6 +57,9 @@ interface CartContextValue {
   /** Current transient message, or '' when nothing is showing. */
   toast: string;
   say: (message: string) => void;
+  /** The line the AI agent just added, so the drawer can spotlight it. */
+  agentAdded: AgentOrderAction | null;
+  setAgentAdded: (action: AgentOrderAction | null) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -70,6 +74,7 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
   const [placing, setPlacing] = useState(false);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [agentAdded, setAgentAdded] = useState<AgentOrderAction | null>(null);
 
   // Serialises pushes so two quick edits reach the server in the order they were made.
   const queue = useRef<Promise<unknown>>(Promise.resolve());
@@ -200,8 +205,22 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
       placing,
       toast,
       say,
+      agentAdded,
+      setAgentAdded,
     }),
-    [lines, cartOpen, setLines, setLineQty, clearCart, catalogItems, placeOrder, placing, toast, say],
+    [
+      lines,
+      cartOpen,
+      setLines,
+      setLineQty,
+      clearCart,
+      catalogItems,
+      placeOrder,
+      placing,
+      toast,
+      say,
+      agentAdded,
+    ],
   );
 
   return (

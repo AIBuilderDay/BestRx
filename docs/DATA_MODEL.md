@@ -38,9 +38,11 @@ usable.
 | `order_events.json` | 188 | `id` (EVT-) | `orderId`, `actorId` |
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
-| `vendor_offers.json` | 16 | `id` (OFR-) | `vendorId`, `hcpcs` |
-| `product_reviews.json` | 405 | `id` (REV-) | `offerId`, `reviewerId` |
+| `vendor_offers.json` | 17 | `id` (OFR-) | `vendorId`, `hcpcs` |
+| `product_reviews.json` | 408 | `id` (REV-) | `offerId`, `reviewerId` |
+| `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
+| `family_members.json` | 2 | `id` (FAM-) | `patientId`. A relative who signs in to a read-only family view; also the audience for delivery notifications. See below |
 
 ```
 hospices ──< patients ──< orders >── vendors
@@ -52,6 +54,7 @@ emr_events ──> patients        inbound signals from the EMR via BetterRX eRx
 users      ──> hospices|vendors  admissions nurses, case managers, field nurses, DON, admin, dispatchers
 vendor_offers ──> vendors, equipment_catalog   the storefront: price, ETA, rating per vendor per item
 product_reviews ──> vendor_offers, users        individual nurse star ratings per vendor SKU
+patient_notes   ──> patients, users             care-team sticky notes on a patient chart
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
@@ -190,3 +193,37 @@ until a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
+
+## Family members & purchase requests (runtime stores, not frozen tables)
+
+Family members are a new login role (`family_member`). Each links to exactly one `patientId`, signs
+in to a **read-only family view** (`/family`), and can browse the catalog scoped to their own loved
+one. They are the audience for the delivery notifications (SQS/messaging) still to come.
+
+Unlike the JSON tables above, family members are **mutable at runtime** — staff add them live from
+the patient chart — so they live in [`src/lib/familyMembers.ts`](../frontend/src/lib/familyMembers.ts):
+seeded from `family_members.json`, with additions layered on top and persisted to localStorage
+(`bestrx.familyMembers`) so a newly-added relative survives sign-out and can log in. A family login
+is synthesized into a `User` (`orgType: 'family'`, `orgId` = the patient's hospice, plus `patientId`).
+Sign in as **Grace Nguyen** (`grace@family.example`, seeded for `PT-88601`) to see it.
+
+From the catalog a family member either **buys directly** (paid with a static mock card on file — see
+`FAMILY_CARD` in `src/lib/family.ts`) or **requests** the item from the hospice. Requests live in
+[`src/lib/purchaseRequests.ts`](../frontend/src/lib/purchaseRequests.ts) (same seed + localStorage
+pattern, key `bestrx.purchaseRequests`) and surface on the patient chart for staff. Both stores expose
+a `useSyncExternalStore`-friendly `subscribe`/`getSnapshot` pair.
+
+## AI token ledger (localStorage, not a JSON table)
+
+Every Anthropic call made by the enhanced search (`src/lib/ai/`) appends a record to
+localStorage key `bestrx.ai_usage.v1`:
+
+```ts
+{ id, at, feature: 'rerank' | 'agent_order', model, inputTokens, outputTokens,
+  costUsd, latencyMs, ok }
+```
+
+`summarizeUsage()` in `src/lib/ai/usage.ts` returns per-feature totals plus a grand total —
+this is the data source for the cost dashboard's "AI spend" figures. Any new AI surface must
+record into the same ledger with a new `feature` value (extend `AiFeature` in
+`src/types/ai.ts`). Spec: [specs/enhanced-search.md](specs/enhanced-search.md).

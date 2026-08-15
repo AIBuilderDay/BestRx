@@ -30,6 +30,355 @@ button:not(:disabled) {
   -webkit-appearance: none;
 }
 
+/* ── Enhanced search: the "ocean sweep" AI treatment ─────────────────────────
+   Decided in mockups/enhanced-search.html (Option C, Variant 1). A palindromic
+   dark→light blue gradient slides THROUGH the pill (not around it), painted
+   twice: a crisp 1.5px ring plus a blurred twin behind it for the glow. The
+   twin drifts slower so the light never visibly loops. Blues come from the
+   --ai-* tokens; nothing here should hardcode a color. */
+
+:root {
+  --ai-wave: linear-gradient(
+    90deg,
+    var(--ai-royal),
+    var(--ai-indigo),
+    var(--ai-royal),
+    var(--ai-sky),
+    var(--ai-bright),
+    var(--ai-crest),
+    var(--ai-bright),
+    var(--ai-sky),
+    var(--ai-royal),
+    var(--ai-indigo),
+    var(--ai-royal)
+  );
+}
+
+.ai-shell {
+  position: relative;
+  /* keep the z-index:-1 glow inside the shell instead of behind the nav */
+  isolation: isolate;
+  border-radius: 9999px;
+  padding: 1.5px; /* the ring thickness */
+  background: var(--line-strong);
+}
+
+/* the blurred twin — always present, gated by opacity so ignition can fade it in */
+.ai-shell::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.ai-shell.ai-on {
+  background: var(--ai-wave);
+  background-size: 300% 100%;
+  /* ignition: one fast crest washes across, then the slow ambient swell */
+  animation:
+    aiIgnite 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    aiSweep 7s linear 0.9s infinite;
+}
+
+.ai-shell.ai-on::before {
+  background: var(--ai-wave);
+  background-size: 300% 100%;
+  filter: blur(14px);
+  opacity: var(--ai-glow-opacity);
+  transform: scale(1);
+  animation:
+    aiIgnite 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    aiSweep 9s linear 0.9s infinite; /* slower than the ring — never repeats in step */
+}
+
+/* while the model works, the swell speeds up */
+.ai-shell.ai-thinking,
+.ai-shell.ai-thinking::before {
+  animation-duration: 0.9s, 2.2s;
+}
+
+@keyframes aiIgnite {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 150% 50%;
+  }
+}
+
+@keyframes aiSweep {
+  from {
+    background-position: 150% 50%;
+  }
+  to {
+    background-position: 450% 50%;
+  }
+}
+
+/* shimmering status readout while the agent thinks */
+.ai-status {
+  background: linear-gradient(90deg, var(--ai-ink), var(--ai-crest), var(--ai-ink));
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: aiShimmer 1.4s linear infinite;
+}
+
+@keyframes aiShimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+.ai-spark {
+  transform-origin: center;
+  animation: aiTwinkle 2.6s ease-in-out infinite;
+}
+
+@keyframes aiTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* ── The agent → cart hand-off (mockups/agent-cart-handoff.html, decided cut) ──
+   src/lib/fx/agentComet.ts spawns these elements; the classes only style them. */
+
+/* the comet head — rotated along its velocity by the flight loop */
+.agent-comet {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 90;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--ai-crest), var(--ai-royal));
+  box-shadow:
+    0 0 22px 8px color-mix(in srgb, var(--ai-bright) 75%, transparent),
+    0 0 5px 2px var(--ai-crest);
+  pointer-events: none;
+}
+
+/* the streaking tail behind the direction of travel */
+.agent-comet-tail {
+  position: absolute;
+  right: 55%;
+  top: 50%;
+  width: 74px;
+  height: 7px;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  background: linear-gradient(
+    270deg,
+    color-mix(in srgb, var(--ai-crest) 90%, transparent),
+    color-mix(in srgb, var(--ai-bright) 55%, transparent) 40%,
+    transparent
+  );
+  filter: blur(1.5px);
+  pointer-events: none;
+}
+
+/* fading embers dropped along the flight path */
+.agent-comet-trail {
+  position: fixed;
+  z-index: 89;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ai-bright);
+  box-shadow: 0 0 8px 2px color-mix(in srgb, var(--ai-bright) 60%, transparent);
+  pointer-events: none;
+  animation: agentTrailFade 0.5s ease-out forwards;
+}
+
+@keyframes agentTrailFade {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+/* sparks that fly out on impact (flight paths set per-spark via WAAPI) */
+.agent-comet-spark {
+  position: fixed;
+  z-index: 90;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ai-crest);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--ai-bright) 70%, transparent);
+  pointer-events: none;
+}
+
+/* impact at the cart icon: bounce + bright double-ring burst */
+.cart-boom {
+  color: var(--ai-ink);
+  border-radius: 9999px;
+  animation: cartBoom 1s ease-out;
+}
+
+.cart-boom svg {
+  animation: cartJolt 0.5s cubic-bezier(0.34, 1.6, 0.64, 1);
+}
+
+@keyframes cartBoom {
+  0% {
+    box-shadow:
+      0 0 0 0 color-mix(in srgb, var(--ai-bright) 75%, transparent),
+      0 0 0 0 color-mix(in srgb, var(--ai-crest) 55%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 0 0 16px transparent,
+      0 0 0 26px transparent;
+  }
+}
+
+@keyframes cartJolt {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* cart line the agent just added: sweeping gradient ring + glow that holds a
+   few seconds, pops on arrival, then settles back to a normal line */
+.agent-added {
+  position: relative;
+  isolation: isolate;
+  animation:
+    agentAddedWash 2.4s ease-out both,
+    agentRingPop 0.9s ease-out both;
+}
+
+/* the ring: gradient border drawn by masking out the middle */
+.agent-added::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 8px;
+  padding: 2px;
+  background: var(--ai-wave);
+  background-size: 300% 100%;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation:
+    aiSweep 1.2s linear 2,
+    agentRingFade 2.4s ease-out both;
+  pointer-events: none;
+}
+
+/* the blurred glow twin behind the line */
+.agent-added::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 8px;
+  z-index: -1;
+  background: var(--ai-wave);
+  background-size: 300% 100%;
+  filter: blur(10px);
+  animation:
+    aiSweep 1.2s linear 2,
+    agentGlowFade 2.4s ease-out both;
+  pointer-events: none;
+}
+
+@keyframes agentAddedWash {
+  0% {
+    background-color: color-mix(in srgb, var(--ai-sky) 20%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes agentRingPop {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 65%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+
+@keyframes agentRingFade {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes agentGlowFade {
+  0%,
+  80% {
+    opacity: var(--ai-glow-opacity);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-shell.ai-on,
+  .ai-shell.ai-on::before,
+  .ai-status,
+  .ai-spark,
+  .agent-added,
+  .cart-boom,
+  .cart-boom svg,
+  .agent-comet,
+  .agent-comet-trail {
+    animation: none !important;
+  }
+
+  /* no motion: the added line still reads as highlighted, statically */
+  .agent-added {
+    background-color: color-mix(in srgb, var(--ai-sky) 13%, transparent);
+  }
+
+  .agent-added::before,
+  .agent-added::after {
+    display: none;
+  }
+}
+
 /* Product card meta block.
 
    Every card must be the same height no matter how long the product or vendor name runs,
@@ -44,9 +393,19 @@ button:not(:disabled) {
 
 /* Every row uses the same line-height so the three rows sit on an even rhythm. Without
    this, the delivery row's larger bold day count grows its line box past the smaller text
-   around it, adding space below that row only and making the gaps look unequal. */
+   around it, adding space below that row only and making the gaps look unequal.
+   min-width: 0 lets each row shrink to the column — without it, a long no-wrap line
+   (the AI reason) widens the whole meta block and rows bleed into neighboring cards. */
 .product-card-meta > * {
   line-height: 1.25rem;
+  min-width: 0;
+}
+
+/* AI-ranked view adds a reason row per card — pull the rhythm tighter so the
+   taller cards don't read as airy. */
+.product-card-meta.has-ai {
+  row-gap: 0.45rem;
+  padding-top: 0.7rem;
 }
 
 .product-card-meta > * > * {
@@ -105,11 +464,22 @@ button:not(:disabled) {
   animation: menuIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Entrance animations used by the catalog grid, cart groups, and the patient-assignment sheet. */
+/* Entrance animations used by catalog, orders, detail pages, cart groups, and sheets. */
 @keyframes cardIn {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes detailIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
   }
   to {
     opacity: 1;
@@ -120,7 +490,7 @@ button:not(:disabled) {
 @keyframes chipIn {
   from {
     opacity: 0;
-    transform: translateX(-6px);
+    transform: translate3d(-6px, 0, 0);
   }
   to {
     opacity: 1;
@@ -158,11 +528,32 @@ button:not(:disabled) {
 @keyframes sheetIn {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.985);
+    transform: translate3d(0, 12px, 0) scale(0.98);
   }
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* Sticky note lifts off the board and settles flat as it expands. */
+@keyframes stickyNoteIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.9) rotate(-2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes noteBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -174,6 +565,187 @@ body {
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Patient chart sticky notes — folded-card look without the corner fold. */
+.patient-sticky-note {
+  position: relative;
+  display: flex;
+  aspect-ratio: 1;
+  flex-direction: column;
+  overflow: hidden;
+  border: 3px solid var(--solid-bg);
+  color: var(--solid-bg);
+  background: var(--surface);
+  box-shadow: -0.45rem 0.45rem 0 var(--solid-bg);
+  transition:
+    transform 200ms var(--ease-smooth),
+    box-shadow 200ms var(--ease-smooth);
+}
+
+.patient-sticky-note--interactive {
+  cursor: pointer;
+}
+
+.patient-sticky-note--interactive:hover {
+  transform: translate3d(0, -0.2rem, 0) rotate(1deg);
+  box-shadow: -0.65rem 0.65rem 0 var(--solid-bg);
+}
+
+.patient-sticky-note--hidden {
+  visibility: hidden;
+}
+
+.patient-sticky-note--expanded {
+  aspect-ratio: auto;
+  min-height: 280px;
+  max-height: min(80vh, 520px);
+}
+
+.patient-sticky-note-actions {
+  flex-shrink: 0;
+  padding: 0 0.85rem;
+}
+
+.patient-sticky-note-action-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.patient-sticky-note-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.patient-sticky-note-action {
+  cursor: pointer;
+  border: 1px solid var(--solid-bg);
+  background: var(--solid-bg);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--solid-ink);
+  transition: opacity 150ms ease;
+}
+
+.patient-sticky-note-action:hover {
+  opacity: 0.85;
+}
+
+.patient-sticky-note-action--ghost {
+  border-color: var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.patient-sticky-note-action--danger {
+  border-color: var(--risk);
+  background: var(--risk-bg);
+  color: var(--risk);
+}
+
+.patient-sticky-note-action-error {
+  margin: 0;
+  font-size: 0.68rem;
+  color: var(--risk);
+}
+
+.patient-sticky-note-title-input,
+.patient-sticky-note-body-input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  outline: none;
+}
+
+.patient-sticky-note-title-input {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.patient-sticky-note-body-input {
+  margin: 0.75rem 0 0;
+  flex: 1 1 auto;
+  min-height: 8rem;
+  padding: 0 0.85rem;
+  resize: vertical;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.patient-sticky-note-meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 0.85rem 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.patient-sticky-note-close {
+  flex: none;
+  margin: -0.15rem -0.1rem 0 0;
+  border: 0;
+  background: transparent;
+  padding: 0.1rem 0.25rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--ink-3);
+  transition: color 150ms ease, transform 150ms ease;
+}
+
+.patient-sticky-note-close:hover {
+  color: var(--ink);
+  transform: rotate(90deg);
+}
+
+.patient-sticky-note-message {
+  margin: 0.75rem 0 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0 0.85rem;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+
+.patient-sticky-note-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--solid-ink);
+  background: var(--solid-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .patient-sticky-note--interactive {
+    transition: none;
+  }
+
+  .patient-sticky-note--interactive:hover {
+    transform: none;
+  }
 }
 
 /* One focus treatment everywhere. Do not remove outlines per-component. */

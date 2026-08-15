@@ -8,7 +8,18 @@ import { CartDrawer } from './CartDrawer';
  * opens it from every route, not only the views that used to render their own copy.
  */
 export function GlobalCartDrawer() {
-  const { cartGroups, cartTotals, setCartLineQty, cartOpen, setCartOpen, placeOrder, placing, toast } = useCart();
+  const {
+    cartGroups,
+    cartTotals,
+    setCartLineQty,
+    cartOpen,
+    setCartOpen,
+    placeOrder,
+    placing,
+    toast,
+    agentAdded,
+    setAgentAdded,
+  } = useCart();
   const navigate = useNavigate();
 
   /** A placed order has nothing left in the drawer to show, so the user lands on the board. */
@@ -24,13 +35,17 @@ export function GlobalCartDrawer() {
         totals={cartTotals}
         onQtyChange={setCartLineQty}
         onRemove={(offerId, patientId, unit) => setCartLineQty(offerId, patientId, unit, 0)}
-        onClose={() => setCartOpen(false)}
+        onClose={() => {
+          setCartOpen(false);
+          setAgentAdded(null); // the spotlight is a one-time confirmation, not a permanent badge
+        }}
         onViewCart={() => {
           setCartOpen(false);
           navigate('/cart');
         }}
         onPlaceOrder={placeOrderAndLeave}
         placing={placing}
+        agentAdded={agentAdded}
       />
       <Toast message={toast} />
     </>

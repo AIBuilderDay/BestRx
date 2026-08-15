@@ -61,7 +61,7 @@ export function buildOrderReceiptVM(orderId: string): OrderReceiptVM | null {
   const base = buildOrderEquipmentVM(order);
 
   const lines: OrderReceiptLine[] = order.equipment.map((eq) => {
-    const price = findOfferPrice(order.vendorId, eq.hcpcs);
+    const price = order.vendorId ? findOfferPrice(order.vendorId, eq.hcpcs) : null;
     const unitPriceUsd = price?.amount ?? 0;
     const unit = price?.unit ?? 'one-time';
     return {
