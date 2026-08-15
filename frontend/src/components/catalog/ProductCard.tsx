@@ -23,7 +23,7 @@ export function ProductCard({
         <div className="relative">
           <Link
             to={`/catalog/${offer.id}`}
-            className="relative block aspect-[3/4] w-full cursor-pointer overflow-hidden border border-line bg-bg-subtle text-left transition-colors hover:border-line-strong"
+            className="relative block aspect-square w-full cursor-pointer overflow-hidden border border-line bg-bg-subtle text-left transition-colors hover:border-line-strong lg:aspect-[3/4]"
           >
             {!imgBroken && (
               <img

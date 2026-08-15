@@ -33,12 +33,11 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
         onSignOut={onSignOut}
       />
 
-      <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
-        <div aria-hidden className="border-r border-line" />
-
-        <main className="min-w-0 px-10 pb-20 pt-8.5">
-          <div className="mb-7.5">
-            <h1 className="text-3xl font-normal tracking-tight">Patients</h1>
+      {/* No filter sidebar on Patients, so the content spans the full width at every size —
+          a phantom 224px column only read as an empty left margin on tablet widths. */}
+      <main className="min-w-0 px-4 pb-16 pt-5 sm:px-6 lg:px-10 lg:pb-20 lg:pt-8.5">
+          <div className="mb-5 lg:mb-7.5">
+            <h1 className="text-2xl font-normal tracking-tight lg:text-3xl">Patients</h1>
             <p className="mt-1 text-[13px] text-ink-2">{caseloadSubtitle(caseload, attentionTotal)}</p>
           </div>
 
@@ -51,7 +50,7 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(236px,1fr))] lg:gap-x-6.5 lg:gap-y-10">
               {filtered.map((patient, i) => (
                 <div
                   key={patient.id}
@@ -64,7 +63,6 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
             </div>
           )}
         </main>
-      </div>
     </div>
   );
 }

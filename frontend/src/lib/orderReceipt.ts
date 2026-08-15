@@ -179,7 +179,9 @@ export function printOrderReceipt(receipt: OrderReceiptVM): void {
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'noopener,noreferrer');
+  // NB: no 'noopener' here — that flag makes window.open return null, so we'd never get a handle
+  // to write the receipt into and the new tab would sit blank. We control this HTML, so it's safe.
+  const win = window.open('', '_blank');
   if (!win) return;
   win.document.write(html);
   win.document.close();

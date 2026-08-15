@@ -80,7 +80,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
         <DetailReveal step={0}>
           <Link
             to="/patients"
-            className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
+            className="mb-4 inline-flex items-center gap-2 border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
           >
             <span className="text-sm leading-none">←</span>
             <span>All my patients</span>

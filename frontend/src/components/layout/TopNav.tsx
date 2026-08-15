@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { can, isFamilyMember, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
@@ -98,6 +98,91 @@ function ContextualSearch({ section }: { section: Exclude<NavSection, "catalog">
   );
 }
 
+/** Mobile-only hamburger. Opens a dropdown of the same section links the desktop bar shows. */
+function MobileNavMenu({
+  items,
+  activeSection,
+}: {
+  items: { to?: string; label: string; section?: NavSection; state?: unknown }[];
+  activeSection: NavSection;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative lg:hidden">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Menu"
+        onClick={() => setOpen((v) => !v)}
+        className="-ml-1 flex h-8 w-8 items-center justify-center text-ink transition-colors hover:text-ink-2"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          {open ? (
+            <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
+          ) : (
+            <path d="M3 6h18M3 12h18M3 18h18" strokeLinecap="round" />
+          )}
+        </svg>
+      </button>
+
+      {open ? (
+        <div
+          role="menu"
+          className="profile-menu-panel absolute left-0 top-[calc(100%+12px)] z-30 w-56 rounded-panel border border-line bg-surface p-1.5 shadow-lg"
+        >
+          {items.map((item) =>
+            item.to ? (
+              <Link
+                key={item.label}
+                to={item.to}
+                state={item.state}
+                role="menuitem"
+                onClick={() => setOpen(false)}
+                aria-current={item.section === activeSection ? "page" : undefined}
+                className={`block rounded-control px-3 py-2.5 text-[13px] transition-colors hover:bg-hover ${
+                  item.section === activeSection ? "text-ink" : "text-ink-2"
+                }`}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <div
+                key={item.label}
+                role="menuitem"
+                aria-disabled="true"
+                title="Coming soon"
+                className="flex cursor-default items-center justify-between rounded-control px-3 py-2.5 text-[13px] text-ink-2"
+              >
+                {item.label}
+                <span className="text-[10px] uppercase tracking-[0.09em] text-ink-3">Soon</span>
+              </div>
+            ),
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /** Sticky app header: brand, section nav, search (catalog AI bar or contextual), cart, profile. */
 export function TopNav({
   user,
@@ -117,78 +202,67 @@ export function TopNav({
       ? "nav-link text-ink"
       : "nav-link text-ink-2 hover:text-ink";
 
+  // One source of truth for the section links, rendered by both the desktop bar and the
+  // mobile menu so the two can't drift. Gated ("Coming soon") entries carry no route.
+  const navItems: { to?: string; label: string; section?: NavSection; state?: unknown }[] = [
+    { to: "/catalog", label: "Catalog", section: "catalog", state: RESET_CATALOG_FILTERS_STATE },
+    ...(isFamilyMember(user)
+      ? [{ to: "/family", label: "My family member", section: "patients" as NavSection }]
+      : []),
+    ...(canViewOrders(user) ? [{ to: "/orders", label: "Orders", section: "orders" as NavSection }] : []),
+    ...(can(user, "orders:own-patients")
+      ? [{ to: "/patients", label: "Patients", section: "patients" as NavSection }]
+      : []),
+    ...(can(user, "nurse-assignment")
+      ? [{ to: "/assignments", label: "Assignments", section: "assignments" as NavSection }]
+      : []),
+    ...GATED_SECTIONS.filter((s) => s.permissions.some((p) => can(user, p))).map((s) => ({
+      label: s.label,
+    })),
+  ];
+
   return (
-    <header className="sticky top-0 z-20 grid grid-cols-[1fr_minmax(0,520px)_1fr] items-center gap-6 border-b border-line bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
-      <div className="flex items-center gap-6">
+    <header className="sticky top-0 z-20 grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-3 border-b border-line bg-bg/92 px-4 py-3 backdrop-blur-sm [grid-template-areas:'brand_actions''search_search'] lg:grid-cols-[1fr_minmax(0,520px)_1fr] lg:gap-6 lg:px-8 lg:py-3.5 lg:[grid-template-areas:'brand_search_actions']">
+      <div className="flex items-center gap-3 [grid-area:brand] lg:gap-6">
+        <MobileNavMenu items={navItems} activeSection={activeSection} />
+
         <div className="shrink-0 text-ink">
           <Logo height={26} />
         </div>
 
-        <nav className="flex shrink-0 gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
-          <Link
-            to="/catalog"
-            state={RESET_CATALOG_FILTERS_STATE}
-            aria-current={activeSection === "catalog" ? "page" : undefined}
-            className={linkClass("catalog")}
-          >
-            Catalog
-          </Link>
-          {isFamilyMember(user) ? (
-            <Link to="/family" className={linkClass("patients")}>
-              My family member
-            </Link>
-          ) : null}
-          {canViewOrders(user) ? (
-            <Link
-              to="/orders"
-              aria-current={activeSection === "orders" ? "page" : undefined}
-              className={linkClass("orders")}
-            >
-              Orders
-            </Link>
-          ) : null}
-          {can(user, "orders:own-patients") ? (
-            <Link
-              to="/patients"
-              aria-current={activeSection === "patients" ? "page" : undefined}
-              className={linkClass("patients")}
-            >
-              Patients
-            </Link>
-          ) : null}
-          {can(user, "nurse-assignment") ? (
-            <Link
-              to="/assignments"
-              aria-current={activeSection === "assignments" ? "page" : undefined}
-              className={linkClass("assignments")}
-            >
-              Assignments
-            </Link>
-          ) : null}
-          {GATED_SECTIONS.filter((s) =>
-            s.permissions.some((p) => can(user, p)),
-          ).map((s) => (
-            <span
-              key={s.label}
-              className="cursor-default text-ink-2"
-              title="Coming soon"
-            >
-              {s.label}
-            </span>
-          ))}
+        <nav className="hidden shrink-0 gap-6 text-xs uppercase tracking-[0.09em] text-ink-2 lg:flex">
+          {navItems.map((item) =>
+            item.to ? (
+              <Link
+                key={item.label}
+                to={item.to}
+                state={item.state}
+                aria-current={item.section === activeSection ? "page" : undefined}
+                className={item.section ? linkClass(item.section) : "nav-link text-ink-2"}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span key={item.label} className="cursor-default text-ink-2" title="Coming soon">
+                {item.label}
+              </span>
+            ),
+          )}
         </nav>
       </div>
 
-      {activeSection === "catalog" ? (
-        <NavSearch user={user} />
-      ) : isFamilyMember(user) ? (
-        // The family home has no searchable list — leave the search slot empty.
-        <div aria-hidden />
-      ) : (
-        <ContextualSearch section={activeSection} />
-      )}
+      <div className="min-w-0 [grid-area:search]">
+        {activeSection === "catalog" ? (
+          <NavSearch user={user} />
+        ) : isFamilyMember(user) ? (
+          // The family home has no searchable list — leave the search slot empty.
+          <div aria-hidden />
+        ) : (
+          <ContextualSearch section={activeSection} />
+        )}
+      </div>
 
-      <div className="flex shrink-0 items-center gap-3 justify-self-end">
+      <div className="flex shrink-0 items-center gap-3 justify-self-end [grid-area:actions]">
         <button
           type="button"
           onClick={onOpenCart}
