@@ -42,6 +42,14 @@ export function offerPrice(offer: VendorOffer): ItemPrice {
   };
 }
 
+/** Abbreviated money for chart axes, where a full figure would crowd the tick. */
+export function moneyCompact(amount: number): string {
+  if (Math.abs(amount) < 1000) return '$' + Math.round(amount).toString();
+  const thousands = amount / 1000;
+  const digits = Math.abs(thousands) < 10 ? 1 : 0;
+  return '$' + thousands.toFixed(digits) + 'k';
+}
+
 /** Money with cents, for the cart's line prices and totals where precision reads as trust. */
 export function moneyCents(amount: number): string {
   return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

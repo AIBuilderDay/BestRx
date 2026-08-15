@@ -58,7 +58,11 @@ export interface BasketLine {
   contractedUsd: number | null;
   bestQualifiedVendorId: string | null;
   bestQualifiedUsd: number | null;
-  /** contractedUsd - bestQualifiedUsd. Negative means qualifying costs more — a premium. */
+  /**
+   * actualUsd - bestQualifiedUsd. Measured against what was actually paid, because "switch to this
+   * vendor" is a move from today's position, not from the contracted rate. Negative means
+   * qualifying costs more — a premium, never to be rendered as a saving.
+   */
   qualifiedDeltaUsd: number | null;
   weeklyUnits: number[];
   weeklyActualUsd: number[];
@@ -209,8 +213,7 @@ export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[]
       contractedUsd,
       bestQualifiedVendorId: best?.id ?? null,
       bestQualifiedUsd: best?.usd ?? null,
-      qualifiedDeltaUsd:
-        contractedUsd === null || best === null ? null : round2(contractedUsd - best.usd),
+      qualifiedDeltaUsd: best === null ? null : round2((actual.get(hcpcs) ?? 0) - best.usd),
       weeklyUnits: weeklyUnits.get(hcpcs) ?? new Array<number>(bucketCount).fill(0),
       weeklyActualUsd: (weeklyActual.get(hcpcs) ?? new Array<number>(bucketCount).fill(0)).map(round2),
     });
@@ -241,8 +244,10 @@ export function basketTotals(lines: BasketLine[], columns: VendorColumn[]): Bask
     .sort((a, b) => a - b);
   const bestQualifiedUsd = qualifiedTotals[0] ?? null;
 
+  const actualUsd = round2(lines.reduce((sum, l) => sum + l.actualUsd, 0));
+
   return {
-    actualUsd: round2(lines.reduce((sum, l) => sum + l.actualUsd, 0)),
+    actualUsd,
     rentalMonthlyUsd: round2(
       lines.filter((l) => l.kind === 'rental').reduce((sum, l) => sum + l.actualUsd, 0),
     ),
@@ -252,10 +257,7 @@ export function basketTotals(lines: BasketLine[], columns: VendorColumn[]): Bask
     perVendorUsd,
     contractedUsd,
     bestQualifiedUsd,
-    qualifiedDeltaUsd:
-      contractedUsd === null || bestQualifiedUsd === null
-        ? null
-        : round2(contractedUsd - bestQualifiedUsd),
+    qualifiedDeltaUsd: bestQualifiedUsd === null ? null : round2(actualUsd - bestQualifiedUsd),
   };
 }
 

@@ -90,18 +90,20 @@ describe('basketTotals', () => {
 
   it('reports the qualified delta as a signed number, so a premium is never shown as a saving', () => {
     // The only vendor clearing the service floor is also the most expensive: qualifying costs more.
-    expect(totals.qualifiedDeltaUsd).toBeCloseTo(4563.5 - 5140, 2);
+    expect(totals.qualifiedDeltaUsd).toBeCloseTo(4606 - 5140, 2);
     expect(totals.qualifiedDeltaUsd).toBeLessThan(0);
   });
 
-  it('keeps every line delta consistent with its contracted and qualified prices', () => {
+  it('measures every delta against what was actually paid, matching the trend chart', () => {
     for (const line of lines) {
-      if (line.contractedUsd === null || line.bestQualifiedUsd === null) continue;
+      if (line.bestQualifiedUsd === null) continue;
       expect(line.qualifiedDeltaUsd, line.hcpcs).toBeCloseTo(
-        line.contractedUsd - line.bestQualifiedUsd,
+        line.actualUsd - line.bestQualifiedUsd,
         2,
       );
     }
+    const lineSum = lines.reduce((sum, l) => sum + (l.qualifiedDeltaUsd ?? 0), 0);
+    expect(totals.qualifiedDeltaUsd).toBeCloseTo(lineSum, 1);
   });
 });
 
