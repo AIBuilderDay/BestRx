@@ -64,6 +64,47 @@ button:not(:disabled) {
   min-height: calc(1.25rem * 2);
 }
 
+/* Top-nav section links: underline wipes in from the left on hover, stays put when active. */
+.nav-link {
+  position: relative;
+  transition: color 180ms ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.nav-link:hover::after,
+.nav-link[aria-current='page']::after {
+  transform: scaleX(1);
+}
+
+/* Account dropdown: drops in from under the avatar it is anchored to. */
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.profile-menu-panel {
+  transform-origin: top right;
+  animation: menuIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* Entrance animations used by catalog, orders, detail pages, cart groups, and sheets. */
 @keyframes cardIn {
   from {
