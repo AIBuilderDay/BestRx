@@ -5,7 +5,7 @@
 
    Deliberately basic. Lifted from mockups/orders-board.html and
    mockups/cost-ledger.html so the app and the mockups look like the same
-   product. Expect to change these as we go — see docs/DESIGN_SYSTEM.md, and
+   product. Expect to change these as we go — see docs/DESIGN_SYSTEM.html, and
    update that file in the same PR.
 
    Raw values live here as plain custom properties so light and dark can swap
@@ -33,7 +33,7 @@
   --solid-bg: #0a0a0a;
   --solid-ink: #ffffff;
 
-  /* The only three accents in the system. Each means one thing — see DESIGN_SYSTEM.md. */
+  /* The only three accents in the system. Each means one thing — see docs/DESIGN_SYSTEM.html. */
   --good: #15803d;
   --good-bg: #f0fdf4;
   --warn: #b45309;

@@ -239,7 +239,7 @@ export interface Budget {
   period: string;
   /**
    * The cap for the period. For role budgets this is derived, not guessed:
-   * ppdUsd x assignedPatients x days. See docs/DESIGN_SYSTEM.md's source mockup, cost-ledger.html.
+   * ppdUsd x assignedPatients x days, following mockups/cost-ledger.html.
    */
   limitUsd: number;
   spentUsd: number;

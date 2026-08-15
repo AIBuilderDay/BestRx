@@ -57,14 +57,13 @@ BetterRX has said they may build on the winning code.
 - **Use Context7 for docs.** If the Context7 MCP tools are available, query them before writing
   code against React, Vite, Tailwind, or any other library — API surfaces move faster than model
   training data. Verify the API, then write the code. Do not guess at library syntax.
-- **Use the design system.** Colors, radii, and the shared primitives live in
-  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md), `frontend/src/index.css`, and
-  `frontend/src/components/ui/`. Never hardcode a hex value or a one-off radius in a component —
-  use a token, or add one. The system is **deliberately basic and expected to change**: if it is
-  getting in your way, improve it in a small standalone PR and update
-  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) in the same PR. It is not frozen, but it is also
-  not something to quietly work around in one file. Building a chart? Read the Charts section there
-  first, and load the `dataviz` skill if it is available.
+- **Use the design system.** [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html) is the reference —
+  open it in a browser to see it, read it as text to build against it. The token values are
+  implemented once, in `frontend/src/index.css`. Never hardcode a hex value or a one-off radius in a
+  component: use a token, or add one. The system is **deliberately basic and expected to change** —
+  if it is in your way, improve it in a small standalone PR, updating the HTML and `index.css`
+  together. Building a chart? Read the Charts section there first, and load the `dataviz` skill if
+  it is available.
 - **Modular by default.** One job per component/function. Components stay under ~150 lines; split
   when they grow. Data shaping lives in `src/lib/`, not inside JSX. Types live in `src/types/`.
 - **Defensive at the boundaries.** Anything reading the JSON "database", parsing dates, or doing
@@ -98,7 +97,7 @@ Don't memorize these — open the doc when the task touches it.
 | Task touches… | Read |
 |---|---|
 | What we're building and why (master doc, read first) | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) |
-| Colors, spacing, shared UI primitives, tone | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) |
+| Colors, type, patterns, tone (visual reference, open in a browser) | [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html) |
 | PPD — the metric the buyer judges us on, and our five levers | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §6, [docs/bounty/BOUNTY_FAQ.md](docs/bounty/BOUNTY_FAQ.md) §11 |
 | Our own scope decisions: P0/P1/P2, per-view owners | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §7, [docs/WORKFLOW.md](docs/WORKFLOW.md), [docs/whiteboards/](docs/whiteboards/) |
 | Bounty rules, judging rubric, required features | [docs/bounty/BOUNTY_BRIEF.md](docs/bounty/BOUNTY_BRIEF.md) |
@@ -128,7 +127,7 @@ BestRx/
 │   ├── PROJECT_DESCRIPTION.md   master vision doc
 │   ├── DATA_MODEL.md            mock DB shapes
 │   ├── WORKFLOW.md              how specs and tickets get made
-│   ├── DESIGN_SYSTEM.md         tokens, primitives, tone
+│   ├── DESIGN_SYSTEM.html       tokens, patterns, tone — the one HTML doc agents read too
 │   ├── bounty/                  the organizers' source material
 │   ├── whiteboards/             photos of our planning session
 │   ├── specs/                   one spec per feature area
@@ -137,7 +136,7 @@ BestRx/
 └── frontend/
     ├── Dockerfile
     ├── src/
-    │   ├── components/    reusable UI, grouped by domain (ui/ = shared primitives)
+    │   ├── components/    reusable UI, grouped by domain (ui/ = shared primitives, empty so far)
     │   ├── views/         one file per screen/route
     │   ├── data/          JSON "tables" + typed loader
     │   ├── lib/           pure helpers (derivation, formatting, risk math)
@@ -147,6 +146,8 @@ BestRx/
 ```
 
 **Markdown is for agents. HTML is for humans.** Specs and tickets are `.md`; mockups are `.html`.
+The one exception is [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html), which is written to be read
+both ways.
 
 ---
 

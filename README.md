@@ -69,8 +69,8 @@ Workers.
 ## Documentation
 
 - `docs/PROJECT_DESCRIPTION.md` is the master document. Read it first.
-- `docs/DESIGN_SYSTEM.md` covers tokens, shared UI primitives, and tone. It is deliberately basic
-  and expected to change.
+- `docs/DESIGN_SYSTEM.html` covers tokens, patterns, and tone. Open it in a browser. It is
+  deliberately basic and expected to change.
 - `docs/DATA_MODEL.md` describes the mock database.
 - `docs/WORKFLOW.md` describes how a mockup becomes a spec, tickets, and a PR.
 - `docs/bounty/` holds the organizers' brief, FAQ, and sample orders.
