@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import {
   pushSupport,
   pushUnavailableMessage,
+  registerServiceWorker,
   subscribeToPush,
   unsubscribeFromPush,
 } from '../../lib/push';
@@ -33,12 +34,22 @@ export function PushAlertsToggle({ user }: { user: User }) {
       return;
     }
 
-    navigator.serviceWorker
-      .getRegistration()
+    // Register up front rather than waiting for the first toggle: on a freshly installed iOS PWA
+    // there is no registration yet, and reading the subscription is what tells us the real state.
+    //
+    // The race is deliberate. On iOS `getSubscription()` can stay pending forever on a cold PWA
+    // launch — it never resolves and never rejects — which would strand this in `checking`, the
+    // state that renders the switch disabled with no explanation. Falling back to `off` keeps the
+    // control usable; the tap itself re-checks and subscribes.
+    const readSubscription = registerServiceWorker()
       .then((registration) => registration?.pushManager.getSubscription())
-      .then((subscription) => {
-        if (cancelled) return;
-        setState(subscription && Notification.permission === 'granted' ? 'on' : 'off');
+      .then((subscription) => Boolean(subscription) && Notification.permission === 'granted');
+
+    const timeout = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000));
+
+    Promise.race([readSubscription, timeout])
+      .then((subscribed) => {
+        if (!cancelled) setState(subscribed ? 'on' : 'off');
       })
       .catch(() => {
         if (!cancelled) setState('off');

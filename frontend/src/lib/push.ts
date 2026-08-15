@@ -18,8 +18,9 @@ export type PushSupport =
 
 const isIos = (): boolean =>
   /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-  // iPadOS reports as a Mac; the touch points give it away.
-  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // iPadOS reports as a Mac. `platform` is deprecated and may be empty, so treat any Mac-like UA
+  // with a touchscreen as an iPad — a real Mac reports maxTouchPoints 0.
+  (/macintosh|mac os x/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
 
 /** iOS delivers push only to an installed PWA, never to a plain Safari tab. */
 const isStandalone = (): boolean =>
