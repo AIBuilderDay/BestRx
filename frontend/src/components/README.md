@@ -6,6 +6,7 @@ view instead; move it here the moment a second view needs it.
 | Folder | Holds |
 | --- | --- |
 | `layout/` | Shell, sidebar, header, page frame |
+| `catalog/` | DME catalog grid, filters, patient-assignment sheet, cart drawer |
 | `orders/` | Order rows, lifecycle stepper, status pills, order detail pieces |
 | `risk/` | Risk badges, score bars, the explanation drawer, escalation actions |
 | `pickup/` | Pickup trigger flow, family notification window, proof-of-pickup |

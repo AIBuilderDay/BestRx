@@ -6,7 +6,7 @@
     "category": "bed",
     "rental": true,
     "avgMonthlyAllowedUsd": 65.47,
-    "imagePath": "/images/equipment/e0250-hospital-bed.jpg"
+    "imagePath": "/images/equipment/e0250-hospital-bed.svg"
   },
   {
     "hcpcs": "E1390",
@@ -15,7 +15,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 115.77,
-    "imagePath": "/images/equipment/e1390-oxygen-concentrator.jpg"
+    "imagePath": "/images/equipment/e1390-oxygen-concentrator.svg"
   },
   {
     "hcpcs": "E0601",
@@ -24,7 +24,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 47.42,
-    "imagePath": "/images/equipment/e0601-cpap.jpg"
+    "imagePath": "/images/equipment/e0601-cpap.svg"
   },
   {
     "hcpcs": "E0470",
@@ -33,7 +33,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 123.3,
-    "imagePath": "/images/equipment/e0470-bipap.jpg"
+    "imagePath": "/images/equipment/e0470-bipap.svg"
   },
   {
     "hcpcs": "E1130",
@@ -42,7 +42,7 @@
     "category": "mobility",
     "rental": true,
     "avgMonthlyAllowedUsd": 68.0,
-    "imagePath": "/images/equipment/e1130-wheelchair.jpg"
+    "imagePath": "/images/equipment/e1130-wheelchair.svg"
   },
   {
     "hcpcs": "E0143",
@@ -51,7 +51,7 @@
     "category": "mobility",
     "rental": false,
     "avgPurchaseAllowedUsd": 64.17,
-    "imagePath": "/images/equipment/e0143-walker.jpg"
+    "imagePath": "/images/equipment/e0143-walker.svg"
   },
   {
     "hcpcs": "E0163",
@@ -60,7 +60,7 @@
     "category": "bathroom_safety",
     "rental": false,
     "avgPurchaseAllowedUsd": 68.4,
-    "imagePath": "/images/equipment/e0163-commode.jpg"
+    "imagePath": "/images/equipment/e0163-commode.svg"
   },
   {
     "hcpcs": "E0277",
@@ -69,7 +69,7 @@
     "category": "bed",
     "rental": true,
     "avgMonthlyAllowedUsd": 212.49,
-    "imagePath": "/images/equipment/e0277-air-mattress.jpg"
+    "imagePath": "/images/equipment/e0277-air-mattress.svg"
   },
   {
     "hcpcs": "E0431",
@@ -78,7 +78,7 @@
     "category": "respiratory",
     "rental": true,
     "avgMonthlyAllowedUsd": 21.19,
-    "imagePath": "/images/equipment/e0431-portable-oxygen.jpg"
+    "imagePath": "/images/equipment/e0431-portable-oxygen.svg"
   },
   {
     "hcpcs": "A7030",
@@ -88,6 +88,141 @@
     "rental": false,
     "avgPurchaseAllowedUsd": 121.08,
     "resupplyCadenceDays": 90,
-    "imagePath": "/images/equipment/a7030-cpap-mask.jpg"
+    "imagePath": "/images/equipment/a7030-cpap-mask.svg"
+  },
+  {
+    "hcpcs": "E0110",
+    "name": "Forearm Crutches (Pair)",
+    "description": "Adjustable height, includes tips, cuffs, and handgrips",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 54.98,
+    "imagePath": "/images/equipment/e0110-forearm-crutches.svg"
+  },
+  {
+    "hcpcs": "E0114",
+    "name": "Underarm Crutches (Pair)",
+    "description": "Adjustable height, includes pads, tips, and handgrips",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 23.64,
+    "imagePath": "/images/equipment/e0114-underarm-crutches.svg"
+  },
+  {
+    "hcpcs": "E0100",
+    "name": "Cane",
+    "description": "Adjustable or fixed height, includes tip",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 18.32,
+    "imagePath": "/images/equipment/e0100-cane.svg"
+  },
+  {
+    "hcpcs": "E0105",
+    "name": "Quad Cane",
+    "description": "Adjustable or fixed height, four-prong base for wider support",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 32.15,
+    "imagePath": "/images/equipment/e0105-quad-cane.svg"
+  },
+  {
+    "hcpcs": "E0130",
+    "name": "Rigid Walker",
+    "description": "Pickup style, adjustable or fixed height, no wheels",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 44.63,
+    "imagePath": "/images/equipment/e0130-rigid-walker.svg"
+  },
+  {
+    "hcpcs": "E0148",
+    "name": "Heavy-Duty Walker",
+    "description": "Wide stance, higher weight capacity, multiple braking positions",
+    "category": "mobility",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 95.2,
+    "imagePath": "/images/equipment/e0148-heavy-duty-walker.svg"
+  },
+  {
+    "hcpcs": "E1140",
+    "name": "Wheelchair, Standard Plus",
+    "description": "Detachable arms, desk or full length, swing-away detachable footrests",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 74.85,
+    "imagePath": "/images/equipment/e1140-wheelchair-standard-plus.svg"
+  },
+  {
+    "hcpcs": "E1240",
+    "name": "Wheelchair, Lightweight",
+    "description": "Detachable arms, elevating leg rests, lightweight frame",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 94.1,
+    "imagePath": "/images/equipment/e1240-wheelchair-lightweight.svg"
+  },
+  {
+    "hcpcs": "E1092",
+    "name": "Wheelchair, Heavy Duty Wide",
+    "description": "Wide frame, detachable arms and footrests, higher weight capacity",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 138.6,
+    "imagePath": "/images/equipment/e1092-wheelchair-heavy-duty.svg"
+  },
+  {
+    "hcpcs": "E1161",
+    "name": "Wheelchair, Tilt-in-Space",
+    "description": "Manual tilt-in-space frame for pressure redistribution and positioning",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 312.4,
+    "imagePath": "/images/equipment/e1161-wheelchair-tilt-in-space.svg"
+  },
+  {
+    "hcpcs": "E1038",
+    "name": "Transport Chair",
+    "description": "Attendant-propelled, patient weight capacity up to 300 lbs",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 46.75,
+    "imagePath": "/images/equipment/e1038-transport-chair.svg"
+  },
+  {
+    "hcpcs": "E0630",
+    "name": "Hydraulic Patient Lift",
+    "description": "Full-body hydraulic lift with sling, for bed-to-chair transfers",
+    "category": "mobility",
+    "rental": true,
+    "avgMonthlyAllowedUsd": 184.9,
+    "imagePath": "/images/equipment/e0630-hydraulic-lift.svg"
+  },
+  {
+    "hcpcs": "E0245",
+    "name": "Tub Stool/Bench",
+    "description": "Non-adjustable bath bench for shower or tub",
+    "category": "bathroom_safety",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 61.9,
+    "imagePath": "/images/equipment/e0245-tub-bench.svg"
+  },
+  {
+    "hcpcs": "E0247",
+    "name": "Transfer Bench with Commode Opening",
+    "description": "Tub/shower transfer bench with a commode cutout",
+    "category": "bathroom_safety",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 149.55,
+    "imagePath": "/images/equipment/e0247-transfer-bench-commode.svg"
+  },
+  {
+    "hcpcs": "E0244",
+    "name": "Raised Toilet Seat",
+    "description": "Elevated toilet seat, with or without arms",
+    "category": "bathroom_safety",
+    "rental": false,
+    "avgPurchaseAllowedUsd": 47.85,
+    "imagePath": "/images/equipment/e0244-raised-toilet-seat.svg"
   }
 ]
