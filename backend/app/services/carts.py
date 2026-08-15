@@ -83,13 +83,16 @@ def _merge_lines(raw_lines: list[Row]) -> list[Row]:
     for raw in raw_lines:
         offer_id = raw["offerId"]
         patient_id = raw["patientId"]
-        unit = raw.get("unit", "month")
 
         offer = find_by("vendor_offers", "id", offer_id)
         if offer is None:
             raise UnknownOffer(offer_id)
         if find_by("patients", "id", patient_id) is None:
             raise UnknownPatient(patient_id)
+
+        # Default to the arrangement the offer itself sells, not to rental: a walker is priced only
+        # for purchase, so assuming "month" would reject a line the catalog can perfectly well fill.
+        unit = raw.get("unit") or offer.get("unit", "month")
         if _price_field(unit) not in offer:
             raise UnsellableUnit(offer_id, unit)
 

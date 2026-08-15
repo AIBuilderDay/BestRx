@@ -20,6 +20,7 @@ import {
   totalUnitsInCart,
   upsertCartLine,
   UNIT_FOR_MODE,
+  sellableUnit,
   type CatalogFilterState,
   type PriceUnit,
   type PricingMode,
@@ -74,8 +75,16 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const catalogItems = useMemo(() => buildCatalogItems(sessionReviews, mode), [sessionReviews, mode]);
   const priceMax = useMemo(() => priceCeiling(catalogItems), [catalogItems]);
 
-  /** The arrangement a given card is showing: its own override, else the page mode. */
-  const unitFor = (id: string): PriceUnit => unitOverrides[id] ?? UNIT_FOR_MODE[mode];
+  /**
+   * The arrangement a given card is showing: its own override, else the page mode — resolved
+   * against what the offer actually sells, so a purchase-only item in Rental mode reports
+   * 'purchase' rather than a 'month' the API would reject.
+   */
+  const unitFor = (id: string): PriceUnit => {
+    const requested = unitOverrides[id] ?? UNIT_FOR_MODE[mode];
+    const offer = catalogItems.find((it) => it.offer.id === id)?.offer;
+    return offer ? sellableUnit(offer, requested) : requested;
+  };
 
   const [filters, setFilters] = useState<CatalogFilterState>(() => defaultCatalogFilters(priceMax));
   const [currentPage, setCurrentPage] = useState(1);

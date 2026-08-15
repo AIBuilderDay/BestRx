@@ -76,6 +76,17 @@ export function availableUnits(offer: VendorOffer): PriceUnit[] {
 }
 
 /**
+ * The arrangement this offer will actually be sold under when `unit` is asked for. Mirrors
+ * `offerPriceFor`'s fallback: a walker has no rental rate, so asking to rent one resolves to the
+ * purchase it is. Cart lines must be built from this, not from the page mode — the API rejects a
+ * line whose unit the offer does not price (`Offer … is not sold as month`).
+ */
+export function sellableUnit(offer: VendorOffer, unit: PriceUnit): PriceUnit {
+  const units = availableUnits(offer);
+  return units.includes(unit) ? unit : (units[0] ?? unit);
+}
+
+/**
  * Price this offer under `unit`, falling back to the arrangement it does sell. A walker has no
  * rental rate, so in Rental mode it prices as the purchase it is — the card tags it rather than
  * hiding it, because a nurse who searched for a walker should find one.
