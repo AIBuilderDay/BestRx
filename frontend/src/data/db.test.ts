@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import {
+  budgetCapUsd,
+  budgets,
+  budgetUtilizationPct,
   getAtRiskOrders,
+  getCatalogEntry,
+  getOffersForItem,
   getOrder,
   getOrderEvents,
   getPatient,
   getVendor,
+  hospices,
   orders,
   patients,
   users,
+  vendorOffers,
   vendors,
 } from './db';
 
@@ -58,6 +65,43 @@ describe('mock database integrity', () => {
     expect(getOrder('DME-00000')).toBeUndefined();
     expect(getPatient(null)).toBeUndefined();
     expect(getVendor(undefined)).toBeUndefined();
+  });
+
+  it('sells only catalog items, from vendors that exist', () => {
+    for (const offer of vendorOffers) {
+      expect(getVendor(offer.vendorId), offer.id).toBeDefined();
+      expect(getCatalogEntry(offer.hcpcs), offer.id).toBeDefined();
+      expect(offer.nurseRating).toBeGreaterThanOrEqual(1);
+      expect(offer.nurseRating).toBeLessThanOrEqual(5);
+    }
+  });
+
+  it('offers every canonical order item from at least one vendor', () => {
+    const canonicalCodes = orders
+      .filter((o) => o.canonical)
+      .flatMap((o) => o.equipment.map((e) => e.hcpcs));
+    for (const hcpcs of new Set(canonicalCodes)) {
+      expect(getOffersForItem(hcpcs).length, hcpcs).toBeGreaterThan(0);
+    }
+  });
+
+  it('scopes every budget to a real hospice, and to a role or a real patient', () => {
+    for (const budget of budgets) {
+      expect(hospices.some((h) => h.id === budget.hospiceId), budget.id).toBe(true);
+      if (budget.scope === 'patient_purchase') {
+        expect(getPatient(budget.scopeRef), budget.id).toBeDefined();
+      } else {
+        expect(users.some((u) => u.role === budget.scopeRef), budget.id).toBe(true);
+      }
+      expect(budget.spentUsd).toBeLessThanOrEqual(budget.limitUsd);
+    }
+  });
+
+  it('derives every role budget cap from PPD x patients x days', () => {
+    for (const budget of budgets.filter((b) => b.derivedFrom)) {
+      expect(budgetCapUsd(budget), budget.id).toBeCloseTo(budget.limitUsd, 2);
+      expect(budgetUtilizationPct(budget), budget.id).toBeLessThanOrEqual(100);
+    }
   });
 
   it('gives every vendor an SLA and a 30-day performance record', () => {

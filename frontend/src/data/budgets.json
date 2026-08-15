@@ -1,0 +1,9 @@
+[
+  { "id": "BUD-001", "hospiceId": "HSP-001", "scope": "role", "scopeRef": "admissions_nurse", "period": "2026-08", "limitUsd": 11904.0, "spentUsd": 8140.5, "setById": "USR-013", "derivedFrom": { "ppdUsd": 8.0, "assignedPatients": 48, "days": 31 } },
+  { "id": "BUD-002", "hospiceId": "HSP-001", "scope": "role", "scopeRef": "case_manager", "period": "2026-08", "limitUsd": 5952.0, "spentUsd": 2310.0, "setById": "USR-013", "derivedFrom": { "ppdUsd": 8.0, "assignedPatients": 24, "days": 31 } },
+  { "id": "BUD-003", "hospiceId": "HSP-001", "scope": "role", "scopeRef": "director_of_nursing", "period": "2026-08", "limitUsd": 19530.0, "spentUsd": 4415.25, "setById": "USR-013", "derivedFrom": { "ppdUsd": 9.0, "assignedPatients": 70, "days": 31 } },
+  { "id": "BUD-004", "hospiceId": "HSP-001", "scope": "patient_purchase", "scopeRef": "PT-88502", "period": "2026-08", "limitUsd": 900.0, "spentUsd": 471.42, "setById": "USR-013" },
+  { "id": "BUD-005", "hospiceId": "HSP-001", "scope": "patient_purchase", "scopeRef": "PT-88421", "period": "2026-08", "limitUsd": 900.0, "spentUsd": 72.0, "setById": "USR-013" },
+  { "id": "BUD-006", "hospiceId": "HSP-002", "scope": "role", "scopeRef": "admissions_nurse", "period": "2026-08", "limitUsd": 7866.25, "spentUsd": 6890.0, "setById": null, "derivedFrom": { "ppdUsd": 7.25, "assignedPatients": 35, "days": 31 } },
+  { "id": "BUD-007", "hospiceId": "HSP-003", "scope": "role", "scopeRef": "admissions_nurse", "period": "2026-08", "limitUsd": 4944.5, "spentUsd": 1204.0, "setById": null, "derivedFrom": { "ppdUsd": 7.25, "assignedPatients": 22, "days": 31 } }
+]

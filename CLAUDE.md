@@ -1,8 +1,10 @@
 # CLAUDE.md
 
-Guidance for Claude Code working in this repo. **BestRx — a hospice/DME coordination app built for
-the BetterRX Builder Day bounty (Aug 2026).** Frontend-only for now: React + TypeScript + Vite +
-Tailwind, pnpm workspace, everything runs through Docker Compose driven by `task`.
+Guidance for Claude Code working in this repo. **BestRx — "Amazon for DME vendors, for hospices."
+A storefront for hospice durable-medical-equipment ordering, with shared delivery visibility and
+budget control behind it. Built for the BetterRX Builder Day bounty (Aug 2026).** Frontend-only for
+now: React + TypeScript + Vite + Tailwind, pnpm workspace, everything runs through Docker Compose
+driven by `task`.
 
 This file is about **how to work here**. Reference material (the product vision, the bounty rules,
 the data model, individual specs and tickets) lives in [docs/](docs/) — open it when a task needs
@@ -55,11 +57,23 @@ BetterRX has said they may build on the winning code.
 - **Use Context7 for docs.** If the Context7 MCP tools are available, query them before writing
   code against React, Vite, Tailwind, or any other library — API surfaces move faster than model
   training data. Verify the API, then write the code. Do not guess at library syntax.
+- **Use the design system.** Colors, radii, and the shared primitives live in
+  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md), `frontend/src/index.css`, and
+  `frontend/src/components/ui/`. Never hardcode a hex value or a one-off radius in a component —
+  use a token, or add one. The system is **deliberately basic and expected to change**: if it is
+  getting in your way, improve it in a small standalone PR and update
+  [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) in the same PR. It is not frozen, but it is also
+  not something to quietly work around in one file. Building a chart? Read the Charts section there
+  first, and load the `dataviz` skill if it is available.
 - **Modular by default.** One job per component/function. Components stay under ~150 lines; split
   when they grow. Data shaping lives in `src/lib/`, not inside JSX. Types live in `src/types/`.
 - **Defensive at the boundaries.** Anything reading the JSON "database", parsing dates, or doing
   lookups by id must handle the missing/empty case explicitly and render something sane. Never let
   an `undefined` lookup crash a view. Don't wrap pure logic that can't fail.
+- **Every feature answers the buyer's question.** The hospice buyer's question is "how are you going
+  to decrease my DME PPD (per patient day)?" Before building a screen, know which PPD lever it pulls
+  — see [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §6. Cost figures are shown as PPD,
+  not only as monthly totals.
 - **No invented clinical or vendor facts in the UI.** Every number, status, and risk factor shown
   must come from `frontend/src/data/` or be derived from it in code. If a value is an assumption,
   label it as one in the UI. This is a judged criterion, not a style preference.
@@ -80,6 +94,9 @@ Don't memorize these — open the doc when the task touches it.
 | Task touches… | Read |
 |---|---|
 | What we're building and why (master doc, read first) | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) |
+| Colors, spacing, shared UI primitives, tone | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) |
+| PPD — the metric the buyer judges us on, and our five levers | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §6, [docs/bounty/BOUNTY_FAQ.md](docs/bounty/BOUNTY_FAQ.md) §11 |
+| Our own scope decisions: P0/P1/P2, per-view owners | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §7, [docs/WORKFLOW.md](docs/WORKFLOW.md), [docs/whiteboards/](docs/whiteboards/) |
 | Bounty rules, judging rubric, required features | [docs/bounty/BOUNTY_BRIEF.md](docs/bounty/BOUNTY_BRIEF.md) |
 | Organizer answers that override the brief (scope, pickup trigger, vendor UX) | [docs/bounty/BOUNTY_FAQ.md](docs/bounty/BOUNTY_FAQ.md) |
 | Canonical sample orders from the organizers | [docs/bounty/SAMPLE_ORDERS.md](docs/bounty/SAMPLE_ORDERS.md) |
@@ -87,7 +104,7 @@ Don't memorize these — open the doc when the task touches it.
 | How we work: description → mockup → spec → tickets | [docs/WORKFLOW.md](docs/WORKFLOW.md) |
 | A feature's agreed scope before building it | [docs/specs/](docs/specs/) |
 | The specific unit of work you were handed | [docs/tickets/](docs/tickets/) |
-| What a screen should look like (humans read these, agents skim) | [mockups/](mockups/) |
+| What a screen should look like (humans read these, agents skim) | [mockups/](mockups/) — `orders-board.html` and `cost-ledger.html` are the starter templates the design system came from |
 | Commands, Docker, ports | `Taskfile.yml` and `docker-compose.yml` — read them, don't memorize |
 | App code, components, views | [frontend/src/](frontend/src/) |
 | Mock database (JSON tables) | [frontend/src/data/](frontend/src/data/) |
@@ -106,14 +123,16 @@ BestRx/
 │   ├── PROJECT_DESCRIPTION.md   master vision doc
 │   ├── DATA_MODEL.md            mock DB shapes
 │   ├── WORKFLOW.md              how specs and tickets get made
+│   ├── DESIGN_SYSTEM.md         tokens, primitives, tone
 │   ├── bounty/                  the organizers' source material
+│   ├── whiteboards/             photos of our planning session
 │   ├── specs/                   one spec per feature area
 │   └── tickets/                 small, self-contained units of work
 ├── mockups/               HTML mockups for humans
 └── frontend/
     ├── Dockerfile
     ├── src/
-    │   ├── components/    reusable UI, grouped by domain
+    │   ├── components/    reusable UI, grouped by domain (ui/ = shared primitives)
     │   ├── views/         one file per screen/route
     │   ├── data/          JSON "tables" + typed loader
     │   ├── lib/           pure helpers (derivation, formatting, risk math)

@@ -33,6 +33,8 @@ usable.
 | `order_events.json` | 30 | `id` (EVT-) | `orderId`, `actorId` |
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
+| `vendor_offers.json` | 16 | `id` (OFR-) | `vendorId`, `hcpcs` |
+| `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 
 ```
 hospices ──< patients ──< orders >── vendors
@@ -41,7 +43,9 @@ hospices ──< patients ──< orders >── vendors
                             └──< order_events (the timeline)
 
 emr_events ──> patients        inbound signals from the EMR via BetterRX eRx
-users      ──> hospices|vendors  case managers, field nurses, vendor dispatchers
+users      ──> hospices|vendors  admissions nurses, case managers, field nurses, DON, admin, dispatchers
+vendor_offers ──> vendors, equipment_catalog   the storefront: price, ETA, rating per vendor per item
+budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
 ## The tables that carry the product
@@ -67,6 +71,27 @@ makes the scorecard worth looking at. Vendor 1 is the strong performer, Vendor 3
 **`emr_events`** shows the integration story concretely: a `patientStatusChange` (deceased) that
 arrived 47 minutes *after* the field nurse already triggered the pickup, and one 7.5 hours late.
 That gap is the argument for nurse-initiated pickup with the EMR event as a fallback.
+
+**`vendor_offers`** is the storefront. One row per vendor per catalog item, carrying `priceUsd`,
+`deliveryEtaHours` (the vendor's promise, not a measurement), `inStock`, and a `nurseRating` averaged
+from nurses who received earlier deliveries. This is what the filtering sidebar sorts and what makes
+"cheapest" and "best" visibly different vendors — Vendor 3 is consistently cheapest and consistently
+worst rated.
+
+**`budgets`** carries both kinds from the whiteboard: a monthly cap per role, and a cap per one-time
+patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patient id when `scope` is
+`patient_purchase`. Role caps are **derived, not guessed** — `derivedFrom` holds the
+`ppdUsd x assignedPatients x days` that produced `limitUsd`, so a cap recomputes when census moves.
+`budgetCapUsd()` and `budgetUtilizationPct()` in `db.ts` do that math; use them rather than reading
+`limitUsd` directly.
+
+## Deriving PPD
+
+PPD (per patient day) is the number the hospice buyer manages against, so cost views express spend
+that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator,
+`orders[].equipment` joined to `vendor_offers[].priceUsd` for the numerator, and
+`budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
+[PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
 
 ## Adding data
 
