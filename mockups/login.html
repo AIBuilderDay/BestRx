@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BestRx — Sign in</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #fafafa; --surface: #ffffff;
+    --hover: #f5f5f5; --track: #ececec;
+    --line: #eaeaea; --line-strong: #d4d4d4;
+    --ink: #0a0a0a; --ink-2: #555555; --ink-3: #888888;
+    --solid-bg: #0a0a0a; --solid-ink: #ffffff;
+    --good: #15803d; --good-bg: #f0fdf4;
+    --warn: #b45309; --warn-bg: #fffbeb;
+    --risk: #b42318; --risk-bg: #fef3f2;
+    --radius-control: 7px; --radius-card: 10px; --radius-panel: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --bg-subtle: #111111; --surface: #0f0f0f;
+      --hover: #171717; --track: #222222;
+      --line: #262626; --line-strong: #3a3a3a;
+      --ink: #fafafa; --ink-2: #a3a3a3; --ink-3: #737373;
+      --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+      --good: #4ade80; --good-bg: #0d1f14;
+      --warn: #fbbf24; --warn-bg: #241a06;
+      --risk: #f97066; --risk-bg: #2a1210;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --bg-subtle: #111111; --surface: #0f0f0f;
+    --hover: #171717; --track: #222222;
+    --line: #262626; --line-strong: #3a3a3a;
+    --ink: #fafafa; --ink-2: #a3a3a3; --ink-3: #737373;
+    --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+    --good: #4ade80; --good-bg: #0d1f14;
+    --warn: #fbbf24; --warn-bg: #241a06;
+    --risk: #f97066; --risk-bg: #2a1210;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- mockup chrome: variant tabs + theme toggle ---- */
+  .chrome { position: fixed; top: 16px; left: 0; right: 0; display: flex;
+            justify-content: center; gap: 8px; z-index: 10; pointer-events: none; }
+  .chrome > * { pointer-events: auto; }
+  .vtab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 999px;
+          border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+  .vtab:hover { color: var(--ink); border-color: var(--line-strong); }
+  .vtab.on { background: var(--solid-bg); color: var(--solid-ink); border-color: var(--solid-bg); }
+  .toggle { position: fixed; top: 16px; right: 16px; z-index: 10; font: inherit; font-size: 13px;
+            font-weight: 500; border-radius: var(--radius-control); padding: 6px 12px; cursor: pointer;
+            border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); }
+  .toggle:hover { background: var(--hover); }
+
+  /* ---- shared pieces ---- */
+  /* The capsule logo — see mockups/logo.html and docs/DESIGN_SYSTEM.html "Brand". */
+  .logo svg { display: block; }
+  .logo .knock { fill: var(--bg); }
+  .pane-brand .logo .knock { fill: var(--solid-bg); }
+
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em;
+          color: var(--ink-3); font-weight: 500; margin: 0 0 5px; }
+  .field { margin-bottom: 14px; }
+  input[type="email"], input[type="password"] {
+    font: inherit; width: 100%; padding: 9px 11px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line-strong);
+    border-radius: var(--radius-control);
+  }
+  input::placeholder { color: var(--ink-3); }
+  input:focus-visible, button:focus-visible, .demo-user:focus-visible, .demo-chip:focus-visible {
+    outline: 2px solid var(--ink); outline-offset: 2px;
+  }
+
+  .btn { font: inherit; font-size: 13px; font-weight: 500; border-radius: var(--radius-control);
+         padding: 9px 14px; cursor: pointer; border: 1px solid var(--line-strong);
+         background: var(--surface); color: var(--ink); }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--solid-bg); color: var(--solid-ink); border-color: var(--solid-bg); width: 100%; }
+  .btn.primary:hover { opacity: 0.85; }
+
+  .signed-in { display: none; border: 1px solid var(--line); border-left: 2px solid var(--ink);
+               border-radius: var(--radius-control); background: var(--bg-subtle);
+               padding: 10px 12px; margin-top: 14px; font-size: 13px; color: var(--ink-2); text-align: left; }
+  .signed-in b { color: var(--ink); }
+  .signed-in .access { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+  .err { display: none; font-size: 13px; color: var(--risk); margin-top: 12px; }
+
+  .divider { display: flex; align-items: center; gap: 10px; margin: 22px 0 10px; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+  .divider span { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); }
+  .demo-note { font-size: 12px; color: var(--ink-3); text-align: center; margin: 0 0 12px; }
+
+  .avatar { flex: none; width: 32px; height: 32px; border-radius: 50%;
+            background: var(--bg-subtle); border: 1px solid var(--line);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 600; color: var(--ink-2); }
+  .pill { flex: none; display: inline-flex; align-items: center; font-size: 11px; font-weight: 500;
+          padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong);
+          color: var(--ink-2); white-space: nowrap; }
+  .pill.solid { background: var(--solid-bg); color: var(--solid-ink); border-color: var(--solid-bg); }
+
+  .demo-list { display: grid; gap: 8px; }
+  .demo-user { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+               font: inherit; cursor: pointer; padding: 10px 12px;
+               border: 1px solid var(--line); border-radius: var(--radius-card);
+               background: var(--surface); color: var(--ink); }
+  .demo-user:hover { background: var(--hover); }
+  .demo-user.selected { border-color: var(--ink); }
+  .demo-user .who { min-width: 0; flex: 1; }
+  .demo-user .name { font-size: 13px; font-weight: 500; }
+  .demo-user .access { font-size: 12px; color: var(--ink-3); }
+
+  .foot { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 20px; }
+
+  .variant { display: none; }
+  .variant.on { display: block; }
+
+  /* =========== VARIANT A — CARD =========== */
+  .v-card .stage { min-height: 100vh; display: flex; align-items: center;
+                   justify-content: center; padding: 72px 16px 24px; }
+  .v-card .wrap { width: 100%; max-width: 400px; }
+  .v-card .brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 26px; }
+  .v-card .tagline { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+  .v-card .card { border: 1px solid var(--line); border-radius: var(--radius-panel);
+                  background: var(--surface); padding: 24px; }
+  .v-card h1 { margin: 0 0 2px; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .v-card .sub { font-size: 13px; color: var(--ink-2); margin: 0 0 18px; }
+
+  /* =========== VARIANT B — MINIMAL =========== */
+  .v-min .stage { min-height: 100vh; display: flex; align-items: center;
+                  justify-content: center; padding: 72px 16px 24px; }
+  .v-min .wrap { width: 100%; max-width: 336px; text-align: center; }
+  .v-min .brand { display: flex; justify-content: center; margin-bottom: 22px; }
+  .v-min h1 { margin: 0 0 30px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .v-min form { text-align: left; }
+  .v-min .demo-user { padding: 9px 12px; }
+  .v-min .demo-user .access { display: none; }
+  .v-min .demo-list { text-align: left; }
+
+  /* =========== VARIANT C — SPLIT =========== */
+  .v-split .stage { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+  .v-split .pane-brand { background: var(--solid-bg); color: var(--solid-ink);
+                         display: flex; flex-direction: column; justify-content: space-between;
+                         padding: 44px 48px; }
+  .v-split .pane-brand .pitch { max-width: 34ch; }
+  .v-split .pane-brand h2 { margin: 0 0 10px; font-size: 26px; font-weight: 600;
+                            letter-spacing: -0.02em; line-height: 1.25; }
+  .v-split .pane-brand .line { font-size: 13px; opacity: 0.65; }
+  .v-split .pane-brand .print { font-size: 12px; opacity: 0.5; }
+  .v-split .pane-form { display: flex; align-items: center; justify-content: center; padding: 72px 24px 24px; }
+  .v-split .wrap { width: 100%; max-width: 360px; }
+  .v-split h1 { margin: 0 0 2px; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .v-split .sub { font-size: 13px; color: var(--ink-2); margin: 0 0 20px; }
+  .v-split .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .demo-chip { display: flex; align-items: center; gap: 9px; font: inherit; text-align: left;
+               cursor: pointer; padding: 8px 10px; border: 1px solid var(--line);
+               border-radius: var(--radius-card); background: var(--surface); color: var(--ink); }
+  .demo-chip:hover { background: var(--hover); }
+  .demo-chip.selected { border-color: var(--ink); }
+  .demo-chip .who { min-width: 0; }
+  .demo-chip .name { font-size: 12px; font-weight: 500; white-space: nowrap;
+                     overflow: hidden; text-overflow: ellipsis; }
+  .demo-chip .role { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+  .demo-chip .avatar { width: 28px; height: 28px; font-size: 10px; }
+
+  @media (max-width: 760px) {
+    .v-split .stage { grid-template-columns: 1fr; }
+    .v-split .pane-brand { padding: 76px 24px 24px; gap: 14px; }
+    .v-split .pane-brand h2 { font-size: 20px; }
+    .v-split .pane-form { padding-top: 32px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .demo-user, .demo-chip, .btn, .vtab, input {
+      transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="chrome" role="tablist" aria-label="Login layout options">
+  <button class="vtab on" data-variant="v-a" role="tab" aria-selected="true">1 · Card</button>
+  <button class="vtab" data-variant="v-b" role="tab" aria-selected="false">2 · Minimal</button>
+  <button class="vtab" data-variant="v-c" role="tab" aria-selected="false">3 · Split</button>
+</div>
+<button class="toggle" onclick="
+  const r=document.documentElement;
+  const dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#0a0a0a';
+  r.setAttribute('data-theme', dark?'light':'dark');">Theme</button>
+
+<!-- =========== VARIANT A — CARD =========== -->
+<section class="variant v-card on" id="v-a">
+  <div class="stage">
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo"><svg width="115" height="42" viewBox="0 0 300 110" role="img" aria-label="BestRx">
+        <rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/>
+        <text class="knock" x="80" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text>
+        <text class="knock" x="187" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="21" font-weight="700" letter-spacing="0.5">RX</text>
+      </svg></div>
+        <div class="tagline">DME ordering for hospice teams</div>
+      </div>
+      <div class="card">
+        <h1>Sign in</h1>
+        <p class="sub">Use your hospice account.</p>
+        <form class="login-form" novalidate>
+          <div class="field">
+            <label for="email-a">Email</label>
+            <input type="email" id="email-a" class="f-email" placeholder="you@hospice-a.example" autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="password-a">Password</label>
+            <input type="password" id="password-a" class="f-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn primary">Sign in</button>
+          <p class="err" role="alert">No account matches that email. Pick a demo account below.</p>
+          <div class="signed-in" role="status"></div>
+        </form>
+        <div class="divider"><span>Demo accounts</span></div>
+        <p class="demo-note">Sample Hospice A &middot; password is <b>demo</b> for all</p>
+        <div class="demo-list" data-render="rows" role="list"></div>
+      </div>
+      <p class="foot">Mockup &mdash; no real authentication. Accounts mirror <b>frontend/src/data/users.json</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- =========== VARIANT B — MINIMAL =========== -->
+<section class="variant v-min" id="v-b">
+  <div class="stage">
+    <div class="wrap">
+      <div class="brand"><div class="logo"><svg width="115" height="42" viewBox="0 0 300 110" role="img" aria-label="BestRx">
+        <rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/>
+        <text class="knock" x="80" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text>
+        <text class="knock" x="187" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="21" font-weight="700" letter-spacing="0.5">RX</text>
+      </svg></div></div>
+      <h1>Sign in to BestRx</h1>
+      <form class="login-form" novalidate>
+        <div class="field">
+          <label for="email-b">Email</label>
+          <input type="email" id="email-b" class="f-email" placeholder="you@hospice-a.example" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="password-b">Password</label>
+          <input type="password" id="password-b" class="f-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn primary">Sign in</button>
+        <p class="err" role="alert">No account matches that email. Pick a demo account below.</p>
+        <div class="signed-in" role="status"></div>
+      </form>
+      <div class="divider"><span>Or continue as</span></div>
+      <div class="demo-list" data-render="rows" role="list"></div>
+      <p class="foot">Demo accounts &middot; Sample Hospice A &middot; password <b>demo</b></p>
+    </div>
+  </div>
+</section>
+
+<!-- =========== VARIANT C — SPLIT =========== -->
+<section class="variant v-split" id="v-c">
+  <div class="stage">
+    <div class="pane-brand">
+      <div class="logo"><svg width="115" height="42" viewBox="0 0 300 110" role="img" aria-label="BestRx">
+        <rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/>
+        <text class="knock" x="80" y="74" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text>
+        <text class="knock" x="187" y="46" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="21" font-weight="700" letter-spacing="0.5">RX</text>
+      </svg></div>
+      <div class="pitch">
+        <h2>Order equipment the way you order everything else.</h2>
+        <div class="line">Browse, compare, and check out in one storefront &mdash;
+        with delivery status both sides can see.</div>
+      </div>
+      <div class="print">Sample Hospice A &middot; Salt Lake City, UT</div>
+    </div>
+    <div class="pane-form">
+      <div class="wrap">
+        <h1>Sign in</h1>
+        <p class="sub">Use your hospice account.</p>
+        <form class="login-form" novalidate>
+          <div class="field">
+            <label for="email-c">Email</label>
+            <input type="email" id="email-c" class="f-email" placeholder="you@hospice-a.example" autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="password-c">Password</label>
+            <input type="password" id="password-c" class="f-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn primary">Sign in</button>
+          <p class="err" role="alert">No account matches that email. Pick a demo account below.</p>
+          <div class="signed-in" role="status"></div>
+        </form>
+        <div class="divider"><span>Demo accounts</span></div>
+        <div class="demo-list demo-grid" data-render="chips" role="list"></div>
+        <p class="foot">Password is <b>demo</b> for all &middot; accounts mirror <b>users.json</b></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// Mirrors frontend/src/data/users.json (Sample Hospice A / HSP-001 users only).
+// `email` and `permissions` are the fields the real users table will grow when
+// login ships; password is "demo" for every account in the mockup.
+//
+// Permissions come from docs/PROJECT_DESCRIPTION.md §3 and
+// docs/bounty/BRIEFING_NOTES.md ("The users"), scaling down from the owner.
+// Both nurse roles can purchase — nurses order directly under standing orders;
+// the admissions nurse is "the Amazon-shopper role".
+const DEMO_USERS = [
+  {
+    id: "USR-013", name: "Grant Whitmore", role: "hospice_admin", roleLabel: "Owner",
+    email: "grant@hospice-a.example", orgId: "HSP-001",
+    access: "Everything — cost ledger, budgets, vendors, all orders",
+    permissions: ["storefront:purchase", "orders:all", "pickup:trigger", "approvals:high-cost", "reporting", "nurse-assignment", "budgets:configure", "vendors:manage"],
+    landing: "cost dashboard"
+  },
+  {
+    id: "USR-012", name: "Linda Ferraro", role: "director_of_nursing", roleLabel: "Director of Nursing",
+    email: "linda@hospice-a.example", orgId: "HSP-001",
+    access: "All orders, high-cost approvals, reporting, nurse assignment",
+    permissions: ["storefront:purchase", "orders:all", "pickup:trigger", "approvals:high-cost", "reporting", "nurse-assignment"],
+    landing: "orders board"
+  },
+  {
+    id: "USR-001", name: "Dana Whitfield", role: "case_manager", roleLabel: "Case Manager",
+    email: "dana@hospice-a.example", orgId: "HSP-001",
+    access: "Their patients — order, track, add notes, trigger pickup",
+    permissions: ["storefront:purchase", "orders:own-patients", "notes", "pickup:trigger"],
+    landing: "orders board"
+  },
+  {
+    id: "USR-010", name: "Bea Cordova", role: "admissions_nurse", roleLabel: "Admissions Nurse",
+    email: "bea@hospice-a.example", orgId: "HSP-001",
+    access: "Storefront checkout — orders equipment at admission",
+    permissions: ["storefront:purchase", "orders:own"],
+    landing: "storefront"
+  }
+];
+
+const initials = (name) => name.split(" ").map(w => w[0]).join("");
+
+// ---- variant tabs ----
+document.querySelectorAll(".vtab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".vtab").forEach(t => {
+      t.classList.remove("on"); t.setAttribute("aria-selected", "false");
+    });
+    tab.classList.add("on"); tab.setAttribute("aria-selected", "true");
+    document.querySelectorAll(".variant").forEach(v => v.classList.remove("on"));
+    document.getElementById(tab.dataset.variant).classList.add("on");
+  });
+});
+
+// ---- wire each variant's form + demo accounts ----
+document.querySelectorAll(".variant").forEach(root => {
+  const email = root.querySelector(".f-email");
+  const password = root.querySelector(".f-password");
+  const signedIn = root.querySelector(".signed-in");
+  const err = root.querySelector(".err");
+  const list = root.querySelector(".demo-list");
+  const compact = list.dataset.render === "chips";
+
+  DEMO_USERS.forEach((u, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = compact ? "demo-chip" : "demo-user";
+    btn.setAttribute("role", "listitem");
+    btn.setAttribute("aria-label", `Sign in as ${u.name}, ${u.roleLabel}`);
+    btn.innerHTML = compact
+      ? `<span class="avatar" aria-hidden="true">${initials(u.name)}</span>
+         <span class="who"><span class="name">${u.name}</span><br><span class="role">${u.roleLabel}</span></span>`
+      : `<span class="avatar" aria-hidden="true">${initials(u.name)}</span>
+         <span class="who">
+           <span class="name">${u.name}</span><br>
+           <span class="access">${u.access}</span>
+         </span>
+         <span class="pill${i === 0 ? " solid" : ""}">${u.roleLabel}</span>`;
+    btn.addEventListener("click", () => {
+      email.value = u.email;
+      password.value = "demo";
+      list.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      signedIn.style.display = "none";
+      err.style.display = "none";
+    });
+    list.appendChild(btn);
+  });
+
+  root.querySelector(".login-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const user = DEMO_USERS.find(u => u.email === email.value.trim().toLowerCase());
+    if (!user) {
+      err.style.display = "block";
+      signedIn.style.display = "none";
+      return;
+    }
+    err.style.display = "none";
+    signedIn.innerHTML = `Signed in as <b>${user.name}</b> — ${user.roleLabel}, Sample Hospice A.
+      <div class="access">Can: ${user.permissions.join(" · ")}.<br>In the app this routes to the ${user.landing}.</div>`;
+    signedIn.style.display = "block";
+  });
+});
+</script>
+</body>
+</html>
