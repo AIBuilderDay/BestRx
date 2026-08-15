@@ -51,13 +51,13 @@ export function CostLedgerPanel({
   const delta = totals.qualifiedDeltaUsd;
   const openLine = lines.find((l) => l.hcpcs === openHcpcs) ?? null;
 
-  const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>('spend');
   const [trendRange, setTrendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
 
   const tiles: StatTileVM[] = [
     {
       key: 'spend',
-      label: 'Total DME spend',
+      label: 'Total Spend',
       value: moneyLabel(totals.actualUsd),
       detail: `${moneyLabel(totals.rentalMonthlyUsd)}/mo rental + ${moneyLabel(totals.purchaseUsd)} one-time`,
       tone: 'plain',
@@ -100,7 +100,7 @@ export function CostLedgerPanel({
   ];
 
   const trendMetrics: Record<MetricKey, TrendMetricVM> = {
-    spend: { key: 'spend', label: 'Total DME spend', currentValue: totals.actualUsd, formatValue: moneyLabel },
+    spend: { key: 'spend', label: 'Total Spend', currentValue: totals.actualUsd, formatValue: moneyLabel },
     ppd: { key: 'ppd', label: 'Cost per patient-day', currentValue: ppd.ppdUsd, formatValue: moneyCents },
     delta: {
       key: 'delta',
