@@ -45,15 +45,16 @@
   --s3: #969696;
   --s4: #cfcfcf;
 
-  /* Muted categorical ramp — one hue per slot, desaturated so four slices read calm on a donut
-     rather than a saturated pie-chart rainbow. Validated with the dataviz skill's
-     validate_palette.js: lightness band, chroma floor, CVD-adjacent separation, and normal-vision
-     separation all pass; contrast vs surface lands in the WARN band, legal here only because every
-     slice already carries a direct text label + value, never color alone. */
-  --chart-1: #d9607a;
-  --chart-2: #c2941f;
-  --chart-3: #2e9e86;
-  --chart-4: #6b87d6;
+  /* Categorical ramp — one hue per slot, for a donut distinguishing several unrelated things
+     (e.g. spend by product / by nurse). Light mode runs the full-saturation version of each hue;
+     dark mode (below) runs a desaturated pastel version of the same four hues — deliberately
+     different intensities per theme, not a mechanical light/dark flip. Both validated separately
+     with the dataviz skill's validate_palette.js against their own surface: lightness band, chroma
+     floor, CVD-adjacent separation, and normal-vision separation all pass here with no WARNs. */
+  --chart-1: #d93e5c;
+  --chart-2: #c2811a;
+  --chart-3: #1e9e6e;
+  --chart-4: #3e6fde;
 
   /* Radii */
   --radius-control: 7px;

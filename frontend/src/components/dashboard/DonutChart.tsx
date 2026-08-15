@@ -3,10 +3,11 @@ import { moneyLabel } from '../../lib/catalog';
 import type { BreakdownSlice } from '../../lib/budgetBreakdown';
 
 /**
- * Fixed categorical order from the muted rainbow ramp (--chart-1..4 in tokens.css) — never cycled
- * or reassigned. Validated with the dataviz skill's validate_palette.js (lightness band, chroma
- * floor, CVD-adjacent separation, normal-vision separation); each slice also carries a direct text
- * label, so the one WARN-band contrast reading is legal rather than color-alone.
+ * Fixed categorical order from the rainbow ramp (--chart-1..4 in tokens.css) — never cycled or
+ * reassigned. Full saturation in light mode, a desaturated pastel version of the same four hues in
+ * dark mode; each validated separately with the dataviz skill's validate_palette.js (lightness
+ * band, chroma floor, CVD-adjacent separation, normal-vision separation). Every slice also carries
+ * a direct text label in the legend, never relying on color alone.
  */
 const SLICE_COLOR = ['stroke-chart-1', 'stroke-chart-2', 'stroke-chart-3', 'stroke-chart-4'];
 const SLICE_DOT = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4'];
@@ -56,9 +57,9 @@ export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; t
               className="transition-opacity"
               opacity={hoverIndex === null || hoverIndex === i ? 1 : 0.35}
             >
-              {/* A hairline outline defines every segment's edge regardless of the fill's own
-                  contrast against the surface — one slot in the ramp lands in the WARN contrast
-                  band, so a fill-only ring could read faint there without this. */}
+              {/* A hairline outline defines every segment's edge independent of the fill's own
+                  contrast against the surface, so adjacent slices stay visually separated even
+                  where two hues land close in lightness. */}
               <circle
                 cx={CENTER}
                 cy={CENTER}

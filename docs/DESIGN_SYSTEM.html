@@ -15,7 +15,7 @@
     --warn: #b45309; --warn-bg: #fffbeb;
     --risk: #b42318; --risk-bg: #fef3f2;
     --s1: #0a0a0a; --s2: #525252; --s3: #969696; --s4: #cfcfcf;
-    --chart-1: #d9607a; --chart-2: #c2941f; --chart-3: #2e9e86; --chart-4: #6b87d6;
+    --chart-1: #d93e5c; --chart-2: #c2811a; --chart-3: #1e9e6e; --chart-4: #3e6fde;
     --radius-control: 7px; --radius-card: 10px; --radius-panel: 12px;
   }
   @media (prefers-color-scheme: dark) {
@@ -261,14 +261,16 @@
   </div>
 </div>
 
-<h3>Categorical ramp — muted rainbow</h3>
+<h3>Categorical ramp — rainbow</h3>
 <p>
   For charts distinguishing several unrelated things at once, where a single-hue ramp reads as
   "more/less" rather than "different" — e.g. the cost dashboard's spend-by-product /
-  spend-by-nurse donut. One hue per slot, desaturated so four slices read calm rather than a
-  saturated pie-chart rainbow. Every consumer must attach a direct text label to each slice — this
-  ramp's contrast against the surface is not reliably strong enough to stand on colour alone. Run
-  the dataviz skill's <code>validate_palette.js</code> before adding a fifth slot or changing a hue.
+  spend-by-nurse donut. One hue per slot, at a deliberately different intensity per theme rather
+  than a mechanical light/dark flip: full saturation in light mode, a desaturated pastel version
+  of the same four hues in dark mode, where a saturated fill next to true black reads harsher.
+  Every consumer must attach a direct text label to each slice regardless of theme. Run the
+  dataviz skill's <code>validate_palette.js</code> against both surfaces separately before adding
+  a fifth slot or changing a hue.
 </p>
 <div class="demo">
   <div class="series">
