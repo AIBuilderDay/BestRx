@@ -10,8 +10,10 @@ and [tickets/](tickets/).
 
 Built for the **BetterRX Builder Day bounty, August 2026** ($10,000 award, judged by three BetterRX
 staff). Source material: [bounty/BOUNTY_BRIEF.md](bounty/BOUNTY_BRIEF.md), the organizer FAQ in
-[bounty/BOUNTY_FAQ.md](bounty/BOUNTY_FAQ.md) (which overrides the brief where they disagree), and
-our own planning session in [whiteboards/](whiteboards/).
+[bounty/BOUNTY_FAQ.md](bounty/BOUNTY_FAQ.md), the live Q&A in
+[bounty/BRIEFING_NOTES.md](bounty/BRIEFING_NOTES.md), and our own planning session in
+[whiteboards/](whiteboards/). Where they disagree, the most recent wins: briefing notes, then FAQ,
+then brief.
 
 ---
 
@@ -40,10 +42,12 @@ Roles matter here — **permissions determine what you see**, and each role has 
 
 | Role | What they do in BestRx |
 | --- | --- |
-| **Admissions nurse** | Places the order. Selects a product, picks the patient, checks out. This is the Amazon-shopper role. |
-| **Case manager** | Lives in the dashboard. Watches order and delivery status, adds notes about a patient, chases anything at risk. |
-| **Director of nursing** | Assigns nurses to patients, approves against budget, watches vendor quality. |
-| **Hospice owner / admin** | Sets budgets per role and per patient, configures preferred vendors, reads spending charts, owns EMR integration settings. |
+| **Admissions nurse** | Orders DME when a patient comes on service — the item is already prescribed, they are getting the bed or oxygen in place. The Amazon-shopper role. **Desktop, in the office.** |
+| **Case manager / field nurse** | Visits regularly and orders when the patient's condition progresses. Watches status, adds notes, triggers pickup. **Phone browser, in the home.** |
+| **Director of nursing** | Oversees the nurses, approves high-cost items, reads reporting, balances care against cost. Desktop. |
+| **CEO / administrator** | Cost dashboards, trends, utilization. In their words: if costs cannot be managed, the solution does not survive no matter how much it helps patients. Desktop. |
+
+Details and quotes: [bounty/BRIEFING_NOTES.md](bounty/BRIEFING_NOTES.md).
 
 **The DME vendor** is deliberately low-friction. Baseline assumption: a vendor who **never logs into
 anything** and responds to a text or an email link. A vendor portal is a stretch goal, not a
@@ -61,10 +65,13 @@ it.** Four things, in priority order:
 1. **A shopping experience for equipment.** Browse and filter a catalog the way Amazon, Zara, ASOS,
    or any modern shop app works: a filtering sidebar, sort by delivery date, price, and vendor
    quality rating, product pages, cart, checkout. Select a product, then select the patient it is
-   for.
-2. **Vendor matching that happens automatically.** The hospice does not maintain vendor
-   relationships by hand. We match on proximity, supply, price, and quality rating (rated by the
-   nurses who received the last delivery), and surface preferred vendors per hospice.
+   for. Ordering happens **in our platform** — nurses order directly, often under a physician's
+   standing order, so it is not enough to receive orders flowing out of the EMR.
+2. **Vendor matching that happens automatically.** Today a hospice is locked to one primary vendor,
+   maybe a secondary if they are lucky — which is exactly where the delays come from. We match on
+   proximity, supply, price, and quality rating (rated by the nurses who received the last
+   delivery), and surface preferred vendors per hospice. Vendors set their own prices, so real
+   comparison is possible.
 3. **One pane of glass over the order lifecycle.** Every order, every stage, both sides of the
    handoff, one screen — including the risk flag that fires *before* an order is late, with a
    legible reason.
@@ -120,7 +127,7 @@ Our answer, in five parts — each one maps to something we are building, not a 
 | --- | --- |
 | **Price transparency** | Today a hospice cannot see what another vendor charges for the same HCPCS code. The cost ledger re-prices the exact basket they bought against every vendor in their market, so the gap between what they pay and the best qualified price becomes a number instead of a suspicion. |
 | **Qualified savings, not just cheap** | The cheapest vendor is often the one running 67% on-time. We only count savings from vendors clearing a service floor, so PPD drops without buying back the service failures that cost more than they save. |
-| **Fewer avoidable rental days** | Every day equipment sits in a home after a death is a day the hospice still pays for. Nurse-triggered pickup that starts in minutes instead of days removes those days directly from PPD. |
+| **Fewer avoidable rental days** | The hospice pays for every day equipment sits in the home after a death, and the target is pickup **within 24 hours**. Nurse-triggered pickup that starts in minutes instead of days removes those days directly from PPD. |
 | **Fewer emergency substitutions** | A missed delivery becomes a rush order, a duplicate, or a same-day premium. Flagging an at-risk order while it can still be fixed avoids the expensive recovery. |
 | **Budget caps derived from census** | `PPD allowance x assigned patients x days` makes PPD the unit of control, not just the unit of reporting — an account's ceiling moves with the patients it carries, and overspend is visible while the month is still live. |
 
@@ -186,6 +193,7 @@ this vendor's on-time rate on STAT orders is 81% and its capacity is 91% today")
 attached: escalate, shift the discharge window, or request a backup vendor.
 
 ### Scenario B — Post-death pickup
+Target: equipment gone **within 24 hours**, and every extra day is a day the hospice pays for.
 A patient dies at 7:05 AM. The visiting nurse taps one button before leaving the home. The pickup
 request reaches the vendor immediately by text with a magic link — no portal login, no phone tag —
 and the family gets a scheduled 30-minute window instead of an open-ended wait. The EMR's own status
@@ -252,9 +260,13 @@ per order.
 
 A credible sketch is enough for judging; no production integration required.
 
-- **BetterRX eRx is the spine.** It already receives patient admission, discharge, and death events
-  from the EMR today — the same signals a DME workflow keys off. Existing infrastructure; we extend
-  the same structured-event pattern to DME.
+- **Patient data is already integrated — do not build it.** ADT messages (admit, discharge,
+  transfer) already arrive, and BetterRX already holds the patient, diagnosis, and allergies. Treat
+  it as done and use mock patients. Note that paperwork often lags the patient, so never assume a
+  complete record when the work starts.
+- **The DME vendor side is the real integration gap**, and it is where our thinking should go:
+  deliveries and inventory. BetterRX does not know what a vendor sees when an order arrives or what
+  software they run — they told us to make an assumption and defend it.
 - **DME delivery status is the new capability.** BetterRX does not receive it today. Our events
   (dispatched, in transit, delivered, picked up, with proof of capture) are what make DME spend and
   medication spend sit side by side per patient.

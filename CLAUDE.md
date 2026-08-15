@@ -74,6 +74,10 @@ BetterRX has said they may build on the winning code.
   to decrease my DME PPD (per patient day)?" Before building a screen, know which PPD lever it pulls
   — see [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §6. Cost figures are shown as PPD,
   not only as monthly totals.
+- **Build for a brand-new, non-technical user on the right device.** Field nurses are on a phone
+  browser; admissions nurses and dashboards are desktop. Turnover is high, so assume no training:
+  guide the user to the right action rather than relying on them to pick it. See
+  [docs/bounty/BRIEFING_NOTES.md](docs/bounty/BRIEFING_NOTES.md).
 - **No invented clinical or vendor facts in the UI.** Every number, status, and risk factor shown
   must come from `frontend/src/data/` or be derived from it in code. If a value is an assumption,
   label it as one in the UI. This is a judged criterion, not a style preference.
@@ -99,6 +103,7 @@ Don't memorize these — open the doc when the task touches it.
 | Our own scope decisions: P0/P1/P2, per-view owners | [docs/PROJECT_DESCRIPTION.md](docs/PROJECT_DESCRIPTION.md) §7, [docs/WORKFLOW.md](docs/WORKFLOW.md), [docs/whiteboards/](docs/whiteboards/) |
 | Bounty rules, judging rubric, required features | [docs/bounty/BOUNTY_BRIEF.md](docs/bounty/BOUNTY_BRIEF.md) |
 | Organizer answers that override the brief (scope, pickup trigger, vendor UX) | [docs/bounty/BOUNTY_FAQ.md](docs/bounty/BOUNTY_FAQ.md) |
+| Live Q&A notes: personas, devices, usability bar, what's already integrated | [docs/bounty/BRIEFING_NOTES.md](docs/bounty/BRIEFING_NOTES.md) |
 | Canonical sample orders from the organizers | [docs/bounty/SAMPLE_ORDERS.md](docs/bounty/SAMPLE_ORDERS.md) |
 | Data shapes, table relationships, where the mock DB lives | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) |
 | How we work: description → mockup → spec → tickets | [docs/WORKFLOW.md](docs/WORKFLOW.md) |
