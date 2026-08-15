@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="none">
+  <rect x="120" y="190" width="160" height="24" rx="8" fill="#f2f2f2" stroke="#0a0a0a" stroke-width="8"/>
+  <ellipse cx="200" cy="202" rx="48" ry="10" fill="#ffffff" stroke="#0a0a0a" stroke-width="5"/>
+  <line x1="200" y1="214" x2="200" y2="260" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
+  <rect x="150" y="260" width="100" height="60" rx="10" fill="#e6e6e6" stroke="#0a0a0a" stroke-width="5"/>
+  <line x1="130" y1="190" x2="130" y2="100" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="270" y1="190" x2="270" y2="100" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="130" y1="100" x2="270" y2="100" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="122" y1="202" x2="96" y2="202" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="278" y1="202" x2="304" y2="202" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="96" y1="202" x2="96" y2="250" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="96" y1="250" x2="108" y2="250" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
+  <line x1="304" y1="202" x2="304" y2="250" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="304" y1="250" x2="292" y2="250" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
+  <line x1="130" y1="214" x2="130" y2="320" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="270" y1="214" x2="270" y2="320" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="150" y1="214" x2="150" y2="320" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+  <line x1="250" y1="214" x2="250" y2="320" stroke="#0a0a0a" stroke-width="8" stroke-linecap="round"/>
+</svg>
