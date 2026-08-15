@@ -35,6 +35,11 @@ export function moneyLabel(amount: number): string {
   return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
+/** Money with cents, for the cart's line prices and totals where precision reads as trust. */
+export function moneyCents(amount: number): string {
+  return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export function itemPrice(entry: CatalogEntry): ItemPrice {
   if (entry.rental && entry.avgMonthlyAllowedUsd !== undefined) {
     return { amount: entry.avgMonthlyAllowedUsd, unit: '/mo' };
@@ -118,6 +123,65 @@ export function patientMeta(patient: Patient): string {
   return `${place} · ${patient.status.replace('_', ' ')}`;
 }
 
+/**
+ * The dataset's "today" (see docs/DATA_MODEL.md — 2026-08-14, Mountain). Deadline comparisons on
+ * the cart are rule-based against this fixed clock, so they stay deterministic and auditable.
+ */
+export const DATASET_NOW = new Date('2026-08-14T12:00:00-06:00');
+
+const ARRIVAL_FMT = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+/** Earliest a line can arrive: dataset "now" plus the fastest known vendor lead time. */
+export function earliestArrival(leadDays: number | null): Date | null {
+  if (leadDays === null) return null;
+  const d = new Date(DATASET_NOW);
+  d.setDate(d.getDate() + leadDays);
+  return d;
+}
+
+export interface CartLineTiming {
+  /** True when the patient has a discharge and the earliest arrival lands after it. */
+  missesDischarge: boolean;
+  /** One human line a nurse can read: arrival date, and the deadline it misses when it does. */
+  text: string;
+}
+
+/** Rule-based delivery-vs-discharge check for one cart line. No model, no fabricated dates. */
+export function cartLineTiming(
+  patient: Patient,
+  leadDays: number | null,
+  unit: ItemPrice['unit'],
+): CartLineTiming {
+  const kind = unit === '/mo' ? 'rental' : 'one-time purchase';
+  const arrival = earliestArrival(leadDays);
+  if (!arrival) return { missesDischarge: false, text: `Vendor assigned at dispatch · ${kind}` };
+  if (patient.dischargeAt) {
+    const discharge = new Date(patient.dischargeAt);
+    if (arrival > discharge) {
+      return {
+        missesDischarge: true,
+        text: `Earliest arrival ${ARRIVAL_FMT.format(arrival)} — after the ${TIME_FMT.format(discharge)} ${DATE_FMT.format(discharge)} discharge`,
+      };
+    }
+  }
+  return { missesDischarge: false, text: `Arrives ~${ARRIVAL_FMT.format(arrival)} · ${kind}` };
+}
+
+export interface CartPpdImpact {
+  /** Rental dollars this order adds per day, over the budget period. */
+  perDay: number;
+  /** That daily cost spread across the hospice's active census — the PPD contribution. */
+  ppdContribution: number;
+  census: number;
+  days: number;
+}
+
+/** What this order's recurring rentals add to the hospice's DME PPD. Derived, labeled as such in UI. */
+export function cartPpdImpact(monthlyRentals: number, census: number, days: number): CartPpdImpact {
+  const perDay = days > 0 ? monthlyRentals / days : 0;
+  return { perDay, ppdContribution: census > 0 ? perDay / census : 0, census, days };
+}
+
 export type SortKey = 'featured' | 'price' | 'speed';
 export type SpeedFilter = 'any' | '1' | '3' | '7';
 
@@ -168,6 +232,12 @@ export interface CartLineVM {
   name: string;
   imagePath: string;
   metaLine: string;
+  /** Human category label, e.g. "Beds & Support". */
+  categoryLabel: string;
+  /** Vendors known to carry the item, or "Vendor assigned at dispatch". */
+  vendorNote: string;
+  /** Fastest known vendor lead time in days; null when no vendor is linked yet. */
+  leadDays: number | null;
   lineTotal: number;
   priceUnit: ItemPrice['unit'];
   dupe: boolean;
@@ -219,7 +289,7 @@ export function buildCartGroups(
 
     const vendorNote = item.vendors.length
       ? item.vendors.map((v) => v.name.replace('Sample ', '')).join(', ')
-      : 'vendor at dispatch';
+      : 'Vendor assigned at dispatch';
     const leadNote = item.leadDays !== null ? (item.leadDays === 1 ? 'next day' : `${item.leadDays} days`) : null;
 
     const lineVM: CartLineVM = {
@@ -229,6 +299,9 @@ export function buildCartGroups(
       name: item.entry.name,
       imagePath: item.entry.imagePath,
       metaLine: `${item.entry.hcpcs} · ${vendorNote}${leadNote ? ` · ${leadNote}` : ''}`,
+      categoryLabel: CATEGORY_LABELS[item.entry.category],
+      vendorNote,
+      leadDays: item.leadDays,
       lineTotal: item.price.amount * line.qty,
       priceUnit: item.price.unit,
       dupe: patientOwnsEquipment(line.patientId, line.hcpcs),

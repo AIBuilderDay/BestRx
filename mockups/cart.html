@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BestRx Cart — three options</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #fafafa; --surface: #ffffff;
+    --hover: #f5f5f5; --track: #ececec;
+    --line: #eaeaea; --line-strong: #d4d4d4;
+    --ink: #0a0a0a; --ink-2: #555555; --ink-3: #888888;
+    --solid-bg: #0a0a0a; --solid-ink: #ffffff;
+    --good: #15803d; --good-bg: #f0fdf4;
+    --warn: #b45309; --warn-bg: #fffbeb;
+    --risk: #b42318; --risk-bg: #fef3f2;
+    --radius-control: 7px; --radius-card: 10px; --radius-panel: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --bg-subtle: #141414; --surface: #161616;
+      --hover: #1f1f1f; --track: #2a2a2a;
+      --line: #555555; --line-strong: #777777;
+      --ink: #fafafa; --ink-2: #c8c8c8; --ink-3: #9a9a9a;
+      --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+      --good: #4ade80; --good-bg: #0d1f14;
+      --warn: #fbbf24; --warn-bg: #241a06;
+      --risk: #f97066; --risk-bg: #2a1210;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --bg-subtle: #141414; --surface: #161616;
+    --hover: #1f1f1f; --track: #2a2a2a;
+    --line: #555555; --line-strong: #777777;
+    --ink: #fafafa; --ink-2: #c8c8c8; --ink-3: #9a9a9a;
+    --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+    --good: #4ade80; --good-bg: #0d1f14;
+    --warn: #fbbf24; --warn-bg: #241a06;
+    --risk: #f97066; --risk-bg: #2a1210;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  /* ---- mockup chrome (not part of the app) ---- */
+  .chrome { position: sticky; top: 0; z-index: 100; background: var(--bg-subtle);
+    border-bottom: 1px solid var(--line); padding: 10px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .chrome .brand { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; }
+  .chrome .brand span { color: var(--ink-3); font-weight: 400; }
+  .tabs { display: flex; gap: 4px; }
+  .tab { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--surface);
+    color: var(--ink-2); border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+  .tab:hover { border-color: var(--line-strong); }
+  .tab[aria-selected="true"] { background: var(--solid-bg); color: var(--solid-ink); border-color: var(--solid-bg); }
+  .chrome .spacer { flex: 1; }
+  .ghostbtn { font: inherit; font-size: 12.5px; border: 1px solid var(--line-strong); background: var(--surface);
+    color: var(--ink); border-radius: var(--radius-control); padding: 6px 12px; cursor: pointer; }
+  .ghostbtn:hover { background: var(--hover); }
+
+  .tabnote { max-width: 1180px; margin: 0 auto; padding: 18px 24px 0; color: var(--ink-2); font-size: 13px; }
+  .tabnote b { color: var(--ink); }
+  .panel[hidden] { display: none; }
+
+  /* ---- shared app-nav bar shown inside each option ---- */
+  .appnav { display: flex; align-items: center; gap: 26px; padding: 14px 24px; border-bottom: 1px solid var(--line); }
+  .logo { display: inline-flex; align-items: center; }
+  .navlinks { display: flex; gap: 20px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+  .navlinks .on { color: var(--ink); }
+  .navr { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .viewcart { font: inherit; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    border-radius: 999px; padding: 7px 14px 7px 12px; display: inline-flex; align-items: center; gap: 8px; }
+  .viewcart:hover { background: var(--hover); }
+  .viewcart .badge { background: var(--solid-bg); color: var(--solid-ink); border-radius: 999px;
+    min-width: 18px; height: 18px; padding: 0 5px; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; }
+  .viewcart svg { display: block; }
+
+  /* ---- thumbnails ---- */
+  .thumb { border: 1px solid var(--line); background: var(--bg-subtle); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; color: var(--ink-3); }
+  .thumb svg { width: 58%; height: 58%; }
+
+  /* ---- pills / meters (from design system) ---- */
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 500;
+    padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--ink-2); }
+  .pill.good { color: var(--good); border-color: var(--good); background: var(--good-bg); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+  .pill.risk { color: var(--risk); border-color: var(--risk); background: var(--risk-bg); }
+  .meter { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+  .meter > i { display: block; height: 100%; border-radius: 3px; background: var(--ink); }
+  .meter > i.warn { background: var(--warn); }
+  .meter > i.risk { background: var(--risk); }
+
+  /* ---- qty stepper ---- */
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: var(--radius-control); overflow: hidden; }
+  .stepper button { font: inherit; width: 26px; height: 26px; border: 0; background: var(--surface); color: var(--ink); cursor: pointer; line-height: 1; }
+  .stepper button:hover { background: var(--solid-bg); color: var(--solid-ink); }
+  .stepper .q { width: 30px; text-align: center; font-size: 12.5px; }
+  .linkbtn { font: inherit; font-size: 11.5px; color: var(--ink-3); background: none; border: 0; padding: 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px; }
+  .linkbtn:hover { color: var(--ink); }
+
+  .primary { font: inherit; width: 100%; border: 1px solid var(--solid-bg); background: var(--solid-bg); color: var(--solid-ink);
+    border-radius: var(--radius-control); padding: 13px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+  .primary:hover { opacity: .85; }
+
+  .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+
+  /* =========================================================
+     OPTION A — full-page storefront cart (Nike two-column)
+     ========================================================= */
+  .A-wrap { max-width: 1120px; margin: 0 auto; padding: 34px 24px 80px; }
+  .A-crumb { font-size: 12px; color: var(--ink-3); }
+  .A-h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 6px 0 2px; }
+  .A-sub { font-size: 13px; color: var(--ink-2); }
+  .A-grid { display: grid; grid-template-columns: minmax(0,1fr) 340px; gap: 44px; margin-top: 26px; align-items: start; }
+  .A-group + .A-group { margin-top: 8px; }
+  .A-ghead { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 0 10px; border-bottom: 1px solid var(--ink); }
+  .A-ghead .pname { font-size: 14px; font-weight: 600; }
+  .A-ghead .pmeta { font-size: 11.5px; color: var(--ink-3); }
+  .A-line { display: grid; grid-template-columns: 92px minmax(0,1fr) auto; gap: 18px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+  .A-line .thumb { width: 92px; height: 112px; }
+  .A-name { font-size: 15px; }
+  .A-meta { font-size: 12px; color: var(--ink-3); margin-top: 3px; }
+  .A-arrive { font-size: 12px; margin-top: 10px; color: var(--ink-2); }
+  .A-arrive.risk { color: var(--risk); }
+  .A-ctrls { margin-top: 14px; display: flex; align-items: center; gap: 16px; }
+  .A-price { text-align: right; font-size: 14px; white-space: nowrap; }
+  .A-price .unit { color: var(--ink-3); font-size: 12px; }
+  .A-summary { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface);
+    padding: 20px; position: sticky; top: 88px; }
+  .A-summary h2 { font-size: 16px; font-weight: 600; margin: 0 0 14px; }
+  .A-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; padding: 7px 0; color: var(--ink-2); }
+  .A-row b { color: var(--ink); font-weight: 500; }
+  .A-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; font-weight: 600;
+    padding: 12px 0; border-top: 1px solid var(--line-strong); margin-top: 4px; }
+  .A-budget { border: 1px solid var(--line); border-radius: 8px; background: var(--bg-subtle); padding: 12px; margin: 14px 0; }
+  .A-fine { font-size: 11px; color: var(--ink-3); margin: 12px 0; line-height: 1.5; }
+
+  /* =========================================================
+     OPTION B — slide-over drawer over a dimmed catalog
+     ========================================================= */
+  .B-stage { position: relative; height: 720px; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .B-back { position: absolute; inset: 0; padding: 22px 26px; filter: saturate(.5); }
+  .B-back .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 20px; }
+  .B-back .pc { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+  .B-back .pc .im { height: 130px; background: var(--bg-subtle); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink-3); }
+  .B-back .pc .im svg { width: 46px; height: 46px; }
+  .B-back .pc .cap { padding: 12px; display: flex; justify-content: space-between; font-size: 12.5px; }
+  .B-scrim { position: absolute; inset: 0; background: rgba(0,0,0,.28); }
+  .B-drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 392px; max-width: 94%; background: var(--surface);
+    border-left: 1px solid var(--line); box-shadow: -18px 0 40px rgba(0,0,0,.16); display: flex; flex-direction: column; }
+  .B-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; }
+  .B-head .t { font-size: 17px; margin-top: 4px; }
+  .B-head .s { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .B-x { border: 0; background: none; color: var(--ink-3); font-size: 16px; cursor: pointer; padding: 2px; }
+  .B-x:hover { color: var(--ink); }
+  .B-alert { margin: 14px 20px 0; border: 1px solid var(--risk); background: var(--risk-bg); color: var(--risk);
+    border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.45; display: flex; gap: 9px; }
+  .B-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+  .B-pgroup + .B-pgroup { margin-top: 18px; }
+  .B-pgroup .ph { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--ink); padding-bottom: 6px; }
+  .B-pgroup .ph .n { font-size: 13px; font-weight: 600; }
+  .B-pgroup .ph .m { font-size: 11px; color: var(--ink-3); }
+  .B-item { display: grid; grid-template-columns: 44px minmax(0,1fr) auto; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+  .B-item .thumb { width: 44px; height: 52px; }
+  .B-item .nm { font-size: 12.5px; }
+  .B-item .mt { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .B-item .pr { text-align: right; font-size: 12.5px; white-space: nowrap; }
+  .B-item .pr .u { color: var(--ink-3); font-size: 11px; }
+  .B-foot { border-top: 1px solid var(--line); padding: 16px 20px; }
+  .B-frow { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; color: var(--ink-2); }
+  .B-frow b { color: var(--ink); }
+
+  /* =========================================================
+     OPTION C — ledger table cart (dashboard feel)
+     ========================================================= */
+  .C-wrap { max-width: 1200px; margin: 0 auto; padding: 30px 24px 80px; }
+  .C-h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .C-sub { font-size: 13px; color: var(--ink-2); margin-top: 3px; }
+  .C-layout { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 28px; margin-top: 22px; align-items: start; }
+  .C-tablewrap { border: 1px solid var(--line); border-radius: var(--radius-card); overflow-x: auto; }
+  table.C { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+  table.C th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3);
+    font-weight: 500; padding: 10px 14px; background: var(--bg-subtle); border-bottom: 1px solid var(--line); }
+  table.C td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; color: var(--ink-2); }
+  table.C td.r, table.C th.r { text-align: right; }
+  table.C .it { display: flex; align-items: center; gap: 11px; }
+  table.C .it .thumb { width: 40px; height: 40px; flex: none; }
+  table.C .it .nm { color: var(--ink); font-size: 13px; }
+  table.C .it .cat { color: var(--ink-3); font-size: 11px; }
+  table.C .pcell { color: var(--ink); }
+  table.C .pcell .m { color: var(--ink-3); font-size: 11px; }
+  table.C tr.risk td { background: var(--risk-bg); }
+  table.C tfoot td { border-top: 1px solid var(--line-strong); border-bottom: 0; font-weight: 600; color: var(--ink);
+    background: var(--bg-subtle); padding-top: 13px; padding-bottom: 13px; }
+  .C-rail { display: grid; gap: 14px; position: sticky; top: 20px; }
+  .C-tile { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); padding: 14px 16px; }
+  .C-tile.emph { border-color: var(--ink); }
+  .C-tile .v { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-top: 5px; }
+  .C-tile .d { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+  .C-tile .d.risk { color: var(--risk); }
+
+  @media (max-width: 860px) {
+    .A-grid, .C-layout { grid-template-columns: 1fr; }
+    .A-summary, .C-rail { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== MOCKUP CHROME ===================== -->
+<div class="chrome">
+  <div class="brand">BestRx cart <span>· three layout options</span></div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true"  data-panel="A">A · Storefront page</button>
+    <button class="tab" role="tab" aria-selected="false" data-panel="B">B · Slide-over drawer</button>
+    <button class="tab" role="tab" aria-selected="false" data-panel="C">C · Ledger table</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="ghostbtn" id="themeToggle">Toggle theme</button>
+</div>
+
+<!-- SVG glyph defs reused by thumbnails -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="g-bed"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 12h18M3 12v-4a2 2 0 0 1 2-2h6v6M21 12v6M3 12v6M3 16h18"/></g>
+    <g id="g-o2"><rect x="7" y="3" width="10" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" d="M10 7h4M10 11h4"/></g>
+    <g id="g-cpap"><rect x="3" y="8" width="13" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" d="M16 12h3a2 2 0 0 1 0 4h-1"/></g>
+    <g id="g-walk"><path fill="none" stroke="currentColor" stroke-width="2" d="M6 3v16M18 3v16M6 8h12M8 21l-2 0M18 21l-2 0M6 12h12"/></g>
+  </defs>
+</svg>
+
+<script>
+  // reusable thumb markup
+  function thumb(glyph){ return '<span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-'+glyph+'"/></svg></span>'; }
+</script>
+
+<!-- ===================================================================
+     OPTION A — STOREFRONT PAGE
+     =================================================================== -->
+<section class="panel" data-panel="A">
+  <p class="tabnote"><b>Option A — Storefront page.</b> A dedicated <code>/cart</code> route with the
+    familiar two-column shop layout: line items on the left grouped by patient, a sticky order summary on
+    the right. Closest to the Nike reference. Best when the nurse wants a full-screen review before ordering.</p>
+
+  <nav class="appnav">
+    <span class="logo">
+      <svg width="74" height="26" viewBox="0 0 300 110" aria-label="BestRx"><rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/><text x="80" y="74" fill="var(--bg)" font-family="-apple-system,sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text><text x="187" y="46" fill="var(--bg)" font-family="-apple-system,sans-serif" font-size="21" font-weight="700">RX</text></svg>
+    </span>
+    <span class="navlinks"><span class="on">Catalog</span><span>Orders</span><span>Pickups</span><span>Costs</span><span>Vendors</span></span>
+    <span class="navr">
+      <button class="viewcart">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.4 12.3a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/><circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg>
+        View cart <span class="badge">4</span>
+      </button>
+    </span>
+  </nav>
+
+  <div class="A-wrap">
+    <div class="A-crumb">Sample Hospice A / Catalog / Cart</div>
+    <h1 class="A-h1">Your cart</h1>
+    <div class="A-sub">4 items for 2 patients · ordering as Bea Cordova · Admissions · billed to hospice contract</div>
+
+    <div class="A-grid">
+      <!-- LEFT: line items grouped by patient -->
+      <div>
+        <div class="A-group">
+          <div class="A-ghead">
+            <span class="pname">Curtis Rahn</span>
+            <span class="pmeta">Salt Lake City, UT · discharge 4:30 PM Aug 14</span>
+          </div>
+
+          <div class="A-line">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></span>
+            <div>
+              <div class="A-name">Hospital Bed</div>
+              <div class="A-meta">E0250 · Beds &amp; Support · Vendor 1, Vendor 3</div>
+              <div class="A-arrive risk">⚠ Earliest arrival Aug 15 — after the 4:30 PM Aug 14 discharge</div>
+              <div class="A-ctrls">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Reassign patient</button>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="A-price num">$65.47<span class="unit">/mo</span></div>
+          </div>
+
+          <div class="A-line">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></span>
+            <div>
+              <div class="A-name">Oxygen Concentrator</div>
+              <div class="A-meta">E1390 · Respiratory · Vendor 2 · 2-day lead</div>
+              <div class="A-arrive risk">⚠ Earliest arrival Aug 16 — after the 4:30 PM Aug 14 discharge</div>
+              <div class="A-ctrls">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Reassign patient</button>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="A-price num">$115.77<span class="unit">/mo</span></div>
+          </div>
+        </div>
+
+        <div class="A-group">
+          <div class="A-ghead">
+            <span class="pname">Nadine Orwell</span>
+            <span class="pmeta">Provo, UT · active care</span>
+          </div>
+
+          <div class="A-line">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-cpap"/></svg></span>
+            <div>
+              <div class="A-name">CPAP Device</div>
+              <div class="A-meta">E0601 · Respiratory · Vendor 2 · 2-day lead</div>
+              <div class="A-arrive">Arrives ~Aug 16 · rental</div>
+              <div class="A-ctrls">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Reassign patient</button>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="A-price num">$47.42<span class="unit">/mo</span></div>
+          </div>
+
+          <div class="A-line">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-walk"/></svg></span>
+            <div>
+              <div class="A-name">Walker</div>
+              <div class="A-meta">E0143 · Mobility · Vendor 1 · 1-day lead</div>
+              <div class="A-arrive">Arrives ~Aug 15 · one-time purchase</div>
+              <div class="A-ctrls">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Reassign patient</button>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="A-price num">$64.17</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: sticky summary -->
+      <aside class="A-summary">
+        <h2>Summary</h2>
+        <div class="A-row"><span>Monthly rentals (3)</span><b class="num">$228.66/mo</b></div>
+        <div class="A-row"><span>One-time purchases (1)</span><b class="num">$64.17</b></div>
+        <div class="A-row"><span>Shipping</span><b>Billed to contract</b></div>
+        <div class="A-total"><span>First-month total</span><span class="num">$292.83</span></div>
+
+        <div class="A-budget">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px">
+            <span class="k">Admissions budget · Aug</span><span class="pill">71% used</span>
+          </div>
+          <div class="meter"><i style="width:71%"></i></div>
+          <div style="font-size:11px;color:var(--ink-3);margin-top:7px" class="num">$8,433 of $11,904 after this order · $3,471 left</div>
+          <div style="font-size:10.5px;color:var(--ink-3);margin-top:3px">Cap derived: $8.00 PPD × 48 patients × 31 days</div>
+        </div>
+
+        <div class="A-fine">Adds ≈ <b>$0.05</b> to hospice DME PPD ($7.38/day rental across 142-patient census). PPD figure derived from synthetic data.</div>
+
+        <button class="primary">Place order</button>
+        <div class="A-fine" style="margin-bottom:0">Two orders will be created — one per patient. Vendors are confirmed at dispatch.</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================
+     OPTION B — SLIDE-OVER DRAWER
+     =================================================================== -->
+<section class="panel" data-panel="B" hidden>
+  <p class="tabnote"><b>Option B — Slide-over drawer.</b> Evolves the current drawer. Slides in over the
+    catalog so the nurse never loses their place, with an at-risk banner surfaced at the top and the budget +
+    PPD story folded into the footer. Best for adding items and ordering in one continuous flow.</p>
+
+  <div class="B-stage">
+    <!-- dimmed catalog behind -->
+    <div class="B-back">
+      <nav class="appnav" style="padding-left:0;padding-right:0;border:0">
+        <span class="logo"><svg width="70" height="24" viewBox="0 0 300 110" aria-label="BestRx"><rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/><text x="80" y="74" fill="var(--bg)" font-family="-apple-system,sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text><text x="187" y="46" fill="var(--bg)" font-family="-apple-system,sans-serif" font-size="21" font-weight="700">RX</text></svg></span>
+        <span class="navlinks"><span class="on">Catalog</span><span>Orders</span><span>Pickups</span><span>Costs</span></span>
+      </nav>
+      <div class="cards">
+        <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></div><div class="cap"><span>Hospital Bed</span><span class="num">$65/mo</span></div></div>
+        <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></div><div class="cap"><span>Oxygen Conc.</span><span class="num">$116/mo</span></div></div>
+        <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-cpap"/></svg></div><div class="cap"><span>CPAP Device</span><span class="num">$47/mo</span></div></div>
+        <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-walk"/></svg></div><div class="cap"><span>Walker</span><span class="num">$64</span></div></div>
+        <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></div><div class="cap"><span>Air Mattress</span><span class="num">$212/mo</span></div></div>
+        <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></div><div class="cap"><span>Portable O₂</span><span class="num">$21/mo</span></div></div>
+      </div>
+    </div>
+    <div class="B-scrim"></div>
+
+    <!-- the drawer -->
+    <aside class="B-drawer">
+      <div class="B-head">
+        <div>
+          <div class="k">Cart</div>
+          <div class="t">4 items · 2 patients</div>
+          <div class="s">Ordering as Bea Cordova · Admissions</div>
+        </div>
+        <button class="B-x" aria-label="Close cart">✕</button>
+      </div>
+
+      <div class="B-alert">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex:none;margin-top:1px"><path d="M12 9v4M12 17h.01M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <span><b>2 items may miss a discharge.</b> Curtis Rahn discharges 4:30 PM today; earliest arrival is Aug 15. Reassign, expedite, or split this order.</span>
+      </div>
+
+      <div class="B-body">
+        <div class="B-pgroup">
+          <div class="ph"><span class="n">Curtis Rahn</span><span class="m">SLC, UT · discharge 4:30 PM Aug 14</span></div>
+          <div class="B-item">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></span>
+            <div>
+              <div class="nm">Hospital Bed</div>
+              <div class="mt">E0250 · Vendor 1, Vendor 3 · 1 day</div>
+              <div style="margin-top:5px"><span class="pill risk">Arrives after discharge</span></div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="pr num">$65.47<span class="u">/mo</span></div>
+          </div>
+          <div class="B-item">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></span>
+            <div>
+              <div class="nm">Oxygen Concentrator</div>
+              <div class="mt">E1390 · Vendor 2 · 2 days</div>
+              <div style="margin-top:5px"><span class="pill risk">Arrives after discharge</span></div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="pr num">$115.77<span class="u">/mo</span></div>
+          </div>
+        </div>
+
+        <div class="B-pgroup">
+          <div class="ph"><span class="n">Nadine Orwell</span><span class="m">Provo, UT · active</span></div>
+          <div class="B-item">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-cpap"/></svg></span>
+            <div>
+              <div class="nm">CPAP Device</div>
+              <div class="mt">E0601 · Vendor 2 · 2 days</div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="pr num">$47.42<span class="u">/mo</span></div>
+          </div>
+          <div class="B-item">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-walk"/></svg></span>
+            <div>
+              <div class="nm">Walker</div>
+              <div class="mt">E0143 · Vendor 1 · 1 day · purchase</div>
+              <div style="margin-top:8px;display:flex;align-items:center;gap:12px">
+                <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+                <button class="linkbtn">Remove</button>
+              </div>
+            </div>
+            <div class="pr num">$64.17</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="B-foot">
+        <div class="B-frow"><span>Monthly rentals</span><b class="num">$228.66/mo</b></div>
+        <div class="B-frow"><span>One-time purchases</span><b class="num">$64.17</b></div>
+        <div style="margin:10px 0 4px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-bottom:6px">
+            <span>Admissions budget · Aug (after order)</span><span class="num">71%</span>
+          </div>
+          <div class="meter"><i style="width:71%"></i></div>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink-3);margin:6px 0 12px">Adds ≈ $0.05 to DME PPD · $3,471 left in cap · vendors confirmed at dispatch</div>
+        <button class="primary">Place order · 2 patients</button>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ===================================================================
+     OPTION C — LEDGER TABLE
+     =================================================================== -->
+<section class="panel" data-panel="C" hidden>
+  <p class="tabnote"><b>Option C — Ledger table.</b> A dense, dashboard-style cart that matches the cost-ledger
+    look. Every line is a row with vendor, lead time, and split rental/purchase columns; a totals footer sums
+    it. Best for a desktop admissions nurse staging a big multi-patient order and watching the money as they go.</p>
+
+  <nav class="appnav">
+    <span class="logo"><svg width="74" height="26" viewBox="0 0 300 110" aria-label="BestRx"><rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/><text x="80" y="74" fill="var(--bg)" font-family="-apple-system,sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text><text x="187" y="46" fill="var(--bg)" font-family="-apple-system,sans-serif" font-size="21" font-weight="700">RX</text></svg></span>
+    <span class="navlinks"><span class="on">Catalog</span><span>Orders</span><span>Pickups</span><span>Costs</span><span>Vendors</span></span>
+    <span class="navr">
+      <button class="viewcart"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h2l2.4 12.3a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/><circle cx="9" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></svg> View cart <span class="badge">4</span></button>
+    </span>
+  </nav>
+
+  <div class="C-wrap">
+    <div class="C-h1">Cart — order review</div>
+    <div class="C-sub">4 lines · 2 patients · Sample Hospice A · ordering as Bea Cordova, Admissions</div>
+
+    <div class="C-layout">
+      <div class="C-tablewrap">
+        <table class="C">
+          <thead>
+            <tr>
+              <th>Item</th><th>Patient</th><th>Vendor · lead</th><th class="r">Qty</th>
+              <th class="r">Monthly</th><th class="r">One-time</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="risk">
+              <td><span class="it"><span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></span><span><span class="nm">Hospital Bed</span><br><span class="cat">E0250 · Beds</span></span></span></td>
+              <td class="pcell">Curtis Rahn<div class="m">discharge 4:30 PM today</div></td>
+              <td>Vendor 1 · 1 day<div><span class="pill risk">after discharge</span></div></td>
+              <td class="r num">1</td>
+              <td class="r num">$65.47</td>
+              <td class="r num">—</td>
+              <td class="r"><button class="linkbtn">Remove</button></td>
+            </tr>
+            <tr class="risk">
+              <td><span class="it"><span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></span><span><span class="nm">Oxygen Concentrator</span><br><span class="cat">E1390 · Respiratory</span></span></span></td>
+              <td class="pcell">Curtis Rahn<div class="m">discharge 4:30 PM today</div></td>
+              <td>Vendor 2 · 2 days<div><span class="pill risk">after discharge</span></div></td>
+              <td class="r num">1</td>
+              <td class="r num">$115.77</td>
+              <td class="r num">—</td>
+              <td class="r"><button class="linkbtn">Remove</button></td>
+            </tr>
+            <tr>
+              <td><span class="it"><span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-cpap"/></svg></span><span><span class="nm">CPAP Device</span><br><span class="cat">E0601 · Respiratory</span></span></span></td>
+              <td class="pcell">Nadine Orwell<div class="m">Provo · active</div></td>
+              <td>Vendor 2 · 2 days</td>
+              <td class="r num">1</td>
+              <td class="r num">$47.42</td>
+              <td class="r num">—</td>
+              <td class="r"><button class="linkbtn">Remove</button></td>
+            </tr>
+            <tr>
+              <td><span class="it"><span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-walk"/></svg></span><span><span class="nm">Walker</span><br><span class="cat">E0143 · Mobility</span></span></span></td>
+              <td class="pcell">Nadine Orwell<div class="m">Provo · active</div></td>
+              <td>Vendor 1 · 1 day</td>
+              <td class="r num">1</td>
+              <td class="r num">—</td>
+              <td class="r num">$64.17</td>
+              <td class="r"><button class="linkbtn">Remove</button></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4">Totals</td>
+              <td class="r num">$228.66/mo</td>
+              <td class="r num">$64.17</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <aside class="C-rail">
+        <div class="C-tile">
+          <div class="k">First-month total</div>
+          <div class="v num">$292.83</div>
+          <div class="d">$228.66/mo rentals + $64.17 one-time</div>
+        </div>
+        <div class="C-tile emph">
+          <div class="k">At risk</div>
+          <div class="v num" style="color:var(--risk)">2</div>
+          <div class="d risk">2 items arrive after Curtis Rahn's discharge</div>
+        </div>
+        <div class="C-tile">
+          <div class="k">DME PPD impact</div>
+          <div class="v num">+$0.05</div>
+          <div class="d">$7.38/day across 142-patient census · derived</div>
+        </div>
+        <div class="C-tile">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span class="k">Admissions budget · Aug</span><span class="pill">71%</span>
+          </div>
+          <div class="meter" style="margin-top:9px"><i style="width:71%"></i></div>
+          <div class="d num" style="margin-top:8px">$8,433 of $11,904 after order · $3,471 left</div>
+        </div>
+        <button class="primary">Place order</button>
+        <div style="font-size:10.5px;color:var(--ink-3);text-align:center">Creates 2 orders · vendors confirmed at dispatch</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Tabs
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    const want = t.dataset.panel;
+    panels.forEach(p => { p.hidden = p.dataset.panel !== want; });
+  }));
+
+  // Theme toggle — mirrors the design-system doc
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const r = document.documentElement;
+    const dark = getComputedStyle(r).getPropertyValue('--bg').trim().toLowerCase() === '#0a0a0a';
+    r.setAttribute('data-theme', dark ? 'light' : 'dark');
+  });
+</script>
+
+</body>
+</html>
