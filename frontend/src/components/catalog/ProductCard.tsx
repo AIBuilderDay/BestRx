@@ -10,6 +10,7 @@ export function ProductCard({
   onUnitChange,
   onOrderNow,
   aiReason,
+  isPreferred,
 }: {
   item: CatalogProductVM;
   /** The arrangement this card is showing — the page mode, or its own override. */
@@ -18,6 +19,8 @@ export function ProductCard({
   onOrderNow: () => void;
   /** One short model-written line on why this ranked here (AI search only). */
   aiReason?: string;
+  /** Set from the cost dashboard's "Use this vendor" — this vendor won a Potential Savings pick for this code. */
+  isPreferred?: boolean;
 }) {
   const [imgBroken, setImgBroken] = useState(false);
   const { offer, vendor, rating } = item;
@@ -60,6 +63,11 @@ export function ProductCard({
               </>
             )}
           </Link>
+          {isPreferred ? (
+            <span className="pointer-events-none absolute left-2.5 top-2.5 border border-good bg-good-bg px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-good">
+              Preferred
+            </span>
+          ) : null}
           <button
             type="button"
             onClick={(e) => {

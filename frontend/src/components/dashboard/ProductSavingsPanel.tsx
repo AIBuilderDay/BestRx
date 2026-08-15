@@ -1,4 +1,5 @@
 import { moneyLabel } from '../../lib/catalog';
+import type { PreferredVendorMap } from '../../lib/preferredVendors';
 import {
   countGenuineSavings,
   totalPotentialSavingsUsd,
@@ -10,7 +11,15 @@ import { ProductSavingsRow } from './ProductSavingsRow';
 const HEAD = 'px-3 py-2.5 text-right text-[11px] uppercase tracking-[0.06em] text-ink-3';
 
 /** Per-product vendor recommendations for the Potential Savings tile. Sorted biggest opportunity first. */
-export function ProductSavingsPanel({ rows }: { rows: ProductSavingsRowData[] }) {
+export function ProductSavingsPanel({
+  rows,
+  preferredVendors,
+  onUseVendor,
+}: {
+  rows: ProductSavingsRowData[];
+  preferredVendors: PreferredVendorMap;
+  onUseVendor: (hcpcs: string, vendorId: string) => void;
+}) {
   const total = totalPotentialSavingsUsd(rows);
   const genuineCount = countGenuineSavings(rows);
 
@@ -46,11 +55,17 @@ export function ProductSavingsPanel({ rows }: { rows: ProductSavingsRowData[] })
                 <th className={HEAD}>Unit price</th>
                 <th className={HEAD}>Savings</th>
                 <th className={HEAD}>Value</th>
+                <th className={HEAD}>Action</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((row) => (
-                <ProductSavingsRow key={row.hcpcs} row={row} />
+                <ProductSavingsRow
+                  key={row.hcpcs}
+                  row={row}
+                  isPreferred={preferredVendors[row.hcpcs] === row.suggested?.vendor.id}
+                  onUseVendor={onUseVendor}
+                />
               ))}
             </tbody>
           </table>

@@ -34,7 +34,15 @@ const lossPenaltyLabel = (penalty: number): string =>
   penalty > 0 ? `, ${penalty} point loss penalty` : '';
 
 /** One ordered product: the AI-suggested alternative vendor, its rating, unit price, and savings vs. what was paid. */
-export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
+export function ProductSavingsRow({
+  row,
+  isPreferred,
+  onUseVendor,
+}: {
+  row: ProductSavingsRowData;
+  isPreferred: boolean;
+  onUseVendor: (hcpcs: string, vendorId: string) => void;
+}) {
   const suggested = row.suggested;
   const saves = suggested !== null && suggested.savingsUsd > 0;
 
@@ -51,7 +59,7 @@ export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
       </td>
 
       {suggested === null ? (
-        <td className="px-3 py-2.5 text-[12px] text-ink-3" colSpan={5}>
+        <td className="px-3 py-2.5 text-[12px] text-ink-3" colSpan={6}>
           No other vendor prices this product.
         </td>
       ) : (
@@ -76,7 +84,7 @@ export function ProductSavingsRow({ row }: { row: ProductSavingsRowData }) {
             <span className="ml-1 text-[11px] text-ink-3">({suggested.ratingCount})</span>
           </td>
           <td className={CELL}>{moneyCents(suggested.unitUsd)}</td>
-          <td className={`${CELL} font-semibold ${saves ? 'text-good' : 'text-ink'}`}>
+          <td className={`${CELL} font-semibold ${saves ? 'bg-good-bg text-good' : 'text-ink'}`}>
             {saves
               ? moneyLabel(suggested.savingsUsd)
               : `-${moneyLabel(Math.abs(suggested.savingsUsd))}`}
@@ -112,6 +120,20 @@ Local service: ${suggested.valueCriteria.localServiceScore}/5 - ${serviceAreaSum
                 </span>
               </span>
             </span>
+          </td>
+          <td className="px-3 py-2.5 text-right">
+            <button
+              type="button"
+              disabled={isPreferred}
+              onClick={() => onUseVendor(row.hcpcs, suggested.vendor.id)}
+              className={
+                isPreferred
+                  ? 'rounded-control border border-good bg-good-bg px-2.5 py-1 text-[11px] font-medium text-good'
+                  : 'rounded-control border border-line-strong px-2.5 py-1 text-[11px] text-ink-2 transition-colors hover:border-ink hover:text-ink'
+              }
+            >
+              {isPreferred ? '✓ Preferred' : 'Use this vendor'}
+            </button>
           </td>
         </>
       )}

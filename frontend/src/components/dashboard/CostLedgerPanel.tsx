@@ -8,6 +8,7 @@ import type { BasketLine, BasketTotals, VendorColumn } from '../../lib/costLedge
 import { spendSummaryForRange } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
 import { getRangeMeta, type TrendRange } from '../../lib/trendRange';
+import { readPreferredVendors, writePreferredVendors } from '../../lib/preferredVendors';
 import { buildProductSavings, countGenuineSavings, totalPotentialSavingsUsd } from '../../lib/vendorSavings';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
@@ -57,6 +58,15 @@ export function CostLedgerPanel({
 
   const [selectedMetric, setSelectedMetric] = useState<TileKey | null>('spend');
   const [spendRange, setSpendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
+  const [preferredVendors, setPreferredVendors] = useState(() => readPreferredVendors());
+
+  const useVendorForCode = (hcpcs: string, vendorId: string) => {
+    setPreferredVendors((current) => {
+      const next = { ...current, [hcpcs]: vendorId };
+      writePreferredVendors(next);
+      return next;
+    });
+  };
 
   const productSavings = useMemo(() => buildProductSavings(lines, columns), [lines, columns]);
   const totalSavingsUsd = useMemo(() => totalPotentialSavingsUsd(productSavings), [productSavings]);
@@ -159,7 +169,13 @@ export function CostLedgerPanel({
       />
     );
   } else if (selectedMetric === 'delta') {
-    panel = <ProductSavingsPanel rows={productSavings} />;
+    panel = (
+      <ProductSavingsPanel
+        rows={productSavings}
+        preferredVendors={preferredVendors}
+        onUseVendor={useVendorForCode}
+      />
+    );
   } else if (selectedMetric === 'spend') {
     panel = (
       <SpendRangePanel
