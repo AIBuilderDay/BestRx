@@ -9,14 +9,17 @@ import {
   getOrder,
   getOrderEvents,
   getPatient,
+  getReviewsForOffer,
   getVendor,
   hospices,
   orders,
   patients,
+  productReviews,
   users,
   vendorOffers,
   vendors,
 } from './db';
+import { offerRatingSummary, vendorRatingSummary } from '../lib/reviews';
 
 describe('mock database integrity', () => {
   it('keeps the six canonical bounty orders', () => {
@@ -67,12 +70,47 @@ describe('mock database integrity', () => {
     expect(getVendor(undefined)).toBeUndefined();
   });
 
-  it('sells only catalog items, from vendors that exist', () => {
+  it('sells only catalog items, from vendors that exist, with auditable storefront fields', () => {
     for (const offer of vendorOffers) {
-      expect(getVendor(offer.vendorId), offer.id).toBeDefined();
-      expect(getCatalogEntry(offer.hcpcs), offer.id).toBeDefined();
-      expect(offer.nurseRating).toBeGreaterThanOrEqual(1);
-      expect(offer.nurseRating).toBeLessThanOrEqual(5);
+      const vendor = getVendor(offer.vendorId);
+      const catalogEntry = getCatalogEntry(offer.hcpcs);
+      expect(vendor, offer.id).toBeDefined();
+      expect(catalogEntry, offer.id).toBeDefined();
+      expect(offer.productName, offer.id).toBe(catalogEntry?.name);
+      expect(offer.category, offer.id).toBe(catalogEntry?.category);
+      expect(offer.description, offer.id).toBe(catalogEntry?.description);
+      expect(offer.imagePath.startsWith('/images/'), offer.id).toBe(true);
+      expect(offer.deliveryLeadDays).toBeGreaterThan(0);
+      expect(vendor?.displayName.length, offer.id).toBeGreaterThan(0);
+      expect(getReviewsForOffer(offer.id).length, offer.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('stores individual product reviews linked to one vendor offer each', () => {
+    for (const review of productReviews) {
+      expect(vendorOffers.some((o) => o.id === review.offerId), review.id).toBe(true);
+      expect(users.some((u) => u.id === review.reviewerId), review.id).toBe(true);
+      expect(review.rating).toBeGreaterThanOrEqual(1);
+      expect(review.rating).toBeLessThanOrEqual(5);
+      expect(Number.isInteger(review.rating), review.id).toBe(true);
+      expect(review.comment.trim().length, review.id).toBeGreaterThan(0);
+    }
+  });
+
+  it('derives offer ratings from product_reviews rows', () => {
+    const summary = offerRatingSummary('OFR-001');
+    expect(summary).not.toBeNull();
+    expect(summary?.count).toBe(getReviewsForOffer('OFR-001').length);
+    expect(summary?.average).toBeGreaterThanOrEqual(1);
+    expect(summary?.average).toBeLessThanOrEqual(5);
+  });
+
+  it('stores vendor overall ratings for scorecards, matching review aggregates', () => {
+    for (const vendor of vendors) {
+      const computed = vendorRatingSummary(vendor.id);
+      expect(computed, vendor.id).not.toBeNull();
+      expect(vendor.overallRating).toBe(computed?.average);
+      expect(vendor.overallRatingCount).toBe(computed?.count);
     }
   });
 

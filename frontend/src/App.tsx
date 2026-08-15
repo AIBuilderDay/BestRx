@@ -37,6 +37,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login onSignIn={signIn} />} />
             <Route path="/" element={<Navigate to="/catalog" replace />} />
+            <Route path="/catalog/:offerId" element={user ? <Catalog user={user} /> : toLogin} />
             <Route path="/catalog" element={user ? <Catalog user={user} /> : toLogin} />
             <Route path="/cart" element={user ? <Cart user={user} /> : toLogin} />
             <Route path="/patients" element={user ? <Patients user={user} /> : toLogin} />

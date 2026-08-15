@@ -2,37 +2,115 @@
   {
     "id": "VND-001",
     "name": "Sample Vendor 1",
+    "displayName": "Vendor 1",
     "market": "Salt Lake City, UT",
-    "serviceAreaZips": ["84101", "84102", "84103", "84115", "84117"],
+    "serviceAreaZips": [
+      "84101",
+      "84102",
+      "84103",
+      "84115",
+      "84117"
+    ],
     "hours": "Mon-Sat 7:00-19:00",
-    "contact": { "dispatchPhone": "801-555-0141", "dispatchEmail": "dispatch@vendor1.example", "repName": "Alicia Romero" },
-    "fleet": { "trucks": 6, "routesToday": 4, "capacityUsedPct": 72 },
-    "sla": { "statDeliveryHours": 4, "routineDeliveryHours": 24, "pickupHours": 48 },
-    "performance30d": { "onTimeDeliveryPct": 94, "onTimePickupPct": 88, "avgDeliveryHours": 5.1, "podCapturePct": 99 },
-    "logoPath": "/images/vendors/vendor-1.svg"
+    "contact": {
+      "dispatchPhone": "801-555-0141",
+      "dispatchEmail": "dispatch@vendor1.example",
+      "repName": "Alicia Romero"
+    },
+    "fleet": {
+      "trucks": 6,
+      "routesToday": 4,
+      "capacityUsedPct": 72
+    },
+    "sla": {
+      "statDeliveryHours": 4,
+      "routineDeliveryHours": 24,
+      "pickupHours": 48
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 94,
+      "onTimePickupPct": 88,
+      "avgDeliveryHours": 5.1,
+      "podCapturePct": 99
+    },
+    "logoPath": "/images/vendors/vendor-1.svg",
+    "overallRating": 4.6,
+    "overallRatingCount": 173
   },
   {
     "id": "VND-002",
     "name": "Sample Vendor 2",
+    "displayName": "Vendor 2",
     "market": "Salt Lake City / Provo, UT",
-    "serviceAreaZips": ["84601", "84604", "84606", "84097", "84058", "84115"],
+    "serviceAreaZips": [
+      "84601",
+      "84604",
+      "84606",
+      "84097",
+      "84058",
+      "84115"
+    ],
     "hours": "Mon-Fri 8:00-17:00",
-    "contact": { "dispatchPhone": "801-555-0192", "dispatchEmail": "dispatch@vendor2.example", "repName": "Devon Marsh" },
-    "fleet": { "trucks": 3, "routesToday": 3, "capacityUsedPct": 91 },
-    "sla": { "statDeliveryHours": 6, "routineDeliveryHours": 36, "pickupHours": 72 },
-    "performance30d": { "onTimeDeliveryPct": 81, "onTimePickupPct": 74, "avgDeliveryHours": 9.4, "podCapturePct": 92 },
-    "logoPath": "/images/vendors/vendor-2.svg"
+    "contact": {
+      "dispatchPhone": "801-555-0192",
+      "dispatchEmail": "dispatch@vendor2.example",
+      "repName": "Devon Marsh"
+    },
+    "fleet": {
+      "trucks": 3,
+      "routesToday": 3,
+      "capacityUsedPct": 91
+    },
+    "sla": {
+      "statDeliveryHours": 6,
+      "routineDeliveryHours": 36,
+      "pickupHours": 72
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 81,
+      "onTimePickupPct": 74,
+      "avgDeliveryHours": 9.4,
+      "podCapturePct": 92
+    },
+    "logoPath": "/images/vendors/vendor-2.svg",
+    "overallRating": 3.9,
+    "overallRatingCount": 169
   },
   {
     "id": "VND-003",
     "name": "Sample Vendor 3",
+    "displayName": "Vendor 3",
     "market": "Ogden, UT",
-    "serviceAreaZips": ["84401", "84403", "84404", "84405"],
+    "serviceAreaZips": [
+      "84401",
+      "84403",
+      "84404",
+      "84405"
+    ],
     "hours": "Mon-Fri 9:00-17:00",
-    "contact": { "dispatchPhone": "801-555-0177", "dispatchEmail": "dispatch@vendor3.example", "repName": "Karen Vo" },
-    "fleet": { "trucks": 2, "routesToday": 1, "capacityUsedPct": 96 },
-    "sla": { "statDeliveryHours": 8, "routineDeliveryHours": 48, "pickupHours": 72 },
-    "performance30d": { "onTimeDeliveryPct": 68, "onTimePickupPct": 52, "avgDeliveryHours": 14.2, "podCapturePct": 85 },
-    "logoPath": "/images/vendors/vendor-3.svg"
+    "contact": {
+      "dispatchPhone": "801-555-0177",
+      "dispatchEmail": "dispatch@vendor3.example",
+      "repName": "Karen Vo"
+    },
+    "fleet": {
+      "trucks": 2,
+      "routesToday": 1,
+      "capacityUsedPct": 96
+    },
+    "sla": {
+      "statDeliveryHours": 8,
+      "routineDeliveryHours": 48,
+      "pickupHours": 72
+    },
+    "performance30d": {
+      "onTimeDeliveryPct": 68,
+      "onTimePickupPct": 52,
+      "avgDeliveryHours": 14.2,
+      "podCapturePct": 85
+    },
+    "logoPath": "/images/vendors/vendor-3.svg",
+    "overallRating": 3,
+    "overallRatingCount": 63
   }
 ]

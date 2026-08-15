@@ -34,6 +34,7 @@ usable.
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
 | `vendor_offers.json` | 16 | `id` (OFR-) | `vendorId`, `hcpcs` |
+| `product_reviews.json` | 405 | `id` (REV-) | `offerId`, `reviewerId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 
 ```
@@ -45,6 +46,7 @@ hospices ──< patients ──< orders >── vendors
 emr_events ──> patients        inbound signals from the EMR via BetterRX eRx
 users      ──> hospices|vendors  admissions nurses, case managers, field nurses, DON, admin, dispatchers
 vendor_offers ──> vendors, equipment_catalog   the storefront: price, ETA, rating per vendor per item
+product_reviews ──> vendor_offers, users        individual nurse star ratings per vendor SKU
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
@@ -72,11 +74,21 @@ makes the scorecard worth looking at. Vendor 1 is the strong performer, Vendor 3
 arrived 47 minutes *after* the field nurse already triggered the pickup, and one 7.5 hours late.
 That gap is the argument for nurse-initiated pickup with the EMR event as a fallback.
 
-**`vendor_offers`** is the storefront. One row per vendor per catalog item, carrying `priceUsd`,
-`deliveryEtaHours` (the vendor's promise, not a measurement), `inStock`, and a `nurseRating` averaged
-from nurses who received earlier deliveries. This is what the filtering sidebar sorts and what makes
-"cheapest" and "best" visibly different vendors — Vendor 3 is consistently cheapest and consistently
-worst rated.
+**`vendor_offers`** is the storefront. One self-contained row per vendor SKU (one vendor, one
+product — never multiple vendors on one card): `productName`, `description`, `category`, `priceUsd`,
+`deliveryEtaHours`, `deliveryLeadDays`, `inStock`, and `imagePath`. Foreign keys `vendorId` and
+`hcpcs` must still resolve. `product_reviews.json` holds individual 1–5 star ratings plus a written `comment` from nurses,
+each linked to one `offerId` (one vendor SKU). The catalog averages these per offer and shows
+that item rating next to the product name. Admissions nurses and case managers see item ratings only.
+
+**`product_reviews`** rows include `rating`, `comment`, `reviewedAt`, `reviewerId`, and `offerId`.
+
+**`vendors[].overallRating`** and **`overallRatingCount`** are hospice-wide vendor scorecard metrics
+stored for director of nursing and hospice owner views. They are not shown on the catalog storefront.
+`vendorRatingSummary()` in `lib/reviews.ts` must agree with these stored values.
+
+**`vendors[].displayName`** is the short label shown in the catalog and cart (e.g. "Vendor 1").
+Use it in the UI rather than trimming `name`.
 
 **`budgets`** carries both kinds from the whiteboard: a monthly cap per role, and a cap per one-time
 patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patient id when `scope` is

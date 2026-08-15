@@ -1,18 +1,22 @@
-import { useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { equipmentCatalog, getHospice, patients, vendors } from '../data/db';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { patients, vendors } from '../data/db';
+import { can } from '../lib/auth';
+import { createSessionReview } from '../lib/reviews';
+import type { ProductReview } from '../types/domain';
 import {
   buildCartGroups,
   buildCatalogItems,
   CATEGORY_LABELS,
   cartTotals,
+  defaultCatalogFilters,
   filterAndSortCatalog,
+  RESET_CATALOG_FILTERS_STATE,
   paginateCatalog,
   patientFullName,
   priceCeiling,
   setCartLineQty,
   totalUnitsInCart,
-  unitsInCartFor,
   upsertCartLine,
   type CatalogFilterState,
   type SortKey,
@@ -23,6 +27,8 @@ import { CatalogFilters, type CategoryOption } from '../components/catalog/Catal
 import { ProductCard } from '../components/catalog/ProductCard';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
+import { OrderPlacedDialog, type PlacedOrderDetails } from '../components/catalog/OrderPlacedDialog';
+import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
@@ -33,30 +39,24 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'speed', label: 'Fastest' },
 ];
 
-const PRICE_MAX = priceCeiling(equipmentCatalog);
-
 export default function Catalog({ user }: { user: User }) {
+  const { offerId } = useParams<{ offerId?: string }>();
   const navigate = useNavigate();
-  const hospice = getHospice(user.orgId);
+  const location = useLocation();
   const assignablePatients = useMemo(
     () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
     [user.orgId],
   );
-  const catalogItems = useMemo(() => buildCatalogItems(equipmentCatalog), []);
+  const [sessionReviews, setSessionReviews] = useState<ProductReview[]>([]);
+  const catalogItems = useMemo(() => buildCatalogItems(sessionReviews), [sessionReviews]);
+  const priceMax = useMemo(() => priceCeiling(catalogItems), [catalogItems]);
 
-  const [filters, setFilters] = useState<CatalogFilterState>({
-    category: 'All',
-    vendorIds: [],
-    speed: 'any',
-    maxPrice: PRICE_MAX,
-    sort: 'featured',
-  });
+  const [filters, setFilters] = useState<CatalogFilterState>(() => defaultCatalogFilters(priceMax));
   const [currentPage, setCurrentPage] = useState(1);
-  const [picks, setPicks] = useState<Record<string, number>>({});
   const { lines, setLines, cartOpen, setCartOpen, clearCart } = useCart();
-  const [sheetHcpcs, setSheetHcpcs] = useState<string | null>(null);
-  const [sheetQty, setSheetQty] = useState(1);
-  const [checkoutAfter, setCheckoutAfter] = useState(false);
+  const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
+  const [sheetMode, setSheetMode] = useState<'cart' | 'order'>('cart');
+  const [placedOrder, setPlacedOrder] = useState<PlacedOrderDetails | null>(null);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -66,26 +66,60 @@ export default function Catalog({ user }: { user: User }) {
     toastTimer.current = setTimeout(() => setToast(''), 3000);
   };
 
-  const pickQty = (hcpcs: string) => picks[hcpcs] ?? 1;
-  const setPickQty = (hcpcs: string, n: number) => setPicks((p) => ({ ...p, [hcpcs]: Math.max(1, Math.min(99, n)) }));
+  const resetFiltersToDefault = () => {
+    setFilters(defaultCatalogFilters(priceMax));
+    setCurrentPage(1);
+  };
 
-  const openSheet = (hcpcs: string, forCheckout: boolean) => {
-    setSheetHcpcs(hcpcs);
-    setSheetQty(pickQty(hcpcs));
-    setCheckoutAfter(forCheckout);
+  useEffect(() => {
+    if (!location.state || !('resetCatalogFilters' in location.state)) return;
+    resetFiltersToDefault();
+    navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: null });
+  }, [location.state, location.pathname, location.search, navigate, priceMax]);
+
+  const exitDetail = () => {
+    if (offerId) navigate('/catalog');
+  };
+
+  const openCartSheet = (id: string) => {
+    setSheetOfferId(id);
+    setSheetMode('cart');
     setCartOpen(false);
   };
 
-  const sheetProduct = catalogItems.find((it) => it.entry.hcpcs === sheetHcpcs) ?? null;
+  const openOrderSheet = (id: string) => {
+    setSheetOfferId(id);
+    setSheetMode('order');
+    setCartOpen(false);
+  };
 
-  const confirmSheet = (selectedPatientIds: string[]) => {
+  const sheetProduct = catalogItems.find((it) => it.offer.id === sheetOfferId) ?? null;
+  const detailProduct = offerId ? (catalogItems.find((it) => it.offer.id === offerId) ?? null) : null;
+
+  const addReview = (rating: number, comment: string) => {
+    if (!offerId) return;
+    setSessionReviews((prev) => [...prev, createSessionReview(offerId, user.id, rating, comment)]);
+    say('Review submitted — thank you');
+  };
+
+  const confirmSheet = (selectedPatientIds: string[], qty: number) => {
     if (!sheetProduct) return;
     if (selectedPatientIds.length === 0) {
       say('Pick at least one patient for this equipment');
       return;
     }
+
+    if (sheetMode === 'order') {
+      const orderPatients = selectedPatientIds
+        .map((id) => patients.find((p) => p.id === id))
+        .filter((p): p is NonNullable<typeof p> => Boolean(p));
+      setPlacedOrder({ product: sheetProduct, patients: orderPatients, qty });
+      setSheetOfferId(null);
+      return;
+    }
+
     setLines((prev) =>
-      selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.entry.hcpcs, pid, sheetQty), prev),
+      selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, qty), prev),
     );
     const names =
       selectedPatientIds.length === 1
@@ -93,9 +127,8 @@ export default function Catalog({ user }: { user: User }) {
             patientFullName(patients.find((p) => p.id === selectedPatientIds[0])!)) ||
           selectedPatientIds[0]
         : `${selectedPatientIds.length} patients`;
-    say(`${sheetProduct.entry.name} × ${sheetQty} added for ${names}`);
-    setSheetHcpcs(null);
-    if (checkoutAfter) setCartOpen(true);
+    say(`${sheetProduct.offer.productName} × ${qty} added for ${names}`);
+    setSheetOfferId(null);
   };
 
   const placeOrder = () => {
@@ -110,9 +143,15 @@ export default function Catalog({ user }: { user: User }) {
     say(`Order placed — ${lineCount} line${lineCount > 1 ? 's' : ''} across ${patientCount} patient${patientCount > 1 ? 's' : ''}`);
   };
 
-  const resetFilters = () => {
-    setFilters({ category: 'All', vendorIds: [], speed: 'any', maxPrice: PRICE_MAX, sort: 'featured' });
+  const applyFilters = (patch: Partial<CatalogFilterState>) => {
+    exitDetail();
+    setFilters((f) => ({ ...f, ...patch }));
     setCurrentPage(1);
+  };
+
+  const resetFilters = () => {
+    exitDetail();
+    resetFiltersToDefault();
     say('Filters cleared');
   };
 
@@ -122,13 +161,17 @@ export default function Catalog({ user }: { user: User }) {
   const totals = cartTotals(lines, catalogItems);
 
   const categories: CategoryOption[] = [
-    { key: 'All', label: 'All', count: equipmentCatalog.length },
+    { key: 'All', label: 'All', count: catalogItems.length },
     ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[]).map((key) => ({
       key,
       label: CATEGORY_LABELS[key],
-      count: equipmentCatalog.filter((e) => e.category === key).length,
+      count: catalogItems.filter((it) => it.offer.category === key).length,
     })),
   ];
+
+  if (!can(user, 'storefront:purchase')) {
+    return <Navigate to="/patients" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-bg">
@@ -144,96 +187,107 @@ export default function Catalog({ user }: { user: User }) {
           filters={filters}
           categories={categories}
           vendors={vendors}
-          priceMax={PRICE_MAX}
-          onChange={(patch) => {
-            setFilters((f) => ({ ...f, ...patch }));
-            setCurrentPage(1);
-          }}
+          priceMax={priceMax}
+          onChange={applyFilters}
           onReset={resetFilters}
         />
 
         <main className="min-w-0 px-10 pb-20 pt-8.5">
-          <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
-            <div>
-              <div className="text-xs text-ink-3">{hospice?.name ?? 'Hospice'} / Catalog</div>
-              <h1 className="mt-1.5 text-3xl font-normal tracking-tight">Durable Medical Equipment</h1>
-              <div className="mt-1.5 text-[13px] text-ink-2">
-                {filteredSorted.length} of {catalogItems.length} items · Medicare-allowed rates on file, vendor and
-                lead time shown where known from live inventory.
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {SORTS.map((s) => (
-                <button
-                  key={s.key}
-                  type="button"
-                  onClick={() => {
-                    setFilters((f) => ({ ...f, sort: s.key }));
-                    setCurrentPage(1);
-                  }}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
-                    filters.sort === s.key
-                      ? 'border-ink bg-solid-bg text-solid-ink'
-                      : 'border-line bg-surface text-ink-2'
-                  }`}
+          {offerId ? (
+            detailProduct ? (
+              <EquipmentDetailView
+                product={detailProduct}
+                user={user}
+                sessionReviews={sessionReviews}
+                onAddReview={addReview}
+                onAddToCart={() => openCartSheet(detailProduct.offer.id)}
+              />
+            ) : (
+              <>
+                <p className="text-[13px] text-ink-3">This listing could not be found.</p>
+                <Link
+                  to="/catalog"
+                  state={RESET_CATALOG_FILTERS_STATE}
+                  className="mt-4 inline-block text-[13px] underline underline-offset-2"
                 >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {filteredSorted.length === 0 ? (
-            <div className="py-15 text-center text-[13px] text-ink-3">No equipment matches these filters.</div>
+                  Back to catalog
+                </Link>
+              </>
+            )
           ) : (
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
-              {catalogPage.items.map((item, i) => (
-                <div
-                  key={item.entry.hcpcs}
-                  className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
-                  style={{ animationDelay: `${i * 0.045}s` }}
-                >
-                  <ProductCard
-                    item={item}
-                    qty={pickQty(item.entry.hcpcs)}
-                    onQtyChange={(n) => setPickQty(item.entry.hcpcs, n)}
-                    inCartQty={unitsInCartFor(lines, item.entry.hcpcs)}
-                    onAddToCart={() => openSheet(item.entry.hcpcs, false)}
-                    onBuyNow={() => openSheet(item.entry.hcpcs, true)}
-                  />
+            <>
+              <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
+                <div>
+                  <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="flex flex-wrap gap-2">
+                  {SORTS.map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => applyFilters({ sort: s.key })}
+                      className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
+                        filters.sort === s.key
+                          ? 'border-ink bg-solid-bg text-solid-ink'
+                          : 'border-line bg-surface text-ink-2'
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          {filteredSorted.length > 0 ? (
-            <CatalogPagination
-              page={catalogPage.page}
-              totalPages={catalogPage.totalPages}
-              firstItem={catalogPage.firstItem}
-              lastItem={catalogPage.lastItem}
-              totalItems={filteredSorted.length}
-              onPageChange={setCurrentPage}
-            />
-          ) : null}
+              {filteredSorted.length === 0 ? (
+                <div className="py-15 text-center text-[13px] text-ink-3">No equipment matches these filters.</div>
+              ) : (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
+                  {catalogPage.items.map((item, i) => (
+                    <div
+                      key={item.offer.id}
+                      className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                      style={{ animationDelay: `${i * 0.045}s` }}
+                    >
+                      <ProductCard item={item} onOrderNow={() => openOrderSheet(item.offer.id)} />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {filteredSorted.length > 0 ? (
+                <CatalogPagination
+                  page={catalogPage.page}
+                  totalPages={catalogPage.totalPages}
+                  firstItem={catalogPage.firstItem}
+                  lastItem={catalogPage.lastItem}
+                  totalItems={filteredSorted.length}
+                  onPageChange={(page) => {
+                    exitDetail();
+                    setCurrentPage(page);
+                  }}
+                />
+              ) : null}
+            </>
+          )}
         </main>
       </div>
 
       <PatientAssignSheet
         product={sheetProduct}
-        qty={sheetQty}
         patients={assignablePatients}
-        checkoutAfter={checkoutAfter}
-        onClose={() => setSheetHcpcs(null)}
+        mode={sheetMode}
+        onClose={() => setSheetOfferId(null)}
         onConfirm={confirmSheet}
       />
+
+      <OrderPlacedDialog order={placedOrder} onClose={() => setPlacedOrder(null)} />
 
       <CartDrawer
         open={cartOpen}
         groups={cartGroups}
         totals={totals}
-        onQtyChange={(hcpcs, patientId, qty) => setLines((prev) => setCartLineQty(prev, hcpcs, patientId, qty))}
-        onRemove={(hcpcs, patientId) => setLines((prev) => setCartLineQty(prev, hcpcs, patientId, 0))}
+        onQtyChange={(id, patientId, qty) => setLines((prev) => setCartLineQty(prev, id, patientId, qty))}
+        onRemove={(id, patientId) => setLines((prev) => setCartLineQty(prev, id, patientId, 0))}
         onClose={() => setCartOpen(false)}
         onViewCart={() => {
           setCartOpen(false);

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { can, type Permission } from '../../lib/auth';
+import { RESET_CATALOG_FILTERS_STATE } from '../../lib/catalog';
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
 
@@ -37,7 +38,12 @@ export function TopNav({
       </div>
 
       <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
-        <Link to="/catalog" aria-current={activeSection === 'catalog' ? 'page' : undefined} className={linkClass('catalog')}>
+        <Link
+          to="/catalog"
+          state={RESET_CATALOG_FILTERS_STATE}
+          aria-current={activeSection === 'catalog' ? 'page' : undefined}
+          className={linkClass('catalog')}
+        >
           Catalog
         </Link>
         {can(user, 'orders:own-patients') ? (

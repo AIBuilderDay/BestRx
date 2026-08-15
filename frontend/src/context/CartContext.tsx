@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { equipmentCatalog, patients } from '../data/db';
+import { patients } from '../data/db';
 import {
   buildCartGroups,
   buildCatalogItems,
@@ -15,7 +15,7 @@ interface CartContextValue {
   cartOpen: boolean;
   setCartOpen: (open: boolean) => void;
   setLines: React.Dispatch<React.SetStateAction<CartLine[]>>;
-  setCartLineQty: (hcpcs: string, patientId: string, qty: number) => void;
+  setCartLineQty: (offerId: string, patientId: string, qty: number) => void;
   clearCart: () => void;
   cartGroups: ReturnType<typeof buildCartGroups>;
   cartTotals: ReturnType<typeof cartTotals>;
@@ -23,14 +23,14 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-const catalogItems = buildCatalogItems(equipmentCatalog);
+const catalogItems = buildCatalogItems();
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
 
-  const setLineQty = useCallback((hcpcs: string, patientId: string, qty: number) => {
-    setLines((prev) => setCartLineQty(prev, hcpcs, patientId, qty));
+  const setLineQty = useCallback((offerId: string, patientId: string, qty: number) => {
+    setLines((prev) => setCartLineQty(prev, offerId, patientId, qty));
   }, []);
 
   const clearCart = useCallback(() => setLines([]), []);
