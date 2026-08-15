@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { can, type Permission } from "../../lib/auth";
+import { can, isFamilyMember, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
@@ -133,6 +133,11 @@ export function TopNav({
           >
             Catalog
           </Link>
+          {isFamilyMember(user) ? (
+            <Link to="/family" className={linkClass("patients")}>
+              My family member
+            </Link>
+          ) : null}
           {canViewOrders(user) ? (
             <Link
               to="/orders"
@@ -176,6 +181,9 @@ export function TopNav({
 
       {activeSection === "catalog" ? (
         <NavSearch user={user} />
+      ) : isFamilyMember(user) ? (
+        // The family home has no searchable list — leave the search slot empty.
+        <div aria-hidden />
       ) : (
         <ContextualSearch section={activeSection} />
       )}

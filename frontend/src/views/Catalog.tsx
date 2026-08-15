@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { patients, vendors } from '../data/db';
-import { can } from '../lib/auth';
+import { getPatient, patients, vendors } from '../data/db';
+import { can, isFamilyMember } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
 import {
@@ -29,6 +29,7 @@ import { CatalogFilters } from '../components/catalog/CatalogFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
+import { FamilyPurchaseSheet } from '../components/catalog/FamilyPurchaseSheet';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
@@ -48,9 +49,17 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
   const aiMode = searchParams.get('ai') === '1';
+  const isFamily = isFamilyMember(user);
+  // A family member only ever orders for their own loved one; staff order across their hospice.
+  const familyPatient = isFamily ? getPatient(user.patientId) : undefined;
   const assignablePatients = useMemo(
-    () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
-    [user.orgId],
+    () =>
+      isFamily
+        ? familyPatient
+          ? [familyPatient]
+          : []
+        : patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
+    [isFamily, familyPatient, user.orgId],
   );
   const [sessionReviews, setSessionReviews] = useState<ProductReview[]>([]);
   const catalogItems = useMemo(() => buildCatalogItems(sessionReviews), [sessionReviews]);
@@ -122,6 +131,13 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     setSheetOfferId(null);
   };
 
+  const familyAddToCart = (qty: number) => {
+    if (!sheetProduct || !familyPatient) return;
+    setLines((prev) => upsertCartLine(prev, sheetProduct.offer.id, familyPatient.id, qty));
+    say(`${sheetProduct.offer.productName} added to your cart`);
+    setSheetOfferId(null);
+  };
+
   const placeOrder = () => {
     if (lines.length === 0) {
       say('Cart is empty');
@@ -180,7 +196,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     [catalogItems, filters],
   );
 
-  if (!can(user, 'storefront:purchase')) {
+  if (!can(user, 'storefront:purchase') && !isFamily) {
     return <Navigate to="/patients" replace />;
   }
 
@@ -314,12 +330,21 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         </main>
       </div>
 
-      <PatientAssignSheet
-        product={sheetProduct}
-        patients={assignablePatients}
-        onClose={() => setSheetOfferId(null)}
-        onConfirm={confirmSheet}
-      />
+      {isFamily ? (
+        <FamilyPurchaseSheet
+          product={sheetProduct}
+          patientName={familyPatient ? patientFullName(familyPatient) : 'your family member'}
+          onClose={() => setSheetOfferId(null)}
+          onAddToCart={familyAddToCart}
+        />
+      ) : (
+        <PatientAssignSheet
+          product={sheetProduct}
+          patients={assignablePatients}
+          onClose={() => setSheetOfferId(null)}
+          onConfirm={confirmSheet}
+        />
+      )}
 
       <CartDrawer
         open={cartOpen}
@@ -335,7 +360,15 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
           setCartOpen(false);
           navigate('/cart');
         }}
-        onPlaceOrder={placeOrder}
+        onPlaceOrder={
+          isFamily
+            ? () => {
+                // Family choose request-vs-buy on the cart page, so send them there, not straight to checkout.
+                setCartOpen(false);
+                navigate('/cart');
+              }
+            : placeOrder
+        }
         agentAdded={agentAdded}
       />
 

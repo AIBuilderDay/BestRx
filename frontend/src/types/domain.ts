@@ -27,7 +27,9 @@ export type UserRole =
   | 'field_nurse'
   | 'director_of_nursing'
   | 'hospice_admin'
-  | 'vendor_dispatcher';
+  | 'vendor_dispatcher'
+  // A patient's relative who signs in only to follow their loved one — see FamilyMember below.
+  | 'family_member';
 
 export type EquipmentCategory =
   | 'bed'
@@ -103,12 +105,34 @@ export interface User {
   id: string;
   name: string;
   role: UserRole;
-  orgType: 'hospice' | 'vendor';
+  orgType: 'hospice' | 'vendor' | 'family';
+  /** Hospice or vendor id. For a family member, the hospice caring for their patient. */
   orgId: string;
   /** Login identity. Unique across users; permissions derive from `role` in lib/auth.ts. */
   email: string;
   phone: string;
   avatarPath: string;
+  /** Set only for a family_member session: the one patient this account may follow. */
+  patientId?: string;
+}
+
+/**
+ * A patient's relative, linked to exactly one patient. They can sign in to a read-only family
+ * view, and are the audience for delivery notifications (the SQS/messaging layer to come). Kept in
+ * a runtime store (lib/familyMembers.ts), not a frozen JSON table, because staff add them live.
+ */
+export interface FamilyMember {
+  id: string;
+  patientId: string;
+  name: string;
+  /** How they relate to the patient, e.g. "Daughter", "Spouse". Free text. */
+  relationship: string;
+  /** Login identity and notification address. */
+  email: string;
+  phone: string;
+  /** Whether this contact should receive delivery notifications once messaging is wired up. */
+  notify: boolean;
+  addedAt: string;
 }
 
 export interface Address {
@@ -289,6 +313,22 @@ export interface EmrEvent {
   patientId: string;
   payload: Record<string, unknown>;
   note?: string;
+}
+
+/**
+ * A family member asking the hospice to send a piece of equipment, instead of buying it directly.
+ * Surfaces on the patient chart for staff to act on. Lives in a runtime store, like FamilyMember.
+ */
+export interface FamilyPurchaseRequest {
+  id: string;
+  patientId: string;
+  familyMemberId: string;
+  familyMemberName: string;
+  offerId: string;
+  productName: string;
+  qty: number;
+  requestedAt: string;
+  status: 'open' | 'fulfilled' | 'declined';
 }
 
 /** Care-team note pinned to one patient chart. */

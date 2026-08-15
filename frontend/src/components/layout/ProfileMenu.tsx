@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { can, ROLE_LABELS } from '../../lib/auth';
+import { can, isFamilyMember, ROLE_LABELS } from '../../lib/auth';
+import { familyCardLabel } from '../../lib/family';
 import type { User } from '../../types/domain';
 
 /** "Jordan Reyes" → "JR". Falls back to "?" so a blank name can't render an empty circle. */
@@ -67,6 +68,16 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
           </div>
 
           <div className="mx-1.5 border-t border-line" />
+
+          {isFamilyMember(user) ? (
+            <div
+              data-testid="family-payment"
+              className="mt-1.5 flex items-center justify-between rounded-control px-3 py-2 text-[13px] text-ink"
+            >
+              <span className="text-ink-2">Payment method</span>
+              <span className="font-mono text-[12px] tabular-nums">{familyCardLabel}</span>
+            </div>
+          ) : null}
 
           {can(user, 'reporting') || can(user, 'vendors:manage') ? (
             <div

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser } from '../data/db';
-import { DEMO_ACCOUNT_IDS, DEMO_PASSWORD, findUserByEmail, ROLE_LABELS } from '../lib/auth';
+import { DEMO_ACCOUNT_IDS, DEMO_PASSWORD, findUserByEmail, isFamilyMember, ROLE_LABELS } from '../lib/auth';
+import { familyMemberToUser, getFamilyMembersSnapshot } from '../lib/familyMembers';
 import type { User } from '../types/domain';
 import { Logo } from '../components/ui/Logo';
 
@@ -19,6 +20,11 @@ export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) 
   const [error, setError] = useState('');
 
   const demoAccounts = DEMO_ACCOUNT_IDS.map(getUser).filter((u): u is User => u !== undefined);
+  // One seeded family member, so judges can try the family experience in one click.
+  const demoFamily = getFamilyMembersSnapshot()
+    .slice(0, 1)
+    .map(familyMemberToUser)
+    .filter((u): u is User => u !== undefined);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -36,7 +42,7 @@ export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) 
       return;
     }
     onSignIn(user);
-    navigate('/catalog');
+    navigate(isFamilyMember(user) ? '/family' : '/catalog');
   };
 
   const fillAccount = (user: User) => {
@@ -110,7 +116,7 @@ export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) 
         </div>
 
         <div role="list" className="grid gap-2 text-left">
-          {demoAccounts.map((user) => (
+          {[...demoAccounts, ...demoFamily].map((user) => (
             <button
               key={user.id}
               type="button"
@@ -128,7 +134,13 @@ export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) 
                 {initials(user.name)}
               </span>
               <span className="min-w-0 flex-1 text-[13px] font-medium">{user.name}</span>
-              <span className="flex-none whitespace-nowrap rounded-full border border-line-strong px-2.25 py-0.5 text-[11px] font-medium text-ink-2">
+              <span
+                className={`flex-none whitespace-nowrap rounded-full border px-2.25 py-0.5 text-[11px] font-medium ${
+                  isFamilyMember(user)
+                    ? 'border-ink bg-solid-bg text-solid-ink'
+                    : 'border-line-strong text-ink-2'
+                }`}
+              >
                 {ROLE_LABELS[user.role]}
               </span>
             </button>

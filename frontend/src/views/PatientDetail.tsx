@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
 import { PatientNotesSection } from '../components/patients/PatientNotesSection';
+import { FamilySection } from '../components/patients/FamilySection';
+import { FamilyRequestsSection } from '../components/patients/FamilyRequestsSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
 import { DetailReveal } from '../components/ui/DetailReveal';
@@ -112,6 +114,8 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
           <div className="flex min-w-0 flex-col gap-5">
+            <FamilyRequestsSection patientId={patient.id} />
+
             <DetailReveal step={2}>
               <PatientNotesSection
                 patientId={patient.id}
@@ -148,6 +152,10 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
             </DetailReveal>
 
             <DetailReveal step={3}>
+              <FamilySection patientId={patient.id} />
+            </DetailReveal>
+
+            <DetailReveal step={4}>
               <section className="rounded-[10px] border border-line bg-surface p-4">
                 <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
                 <div className="text-[13px] leading-relaxed">
