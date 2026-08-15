@@ -1,92 +1,117 @@
 import { describe, expect, it } from 'vitest';
-import { buildBasket, basketTotals, vendorColumns } from './costLedger';
+import { buildBasket, vendorColumns } from './costLedger';
 import { getPeriod } from './costPeriod';
 import {
-  COVERAGE_WEIGHT,
+  buildProductSavings,
+  countGenuineSavings,
   DELIVERY_WEIGHT,
   PRICE_WEIGHT,
+  productVendorOptions,
   REVIEW_WEIGHT,
-  sortVendorSavings,
-  vendorSavingsOptions,
+  totalPotentialSavingsUsd,
+  type ProductSavingsRow,
 } from './vendorSavings';
-import type { BasketTotals, VendorColumn } from './costLedger';
+import type { BasketLine, VendorColumn } from './costLedger';
 import type { Vendor } from '../types/domain';
 
 const period = getPeriod('aug-2026');
 const columns = vendorColumns('HSP-001');
 const lines = buildBasket('HSP-001', period);
-const totals = basketTotals(lines, columns);
-const options = vendorSavingsOptions(totals, columns);
+const rows = buildProductSavings(lines, columns);
+const rowFor = (hcpcs: string) => rows.find((r) => r.hcpcs === hcpcs)!;
 
-describe('vendorSavingsOptions (real HSP-001 data)', () => {
-  it('excludes the contracted vendor and lists every other vendor that prices the basket', () => {
-    expect(options.map((o) => o.vendor.id).sort()).toEqual(['VND-001', 'VND-003']);
+describe('buildProductSavings (real HSP-001 data)', () => {
+  it('returns one row per ordered product, all 10 codes', () => {
+    expect(rows).toHaveLength(10);
+    expect(new Set(rows.map((r) => r.hcpcs)).size).toBe(10);
   });
 
-  it('reports the real dollar delta against what was actually paid', () => {
-    const v1 = options.find((o) => o.vendor.id === 'VND-001')!;
-    const v3 = options.find((o) => o.vendor.id === 'VND-003')!;
-    expect(v1.savingsUsd).toBeCloseTo(15578 - 17786, 1); // a premium
-    expect(v1.savingsUsd).toBeLessThan(0);
-    expect(v3.savingsUsd).toBeCloseTo(15578 - 14434, 1); // a real saving
-    expect(v3.savingsUsd).toBeGreaterThan(0);
+  it('recommends the pricier, higher-quality vendor when the price gap is large', () => {
+    // E0250: Vendor 1 costs $831 more but wins on reviews+delivery; Vendor 3 saves $548 but loses.
+    const row = rowFor('E0250');
+    expect(row.suggested?.vendor.id).toBe('VND-001');
+    expect(row.suggested?.savingsUsd).toBeCloseTo(-831, 0);
   });
 
-  it('weighs the four terms so the weights themselves sum to 100%', () => {
-    expect(PRICE_WEIGHT + REVIEW_WEIGHT + DELIVERY_WEIGHT + COVERAGE_WEIGHT).toBeCloseTo(1, 6);
+  it('flips to the cheaper vendor when the price gap is small enough to overcome the quality gap', () => {
+    // E0601 (CPAP) and E0431 (portable oxygen) are the two codes where Vendor 3's price edge beats
+    // Vendor 1's review/delivery edge under price 40% / reviews 30% / delivery 30%.
+    expect(rowFor('E0601').suggested?.vendor.id).toBe('VND-003');
+    expect(rowFor('E0601').suggested?.savingsUsd).toBeCloseTo(42, 0);
+    expect(rowFor('E0431').suggested?.vendor.id).toBe('VND-003');
+    expect(rowFor('E0431').suggested?.savingsUsd).toBeCloseTo(18, 0);
   });
 
-  it('ranks the pricier vendor #1 by value once its zero ZIP coverage drags the cheap one down', () => {
-    // The whole point of the "heavy penalty, still listed" design: Vendor 3 is cheaper but serves
-    // 0 of this hospice's 10 patient ZIPs, so it must not win Best Value despite the lower price.
-    const byValue = sortVendorSavings(options, 'value');
-    expect(byValue[0].vendor.id).toBe('VND-001');
-    expect(byValue).toHaveLength(2); // never hard-excluded, just ranked low
-    expect(byValue[1].vendor.id).toBe('VND-003');
-    expect(byValue[1].zipCoveragePct).toBe(0);
+  it('reports the real per-unit prices, matching what a nurse can act on directly', () => {
+    const row = rowFor('E1130'); // Standard Wheelchair, 7 units
+    expect(row.units).toBe(7);
+    expect(row.paidUnitUsd).toBeCloseTo(row.paidUsd / 7, 2);
+    expect(row.suggested?.unitUsd).toBeGreaterThan(0);
   });
 
-  it('never hides a vendor for zero coverage — it is a scoring input, not a filter', () => {
-    expect(options.some((o) => o.zipCoveragePct === 0)).toBe(true);
-  });
-
-  it('every value score lands in 0-100', () => {
-    for (const option of options) {
-      expect(option.valueScore, option.vendor.id).toBeGreaterThanOrEqual(0);
-      expect(option.valueScore, option.vendor.id).toBeLessThanOrEqual(100);
+  it('never recommends the contracted vendor as an alternative to itself', () => {
+    for (const row of rows) {
+      expect(row.suggested?.vendor.id, row.hcpcs).not.toBe('VND-002');
     }
   });
 
-  it('carries the vendor context a card needs: rating, delivery, coverage', () => {
-    const v1 = options.find((o) => o.vendor.id === 'VND-001')!;
-    expect(v1.rating).toBe(4.6);
-    expect(v1.onTimePct).toBe(94);
-    expect(v1.servedZipCount).toBe(4);
-    expect(v1.patientZipCount).toBe(10);
+  it('carries ZIP coverage on every option for display, without it moving the ranking', () => {
+    const row = rowFor('E0250');
+    expect(row.suggested?.zipCoveragePct).toBeGreaterThanOrEqual(0);
+    expect(row.suggested?.patientZipCount).toBe(10);
+  });
+
+  it('every value score lands in 0-100', () => {
+    for (const row of rows) {
+      if (!row.suggested) continue;
+      expect(row.suggested.valueScore, row.hcpcs).toBeGreaterThanOrEqual(0);
+      expect(row.suggested.valueScore, row.hcpcs).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('weighs price, reviews, and delivery only, summing to 100%', () => {
+    expect(PRICE_WEIGHT + REVIEW_WEIGHT + DELIVERY_WEIGHT).toBeCloseTo(1, 6);
+  });
+
+  it('sorts biggest opportunity first', () => {
+    for (let i = 1; i < rows.length; i += 1) {
+      const prev = rows[i - 1].suggested?.savingsUsd ?? -Infinity;
+      const cur = rows[i].suggested?.savingsUsd ?? -Infinity;
+      expect(cur, rows[i].hcpcs).toBeLessThanOrEqual(prev);
+    }
   });
 });
 
-describe('sortVendorSavings', () => {
-  it('price-asc puts the cheaper basket total first', () => {
-    const sorted = sortVendorSavings(options, 'price-asc');
-    expect(sorted.map((o) => o.vendor.id)).toEqual(['VND-003', 'VND-001']);
+describe('totalPotentialSavingsUsd / countGenuineSavings', () => {
+  it('sums only the real savings, never netting a premium against them', () => {
+    // Only E0601 (+42) and E0431 (+18) genuinely save money; the other 8 rows are premiums and
+    // must not drag the total below their sum.
+    expect(totalPotentialSavingsUsd(rows)).toBeCloseTo(60, 0);
+    expect(countGenuineSavings(rows)).toBe(2);
   });
 
-  it('price-desc reverses it', () => {
-    const sorted = sortVendorSavings(options, 'price-desc');
-    expect(sorted.map((o) => o.vendor.id)).toEqual(['VND-001', 'VND-003']);
-  });
-
-  it('leaves the source array untouched', () => {
-    const before = options.map((o) => o.vendor.id);
-    sortVendorSavings(options, 'price-desc');
-    expect(options.map((o) => o.vendor.id)).toEqual(before);
+  it('returns zero for an empty set rather than throwing', () => {
+    expect(totalPotentialSavingsUsd([])).toBe(0);
+    expect(countGenuineSavings([])).toBe(0);
   });
 });
 
-// Synthetic fixtures below isolate the scoring formula's edge behavior from what the real dataset
-// happens to contain — extremes the live data doesn't exercise (a vendor priced exactly at parity,
-// a perfect 5-star / 100% record, full ZIP coverage).
+describe('productVendorOptions', () => {
+  it('excludes the contracted vendor from the option list entirely', () => {
+    const line = lines.find((l) => l.hcpcs === 'E0250')!;
+    const options = productVendorOptions(line, columns);
+    expect(options.every((o) => o.vendor.id !== 'VND-002')).toBe(true);
+    expect(options).toHaveLength(2);
+  });
+
+  it('ranks options best-value first', () => {
+    const line = lines.find((l) => l.hcpcs === 'E0250')!;
+    const options = productVendorOptions(line, columns);
+    expect(options[0].valueScore).toBeGreaterThanOrEqual(options[1].valueScore);
+  });
+});
+
+// Synthetic fixtures isolate the scoring formula from what the real dataset happens to contain.
 function fakeVendor(overrides: Partial<Vendor> = {}): Vendor {
   return {
     id: 'VND-X',
@@ -108,87 +133,78 @@ function fakeVendor(overrides: Partial<Vendor> = {}): Vendor {
 }
 
 function fakeColumn(overrides: Partial<VendorColumn> = {}): VendorColumn {
-  const vendor = fakeVendor(overrides.vendor);
   return {
-    vendor,
+    vendor: fakeVendor(overrides.vendor),
     contracted: false,
     qualified: true,
     onTimePct: 90,
     onTimePickupPct: 90,
-    zipCoveragePct: 50,
-    servedZipCount: 5,
+    zipCoveragePct: 0,
+    servedZipCount: 0,
     patientZipCount: 10,
     ...overrides,
   };
 }
 
-function fakeTotals(actualUsd: number, perVendorUsd: Record<string, number | null>): BasketTotals {
-  return { actualUsd, rentalMonthlyUsd: 0, purchaseUsd: actualUsd, perVendorUsd };
+function fakeLine(overrides: Partial<BasketLine> = {}): BasketLine {
+  return {
+    hcpcs: 'X0000',
+    name: 'Fake Product',
+    categoryLabel: 'Test',
+    units: 10,
+    kind: 'purchase',
+    prices: [],
+    actualUsd: 1000,
+    contractedUsd: null,
+    bestQualifiedVendorId: null,
+    bestQualifiedUsd: null,
+    qualifiedDeltaUsd: null,
+    weeklyUnits: [],
+    weeklyActualUsd: [],
+    ...overrides,
+  };
 }
 
-describe('vendorSavingsOptions (synthetic edge cases)', () => {
-  it('scores a vendor priced exactly at parity at the score-50 midpoint on price', () => {
+describe('productVendorOptions (synthetic edge cases)', () => {
+  it('a zero-coverage vendor can still win the per-product recommendation', () => {
+    // Unlike the whole-basket ranking, coverage doesn't gate this score at all.
     const col = fakeColumn({
-      vendor: fakeVendor({ id: 'VND-PAR', overallRating: 3 }),
-      onTimePct: 0,
-      zipCoveragePct: 0,
-    });
-    const totals = fakeTotals(1000, { 'VND-PAR': 1000 });
-    const [option] = vendorSavingsOptions(totals, [col]);
-    // price term alone is 50; review (3 stars -> 50), delivery 0, coverage 0
-    expect(option.savingsUsd).toBe(0);
-    expect(option.valueScore).toBe(Math.round(50 * PRICE_WEIGHT + 50 * REVIEW_WEIGHT));
-  });
-
-  it('clamps a wildly cheaper vendor at the score-100 ceiling rather than overflowing', () => {
-    const col = fakeColumn({ vendor: fakeVendor({ id: 'VND-CHEAP' }) });
-    const totals = fakeTotals(1000, { 'VND-CHEAP': 1 }); // ~100% cheaper
-    const [option] = vendorSavingsOptions(totals, [col]);
-    expect(option.valueScore).toBeLessThanOrEqual(100);
-    expect(option.valueScore).toBeGreaterThanOrEqual(0);
-  });
-
-  it('clamps a wildly pricier vendor at the score-0 floor rather than going negative', () => {
-    const col = fakeColumn({ vendor: fakeVendor({ id: 'VND-EXPENSIVE' }) });
-    const totals = fakeTotals(1000, { 'VND-EXPENSIVE': 100000 });
-    const [option] = vendorSavingsOptions(totals, [col]);
-    expect(option.valueScore).toBeGreaterThanOrEqual(0);
-  });
-
-  it('gives a 5-star, 100% on-time, full-coverage, cheaper vendor a high score', () => {
-    const col = fakeColumn({
-      vendor: fakeVendor({ id: 'VND-IDEAL', overallRating: 5 }),
+      vendor: fakeVendor({ id: 'VND-NOCOVER', overallRating: 5 }),
       onTimePct: 100,
-      zipCoveragePct: 100,
-      servedZipCount: 10,
-    });
-    const totals = fakeTotals(1000, { 'VND-IDEAL': 800 }); // 20% cheaper
-    const [option] = vendorSavingsOptions(totals, [col]);
-    expect(option.valueScore).toBeGreaterThan(90);
-  });
-
-  it('gives a 1-star, 0% on-time, zero-coverage, pricier vendor a near-bottom score', () => {
-    const col = fakeColumn({
-      vendor: fakeVendor({ id: 'VND-WORST', overallRating: 1 }),
-      onTimePct: 0,
       zipCoveragePct: 0,
       servedZipCount: 0,
     });
-    const totals = fakeTotals(1000, { 'VND-WORST': 1200 }); // 20% pricier
-    const [option] = vendorSavingsOptions(totals, [col]);
-    expect(option.valueScore).toBeLessThan(15);
+    const line = fakeLine({ actualUsd: 1000, prices: [{ vendorId: 'VND-NOCOVER', unitUsd: 80, extendedUsd: 800 }] });
+    const [option] = productVendorOptions(line, [col]);
+    expect(option.zipCoveragePct).toBe(0);
+    expect(option.valueScore).toBeGreaterThan(80);
   });
 
-  it('excludes a vendor with no price for this basket instead of showing a broken entry', () => {
+  it('excludes a vendor with no offer on this code instead of a broken entry', () => {
     const col = fakeColumn({ vendor: fakeVendor({ id: 'VND-UNPRICED' }) });
-    const totals = fakeTotals(1000, { 'VND-UNPRICED': null });
-    expect(vendorSavingsOptions(totals, [col])).toHaveLength(0);
+    const line = fakeLine({ prices: [] });
+    expect(productVendorOptions(line, [col])).toHaveLength(0);
   });
 
-  it('never divides by zero when the basket itself costs nothing', () => {
+  it('never divides by zero when the product itself cost nothing', () => {
     const col = fakeColumn({ vendor: fakeVendor({ id: 'VND-ZERO' }) });
-    const totals = fakeTotals(0, { 'VND-ZERO': 0 });
-    const [option] = vendorSavingsOptions(totals, [col]);
+    const line = fakeLine({ actualUsd: 0, prices: [{ vendorId: 'VND-ZERO', unitUsd: 0, extendedUsd: 0 }] });
+    const [option] = productVendorOptions(line, [col]);
     expect(Number.isFinite(option.valueScore)).toBe(true);
+  });
+
+  it('clamps a wildly cheaper or pricier vendor at the 0-100 score bounds', () => {
+    const cheap = fakeColumn({ vendor: fakeVendor({ id: 'VND-CHEAP' }) });
+    const cheapLine = fakeLine({ actualUsd: 1000, prices: [{ vendorId: 'VND-CHEAP', unitUsd: 1, extendedUsd: 1 }] });
+    expect(productVendorOptions(cheapLine, [cheap])[0].valueScore).toBeLessThanOrEqual(100);
+
+    const pricey = fakeColumn({ vendor: fakeVendor({ id: 'VND-PRICEY' }) });
+    const priceyLine = fakeLine({ actualUsd: 1000, prices: [{ vendorId: 'VND-PRICEY', unitUsd: 10000, extendedUsd: 100000 }] });
+    expect(productVendorOptions(priceyLine, [pricey])[0].valueScore).toBeGreaterThanOrEqual(0);
+  });
+
+  it('never suggests a fabricated row for a synthetic product with no line data', () => {
+    const empty: ProductSavingsRow[] = [];
+    expect(totalPotentialSavingsUsd(empty)).toBe(0);
   });
 });

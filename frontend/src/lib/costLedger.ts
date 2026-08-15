@@ -62,8 +62,8 @@ export interface BasketLine {
    * actualUsd - bestQualifiedUsd. Measured against what was actually paid, because "switch to this
    * vendor" is a move from today's position, not from the contracted rate. Negative means
    * qualifying costs more — a premium, never to be rendered as a saving. Used by the per-code row
-   * drawer; the basket-level "Potential Savings" card uses lib/vendorSavings.ts instead, which
-   * weighs price against reviews, delivery, and service-area coverage rather than a single delta.
+   * drawer; the "Potential Savings" card uses lib/vendorSavings.ts instead, which weighs price
+   * against reviews and delivery per product rather than a single floor-gated delta.
    */
   qualifiedDeltaUsd: number | null;
   weeklyUnits: number[];

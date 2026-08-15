@@ -7,8 +7,8 @@ const HEAD = 'px-3 py-2.5 text-right text-[11px] uppercase tracking-[0.06em] tex
 
 /**
  * What was actually paid, next to the contracted vendor's rate for the same code. Comparing
- * against every other vendor now lives in the Potential Savings card, where price sits next to
- * reviews, delivery, and service-area reach instead of standing alone.
+ * against every other vendor now lives in the Potential Savings card, per product, where price sits
+ * next to reviews and delivery instead of standing alone.
  */
 export function VendorPriceMatrix({
   lines,
@@ -33,7 +33,7 @@ export function VendorPriceMatrix({
       <table className="w-full min-w-[680px] border-collapse text-[13px]">
         <caption className="sr-only">
           Unit price by HCPCS code, with extended totals for {periodLabel}. Click a row for that
-          code's vendor options; see Potential Savings above for options across the whole basket.
+          code's vendor options; see Potential Savings above for the AI-suggested vendor per product.
         </caption>
         <thead>
           <tr>

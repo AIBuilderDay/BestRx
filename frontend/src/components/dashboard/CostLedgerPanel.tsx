@@ -6,15 +6,15 @@ import type { BasketLine, BasketTotals, TrendBucket, VendorColumn } from '../../
 import { ledgerPpd } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
 import type { TrendRange } from '../../lib/costTrendMock';
-import { sortVendorSavings, vendorSavingsOptions } from '../../lib/vendorSavings';
+import { buildProductSavings, countGenuineSavings, totalPotentialSavingsUsd } from '../../lib/vendorSavings';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
 import { MetricTrendPanel, type TrendMetricVM } from './MetricTrendPanel';
+import { ProductSavingsPanel } from './ProductSavingsPanel';
 import { SpendTrendCard } from './SpendTrendCard';
 import { StatTiles, type StatTileVM } from './StatTiles';
 import { VendorPriceMatrix } from './VendorPriceMatrix';
-import { VendorSavingsPanel } from './VendorSavingsPanel';
 
 const DEFAULT_TREND_RANGE: TrendRange = '1m';
 
@@ -54,11 +54,9 @@ export function CostLedgerPanel({
   const [selectedMetric, setSelectedMetric] = useState<TileKey | null>('spend');
   const [trendRange, setTrendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
 
-  const savingsOptions = useMemo(() => vendorSavingsOptions(totals, columns), [totals, columns]);
-  const bestValueOption = useMemo(
-    () => sortVendorSavings(savingsOptions, 'value')[0] ?? null,
-    [savingsOptions],
-  );
+  const productSavings = useMemo(() => buildProductSavings(lines, columns), [lines, columns]);
+  const totalSavingsUsd = useMemo(() => totalPotentialSavingsUsd(productSavings), [productSavings]);
+  const savingsProductCount = useMemo(() => countGenuineSavings(productSavings), [productSavings]);
 
   const tiles: StatTileVM[] = [
     {
@@ -78,23 +76,16 @@ export function CostLedgerPanel({
     {
       key: 'delta',
       label: 'Potential Savings',
-      value:
-        bestValueOption === null
-          ? '—'
-          : bestValueOption.savingsUsd > 0
-            ? `↓ ${moneyLabel(bestValueOption.savingsUsd)}`
-            : '$0',
-      // The best-value pick isn't always the cheapest — a lower-value vendor further down the list
-      // can still save real money, just not responsibly (see VendorSavingsPanel). The tile always
-      // names the top-ranked pick, never a raw price minimum.
+      // Never nets a premium on one product against a saving on another — see
+      // totalPotentialSavingsUsd. Zero means no product this period beats what was paid, not that
+      // nothing was checked.
+      value: totalSavingsUsd > 0 ? `↓ ${moneyLabel(totalSavingsUsd)}` : '$0',
       detail:
-        bestValueOption === null
-          ? 'No other vendor prices this basket'
-          : bestValueOption.savingsUsd > 0
-            ? `${bestValueOption.vendor.displayName} · value ${bestValueOption.valueScore}/100`
-            : `Best option (${bestValueOption.vendor.displayName}) costs ${moneyLabel(Math.abs(bestValueOption.savingsUsd))} more · value ${bestValueOption.valueScore}/100`,
-      tone: bestValueOption !== null && bestValueOption.savingsUsd > 0 ? 'good' : 'plain',
-      chartable: savingsOptions.length > 0,
+        totalSavingsUsd > 0
+          ? `Across ${savingsProductCount} of ${productSavings.length} products`
+          : `No cheaper real alternative across ${productSavings.length} products`,
+      tone: totalSavingsUsd > 0 ? 'good' : 'plain',
+      chartable: productSavings.length > 0,
     },
     {
       key: 'budget',
@@ -131,7 +122,7 @@ export function CostLedgerPanel({
       />
     );
   } else if (selectedMetric === 'delta') {
-    panel = <VendorSavingsPanel options={savingsOptions} bestValueOption={bestValueOption} />;
+    panel = <ProductSavingsPanel rows={productSavings} />;
   } else if (selectedMetric === 'spend' || selectedMetric === 'ppd') {
     panel = (
       <MetricTrendPanel
@@ -169,8 +160,8 @@ export function CostLedgerPanel({
 
       <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">
         Paid is what this hospice actually spent, each order at the vendor that took it. See{' '}
-        <strong className="font-medium text-ink-2">Potential Savings</strong> above to compare
-        vendor options for this basket.
+        <strong className="font-medium text-ink-2">Potential Savings</strong> above for an
+        AI-suggested vendor on every product ordered this period.
       </p>
 
       <SpendTrendCard buckets={trend} />
