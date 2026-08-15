@@ -50,7 +50,8 @@
         "overallRatingCount"
       ],
       "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about Alpine Home Medical. Identity and contact details are scraped from https://www.alpinehomemedical.com/our-locations/salt-lake-city-ut/."
-    }
+    },
+    "contracted": false
   },
   {
     "id": "VND-002",
@@ -102,7 +103,8 @@
         "overallRatingCount"
       ],
       "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about Affinity Home Medical. Identity and contact details are scraped from https://affinityhomemedical.com/."
-    }
+    },
+    "contracted": true
   },
   {
     "id": "VND-003",
@@ -154,6 +156,7 @@
         "overallRatingCount"
       ],
       "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about IOC Home Medical. Identity and contact details are scraped from https://iocdme.com/."
-    }
+    },
+    "contracted": false
   }
 ]
