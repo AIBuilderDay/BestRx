@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { equipmentCatalog, patients } from '../data/db';
+import { equipmentCatalog, patients, vendors } from '../data/db';
 import {
   buildCatalogItems,
+  catalogFilterOptions,
   filterAndSortCatalog,
   itemPrice,
   moneyLabel,
@@ -10,6 +11,7 @@ import {
   paginateCatalog,
   patientOwnsEquipment,
   priceCeiling,
+  searchCatalog,
 } from './catalog';
 
 describe('itemPrice', () => {
@@ -41,7 +43,7 @@ describe('buildCatalogItems', () => {
 
   it('reads price, vendor label, and item rating from JSON', () => {
     const bed = items.find((it) => it.offer.id === 'OFR-001')!;
-    expect(bed.price).toEqual({ amount: 72, unit: '/mo' });
+    expect(bed.price).toEqual({ amount: 1045, unit: 'one-time' });
     expect(bed.vendor.displayName).toBe('Vendor 1');
     expect(bed.offer.deliveryLeadDays).toBe(1);
     expect(bed.offer.productName).toBe('Hospital Bed');
@@ -56,6 +58,12 @@ describe('offerPrice', () => {
     const items = buildCatalogItems();
     const walker = items.find((it) => it.offer.id === 'OFR-015')!;
     expect(offerPrice(walker.offer)).toEqual({ amount: 55, unit: 'one-time' });
+  });
+
+  it('maps a monthly rental offer to the /mo unit', () => {
+    const items = buildCatalogItems();
+    const concentrator = items.find((it) => it.offer.id === 'OFR-002')!;
+    expect(offerPrice(concentrator.offer)).toEqual({ amount: 124.5, unit: '/mo' });
   });
 });
 
@@ -138,6 +146,57 @@ describe('filterAndSortCatalog', () => {
   });
 });
 
+describe('catalogFilterOptions', () => {
+  const items = buildCatalogItems();
+  const filters = {
+    category: 'respiratory' as const,
+    vendorIds: [],
+    speed: 'any' as const,
+    maxPrice: 10_000,
+    sort: 'featured' as const,
+  };
+
+  it('updates category counts when a vendor is selected', () => {
+    const unfiltered = catalogFilterOptions(items, {
+      category: 'All',
+      vendorIds: [],
+      speed: 'any',
+      maxPrice: 10_000,
+      sort: 'featured',
+    }, vendors);
+    const withVendor = catalogFilterOptions(items, {
+      category: 'All',
+      vendorIds: ['VND-001'],
+      speed: 'any',
+      maxPrice: 10_000,
+      sort: 'featured',
+    }, vendors);
+
+    const respiratoryAll = unfiltered.categories.find((c) => c.key === 'respiratory')!.count;
+    const respiratoryVendor1 = withVendor.categories.find((c) => c.key === 'respiratory')!.count;
+    expect(respiratoryVendor1).toBeLessThanOrEqual(respiratoryAll);
+  });
+
+  it('updates vendor counts when a category is selected', () => {
+    const options = catalogFilterOptions(items, filters, vendors);
+    const vendor1Respiratory = options.vendors.find((v) => v.id === 'VND-001')!.count;
+    const vendor1All = catalogFilterOptions(items, {
+      category: 'All',
+      vendorIds: [],
+      speed: 'any',
+      maxPrice: 10_000,
+      sort: 'featured',
+    }, vendors).vendors.find((v) => v.id === 'VND-001')!.count;
+    expect(vendor1Respiratory).toBeLessThanOrEqual(vendor1All);
+  });
+
+  it('hides categories and vendors with zero matching items', () => {
+    const options = catalogFilterOptions(items, filters, vendors);
+    expect(options.categories.every((c) => c.key === 'All' || c.count > 0)).toBe(true);
+    expect(options.vendors.every((v) => v.count > 0)).toBe(true);
+  });
+});
+
 describe('moneyLabel', () => {
   it('formats with a dollar sign and thousands separator', () => {
     expect(moneyLabel(1234)).toBe('$1,234');
@@ -165,5 +224,31 @@ describe('paginateCatalog', () => {
       firstItem: 61,
       lastItem: 65,
     });
+  });
+});
+
+describe('searchCatalog', () => {
+  const items = buildCatalogItems();
+
+  it('returns all items for an empty or whitespace query', () => {
+    expect(searchCatalog(items, '')).toHaveLength(items.length);
+    expect(searchCatalog(items, '   ')).toHaveLength(items.length);
+  });
+
+  it('matches product names case-insensitively', () => {
+    const results = searchCatalog(items, 'HOSPITAL BED');
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((it) => /hospital bed/i.test(it.offer.productName))).toBe(true);
+  });
+
+  it('matches vendor display names', () => {
+    const vendorName = items[0]!.vendor.displayName;
+    const results = searchCatalog(items, vendorName);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((it) => it.vendor.displayName === vendorName)).toBe(true);
+  });
+
+  it('requires every word in the query to match', () => {
+    expect(searchCatalog(items, 'hospital zzzznope')).toHaveLength(0);
   });
 });

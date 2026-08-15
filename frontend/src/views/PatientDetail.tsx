@@ -10,7 +10,7 @@ import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
 import type { PatientEquipmentVM } from '../lib/patients';
 import type { PatientNote, User } from '../types/domain';
 
-export default function PatientDetail({ user }: { user: User }) {
+export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { cartCount, setCartOpen } = useCart();
@@ -48,6 +48,7 @@ export default function PatientDetail({ user }: { user: User }) {
       cartCount={cartCount}
       activeSection="patients"
       onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
     />
   );
 
@@ -102,18 +103,15 @@ export default function PatientDetail({ user }: { user: User }) {
           <div className="min-w-0">
             <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate('/catalog')}
-            className="ml-auto flex-none cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-2 text-[13px] font-medium whitespace-nowrap text-solid-ink transition-opacity hover:opacity-85"
-          >
-            New order
-          </button>
         </div>
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
           <div className="flex min-w-0 flex-col gap-5">
-            <ProductsOrderedSection equipment={equipment} onCallVendor={handleCallVendor} />
+            <ProductsOrderedSection
+              equipment={equipment}
+              onCallVendor={handleCallVendor}
+              onNewOrder={() => navigate('/catalog')}
+            />
 
             <PatientNotesSection
               patientId={patient.id}

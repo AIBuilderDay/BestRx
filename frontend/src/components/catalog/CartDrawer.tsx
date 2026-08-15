@@ -165,7 +165,7 @@ export function CartDrawer({
               onClick={onPlaceOrder}
               className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
             >
-              Place order
+              Add to cart
             </button>
           </div>
         </div>
