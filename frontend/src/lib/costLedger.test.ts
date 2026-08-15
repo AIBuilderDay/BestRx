@@ -35,8 +35,8 @@ describe('vendorColumns', () => {
 
   it('reports how much of the hospice ZIP footprint each vendor actually serves', () => {
     const coverage = Object.fromEntries(columns.map((c) => [c.vendor.id, c.servedZipCount]));
-    expect(coverage['VND-001']).toBe(4);
-    expect(coverage['VND-002']).toBe(1);
+    expect(coverage['VND-001']).toBe(5);
+    expect(coverage['VND-002']).toBe(4);
     expect(coverage['VND-003']).toBe(0);
     for (const column of columns) {
       expect(column.patientZipCount, column.vendor.id).toBe(10);
