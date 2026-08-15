@@ -13,7 +13,7 @@
 
   "assets": {
     // Relative to this file, so `wrangler deploy` must run from frontend/ — see package.json.
-    "directory": "./frontend/dist",
+    "directory": "./dist",
 
     // React Router owns the paths, so an unmatched request serves index.html and lets the app
     // resolve it. Without this a refresh on /patients returns 404.

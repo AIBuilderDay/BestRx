@@ -12,7 +12,7 @@ export function PricingModeToggle({
   onChange: (next: PricingMode) => void;
 }) {
   return (
-    <div className="inline-flex overflow-hidden rounded-[10px] border border-line-strong" role="group" aria-label="Pricing">
+    <div className="inline-flex overflow-hidden border border-line-strong" role="group" aria-label="Pricing">
       <ToggleButton active={mode === 'rent'} onClick={() => onChange('rent')} label="Rental" hint="monthly" />
       <ToggleButton active={mode === 'buy'} onClick={() => onChange('buy')} label="Purchase" hint="one-time" />
     </div>
