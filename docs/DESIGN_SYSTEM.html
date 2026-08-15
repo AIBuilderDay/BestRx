@@ -162,6 +162,23 @@
   carries meaning. Shop-app interaction patterns, clinical restraint in tone.
 </p>
 
+<h2>Brand — the capsule logo</h2>
+<p>
+  <svg width="87" height="32" viewBox="0 0 300 110" role="img" aria-label="BestRx logo" style="vertical-align:middle">
+    <rect x="5" y="5" width="290" height="100" rx="50" fill="var(--ink)"/>
+    <text x="80" y="74" fill="var(--bg)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="52" font-weight="700" letter-spacing="-2">best</text>
+    <text x="187" y="46" fill="var(--bg)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="21" font-weight="700" letter-spacing="0.5">RX</text>
+  </svg>
+  &nbsp;This is the one BestRx mark, everywhere — app chrome, login, mockups, docs, favicons.
+  Never hand-roll another wordmark, dot, or icon. In the app, render
+  <code>&lt;Logo /&gt;</code> from <code>frontend/src/components/ui/Logo.tsx</code> — the capsule
+  fills with <code>currentColor</code> and the wordmark knocks out to <code>--bg</code>, so it
+  inherits any surface and theme. Static copies live in
+  <code>frontend/public/images/brand/</code> (<code>bestrx-logo.svg</code>, and
+  <code>bestrx-mark.svg</code> — the "b" pill used as the favicon). The reference sheet, with
+  inverted and small sizes, is <code>mockups/logo.html</code>.
+</p>
+
 <h2>Surfaces, lines, and ink</h2>
 <p>Hierarchy comes from these, not from colour. Three ink levels is usually enough for any screen.</p>
 

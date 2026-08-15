@@ -27,7 +27,7 @@ usable.
 | `equipment_catalog.json` | 10 | `hcpcs` | — |
 | `hospices.json` | 3 | `id` (HSP-) | — |
 | `vendors.json` | 3 | `id` (VND-) | — |
-| `users.json` | 9 | `id` (USR-) | `orgId` → hospice or vendor |
+| `users.json` | 13 | `id` (USR-) | `orgId` → hospice or vendor. `email` is the login identity; permissions derive from `role` in `src/lib/auth.ts`, not from this table |
 | `patients.json` | 8 | `id` (PT-) | `hospiceId`, `caseManagerId` |
 | `orders.json` | 10 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
 | `order_events.json` | 30 | `id` (EVT-) | `orderId`, `actorId` |
