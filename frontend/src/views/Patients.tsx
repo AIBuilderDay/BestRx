@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { getHospice, getUser } from '../data/db';
+import { getHospice } from '../data/db';
 import { useCart } from '../context/CartContext';
 import { TopNav } from '../components/layout/TopNav';
 import { PatientCard } from '../components/patients/PatientCard';
@@ -9,29 +9,29 @@ import {
   filterCaseload,
   getCaseloadPatients,
 } from '../lib/patients';
-import { CURRENT_USER_ID, HOSPICE_ID } from '../lib/session';
+import type { User } from '../types/domain';
 
-export default function Patients() {
-  const hospice = getHospice(HOSPICE_ID);
-  const currentUser = getUser(CURRENT_USER_ID);
+export default function Patients({ user, onSignOut }: { user: User; onSignOut: () => void }) {
+  const hospice = getHospice(user.orgId);
   const { cartCount, setCartOpen } = useCart();
   const [query, setQuery] = useState('');
 
   const caseload = useMemo(
-    () => getCaseloadPatients(CURRENT_USER_ID, HOSPICE_ID),
-    [],
+    () => getCaseloadPatients(user.id, user.orgId),
+    [user.id, user.orgId],
   );
   const attentionTotal = useMemo(() => caseloadAttentionTotal(caseload), [caseload]);
   const filtered = useMemo(() => filterCaseload(caseload, query), [caseload, query]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-bg">
       <TopNav
         hospiceName={hospice?.name ?? 'Hospice'}
-        userName={currentUser?.name ?? 'Case manager'}
+        user={user}
         cartCount={cartCount}
         activeSection="patients"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">

@@ -27,7 +27,7 @@ usable.
 | `equipment_catalog.json` | 10 | `hcpcs` | — |
 | `hospices.json` | 3 | `id` (HSP-) | — |
 | `vendors.json` | 3 | `id` (VND-) | — |
-| `users.json` | 9 | `id` (USR-) | `orgId` → hospice or vendor |
+| `users.json` | 13 | `id` (USR-) | `orgId` → hospice or vendor. `email` is the login identity; permissions derive from `role` in `src/lib/auth.ts`, not from this table |
 | `patients.json` | 8 | `id` (PT-) | `hospiceId`, `caseManagerId` |
 | `orders.json` | 10 | `id` (DME-) | `patientId`, `hospiceId`, `vendorId`, `orderedById` |
 | `order_events.json` | 30 | `id` (EVT-) | `orderId`, `actorId` |
@@ -102,9 +102,9 @@ that zip, and events whose timestamps agree with its status.
 
 ## Patients view
 
-**Caseload:** the Patients list filters by `caseManagerId` matching the logged-in user (demo session
-uses `USR-001`). This is the nurse/case-manager assignment key until a dedicated `assignedNurseId`
-exists.
+**Caseload:** the Patients list filters by `caseManagerId` matching the logged-in user (sign in as
+`USR-001` / Dana to see a populated caseload). This is the nurse/case-manager assignment key until
+a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.

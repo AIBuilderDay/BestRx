@@ -1,30 +1,29 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getHospice, getUser } from '../data/db';
+import { getHospice } from '../data/db';
 import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
 import { useCart } from '../context/CartContext';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
 import type { PatientEquipmentVM } from '../lib/patients';
-import { CURRENT_USER_ID, HOSPICE_ID } from '../lib/session';
+import type { User } from '../types/domain';
 
 interface SessionNote {
   meta: string;
   text: string;
 }
 
-export default function PatientDetail() {
+export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
-  const hospice = getHospice(HOSPICE_ID);
-  const currentUser = getUser(CURRENT_USER_ID);
+  const hospice = getHospice(user.orgId);
   const { cartCount, setCartOpen } = useCart();
 
   const [draft, setDraft] = useState('');
   const [addedNotes, setAddedNotes] = useState<SessionNote[]>([]);
 
-  const inCaseload = patientId ? isInCaseload(patientId, CURRENT_USER_ID, HOSPICE_ID) : false;
+  const inCaseload = patientId ? isInCaseload(patientId, user.id, user.orgId) : false;
   const vm = useMemo(
     () => (patientId && inCaseload ? buildPatientDetailVM(patientId) : null),
     [patientId, inCaseload],
@@ -36,7 +35,7 @@ export default function PatientDetail() {
     const text = draft.trim();
     if (!text) return;
     setAddedNotes((prev) => [
-      { meta: `Just now · ${currentUser?.name ?? 'Case manager'}`, text },
+      { meta: `Just now · ${user.name}`, text },
       ...prev,
     ]);
     setDraft('');
@@ -59,16 +58,21 @@ export default function PatientDetail() {
     void navigator.clipboard?.writeText(text);
   };
 
+  const topNav = (
+    <TopNav
+      hospiceName={hospice?.name ?? 'Hospice'}
+      user={user}
+      cartCount={cartCount}
+      activeSection="patients"
+      onOpenCart={() => setCartOpen(true)}
+      onSignOut={onSignOut}
+    />
+  );
+
   if (!patientId || !inCaseload || !vm) {
     return (
-      <div className="min-h-screen bg-white">
-        <TopNav
-          hospiceName={hospice?.name ?? 'Hospice'}
-          userName={currentUser?.name ?? 'Case manager'}
-          cartCount={cartCount}
-          activeSection="patients"
-          onOpenCart={() => setCartOpen(true)}
-        />
+      <div className="min-h-screen bg-bg">
+        {topNav}
         <main className="mx-auto max-w-[1220px] px-8 py-12">
           <p className="text-[13px] text-[var(--color-ink-3)]">This patient is not on your caseload or could not be found.</p>
           <Link to="/patients" className="mt-4 inline-block text-[13px] underline underline-offset-2">
@@ -83,14 +87,8 @@ export default function PatientDetail() {
   const imagePath = patient.imagePath;
 
   return (
-    <div className="min-h-screen bg-white">
-      <TopNav
-        hospiceName={hospice?.name ?? 'Hospice'}
-        userName={currentUser?.name ?? 'Case manager'}
-        cartCount={cartCount}
-        activeSection="patients"
-        onOpenCart={() => setCartOpen(true)}
-      />
+    <div className="min-h-screen bg-bg">
+      {topNav}
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-5.5">
         <Link

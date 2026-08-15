@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { equipmentCatalog, getHospice, getUser, patients, vendors } from '../data/db';
+import { equipmentCatalog, getHospice, patients, vendors } from '../data/db';
 import {
   buildCartGroups,
   buildCatalogItems,
@@ -16,7 +16,7 @@ import {
   type CatalogFilterState,
   type SortKey,
 } from '../lib/catalog';
-import type { EquipmentCategory } from '../types/domain';
+import type { EquipmentCategory, User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CatalogFilters, type CategoryOption } from '../components/catalog/CatalogFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
@@ -25,7 +25,6 @@ import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
 import { useCart } from '../context/CartContext';
-import { CURRENT_USER_ID, HOSPICE_ID } from '../lib/session';
 
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'featured', label: 'Featured' },
@@ -35,12 +34,11 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 const PRICE_MAX = priceCeiling(equipmentCatalog);
 
-export default function Catalog() {
-  const hospice = getHospice(HOSPICE_ID);
-  const currentUser = getUser(CURRENT_USER_ID);
+export default function Catalog({ user, onSignOut }: { user: User; onSignOut: () => void }) {
+  const hospice = getHospice(user.orgId);
   const assignablePatients = useMemo(
-    () => patients.filter((p) => p.hospiceId === HOSPICE_ID && p.status !== 'deceased'),
-    [],
+    () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
+    [user.orgId],
   );
   const catalogItems = useMemo(() => buildCatalogItems(equipmentCatalog), []);
 
@@ -131,13 +129,14 @@ export default function Catalog() {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-bg">
       <TopNav
         hospiceName={hospice?.name ?? 'Hospice'}
-        userName={currentUser?.name ?? 'Case manager'}
+        user={user}
         cartCount={totalUnitsInCart(lines)}
         activeSection="catalog"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
@@ -174,8 +173,8 @@ export default function Catalog() {
                   }}
                   className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-[var(--color-ink)] ${
                     filters.sort === s.key
-                      ? 'border-[var(--color-ink)] bg-[var(--color-ink)] text-white'
-                      : 'border-[var(--color-line)] bg-white text-[var(--color-ink-2)]'
+                      ? 'border-[var(--color-ink)] bg-solid-bg text-solid-ink'
+                      : 'border-[var(--color-line)] bg-surface text-[var(--color-ink-2)]'
                   }`}
                 >
                   {s.label}

@@ -97,6 +97,8 @@ export interface User {
   role: UserRole;
   orgType: 'hospice' | 'vendor';
   orgId: string;
+  /** Login identity. Unique across users; permissions derive from `role` in lib/auth.ts. */
+  email: string;
   phone: string;
   avatarPath: string;
 }
