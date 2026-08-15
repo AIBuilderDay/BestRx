@@ -7,10 +7,11 @@ import type { ProductReview } from '../types/domain';
 import {
   buildCartGroups,
   buildCatalogItems,
-  CATEGORY_LABELS,
   cartTotals,
+  catalogFilterOptions,
   defaultCatalogFilters,
   filterAndSortCatalog,
+  resolveCatalogFilters,
   RESET_CATALOG_FILTERS_STATE,
   paginateCatalog,
   searchCatalog,
@@ -22,13 +23,12 @@ import {
   type CatalogFilterState,
   type SortKey,
 } from '../lib/catalog';
-import type { EquipmentCategory, User } from '../types/domain';
+import type { User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
-import { CatalogFilters, type CategoryOption } from '../components/catalog/CatalogFilters';
+import { CatalogFilters } from '../components/catalog/CatalogFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
-import { OrderPlacedDialog, type PlacedOrderDetails } from '../components/catalog/OrderPlacedDialog';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { CartDrawer } from '../components/catalog/CartDrawer';
 import { Toast } from '../components/ui/Toast';
@@ -60,8 +60,6 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const [currentPage, setCurrentPage] = useState(1);
   const { lines, setLines, cartOpen, setCartOpen, clearCart, agentAdded, setAgentAdded } = useCart();
   const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
-  const [sheetMode, setSheetMode] = useState<'cart' | 'order'>('cart');
-  const [placedOrder, setPlacedOrder] = useState<PlacedOrderDetails | null>(null);
   const [toast, setToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -92,13 +90,6 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const openCartSheet = (id: string) => {
     setSheetOfferId(id);
-    setSheetMode('cart');
-    setCartOpen(false);
-  };
-
-  const openOrderSheet = (id: string) => {
-    setSheetOfferId(id);
-    setSheetMode('order');
     setCartOpen(false);
   };
 
@@ -118,15 +109,6 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       return;
     }
 
-    if (sheetMode === 'order') {
-      const orderPatients = selectedPatientIds
-        .map((id) => patients.find((p) => p.id === id))
-        .filter((p): p is NonNullable<typeof p> => Boolean(p));
-      setPlacedOrder({ product: sheetProduct, patients: orderPatients, qty });
-      setSheetOfferId(null);
-      return;
-    }
-
     setLines((prev) =>
       selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, qty), prev),
     );
@@ -136,7 +118,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
             patientFullName(patients.find((p) => p.id === selectedPatientIds[0])!)) ||
           selectedPatientIds[0]
         : `${selectedPatientIds.length} patients`;
-    say(`${sheetProduct.offer.productName} × ${qty} added for ${names}`);
+    say(`${sheetProduct.offer.productName} ${qty} added for ${names}`);
     setSheetOfferId(null);
   };
 
@@ -154,7 +136,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
 
   const applyFilters = (patch: Partial<CatalogFilterState>) => {
     exitDetail();
-    setFilters((f) => ({ ...f, ...patch }));
+    setFilters((f) => resolveCatalogFilters(catalogItems, f, patch));
     setCurrentPage(1);
   };
 
@@ -188,14 +170,10 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const cartGroups = buildCartGroups(lines, catalogItems, patients);
   const totals = cartTotals(lines, catalogItems);
 
-  const categories: CategoryOption[] = [
-    { key: 'All', label: 'All', count: catalogItems.length },
-    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[]).map((key) => ({
-      key,
-      label: CATEGORY_LABELS[key],
-      count: catalogItems.filter((it) => it.offer.category === key).length,
-    })),
-  ];
+  const filterOptions = useMemo(
+    () => catalogFilterOptions(catalogItems, filters, vendors),
+    [catalogItems, filters],
+  );
 
   if (!can(user, 'storefront:purchase')) {
     return <Navigate to="/patients" replace />;
@@ -214,8 +192,8 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
         <CatalogFilters
           filters={filters}
-          categories={categories}
-          vendors={vendors}
+          categories={filterOptions.categories}
+          vendors={filterOptions.vendors}
           priceMax={priceMax}
           onChange={applyFilters}
           onReset={resetFilters}
@@ -300,12 +278,12 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                   {catalogPage.items.map((item, i) => (
                     <div
                       key={item.offer.id}
-                      className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
+                      className="h-full min-w-0 animate-card-in motion-reduce:animate-none"
                       style={{ animationDelay: `${i * 0.045}s` }}
                     >
                       <ProductCard
                         item={item}
-                        onOrderNow={() => openOrderSheet(item.offer.id)}
+                        onOrderNow={() => openCartSheet(item.offer.id)}
                         aiReason={aiReasons[item.offer.id]}
                       />
                     </div>
@@ -334,12 +312,9 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       <PatientAssignSheet
         product={sheetProduct}
         patients={assignablePatients}
-        mode={sheetMode}
         onClose={() => setSheetOfferId(null)}
         onConfirm={confirmSheet}
       />
-
-      <OrderPlacedDialog order={placedOrder} onClose={() => setPlacedOrder(null)} />
 
       <CartDrawer
         open={cartOpen}

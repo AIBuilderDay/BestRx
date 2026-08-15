@@ -6,14 +6,19 @@ import { Logo } from "../ui/Logo";
 import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
-export type NavSection = "catalog" | "patients";
+export type NavSection = "catalog" | "orders" | "patients";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: "Orders", permissions: ["storefront:purchase", "pickup:trigger"] },
+  { label: "Pickups", permissions: ["pickup:trigger"] },
+  { label: "Costs", permissions: ["reporting"] },
+  { label: "Vendors", permissions: ["vendors:manage"] },
 ];
 
-/** Sticky app header: brand, section nav, catalog search, cart icon, and the profile menu. */
+const canViewOrders = (user: User): boolean =>
+  can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
+
+/** Sticky app header: brand, section nav, the AI search bar, cart icon, and the profile menu. */
 export function TopNav({
   user,
   cartCount,
@@ -29,8 +34,8 @@ export function TopNav({
 }) {
   const linkClass = (section: NavSection) =>
     section === activeSection
-      ? "text-ink"
-      : "text-ink-2 transition-colors hover:text-ink";
+      ? "nav-link text-ink"
+      : "nav-link text-ink-2 hover:text-ink";
 
   return (
     <header className="sticky top-0 z-20 grid grid-cols-[1fr_minmax(0,520px)_1fr] items-center gap-6 border-b border-line bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
@@ -48,6 +53,15 @@ export function TopNav({
           >
             Catalog
           </Link>
+          {canViewOrders(user) ? (
+            <Link
+              to="/orders"
+              aria-current={activeSection === "orders" ? "page" : undefined}
+              className={linkClass("orders")}
+            >
+              Orders
+            </Link>
+          ) : null}
           {can(user, "orders:own-patients") ? (
             <Link
               to="/patients"
@@ -79,11 +93,11 @@ export function TopNav({
           onClick={onOpenCart}
           aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
           data-testid="cart-button"
-          className="p-1 text-ink transition-opacity hover:opacity-70"
+          className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
         >
           <svg
-            width="38"
-            height="38"
+            width="30"
+            height="30"
             viewBox="0 0 32 32"
             fill="none"
             stroke="currentColor"

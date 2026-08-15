@@ -180,6 +180,18 @@ export function cartPpdImpact(monthlyRentals: number, census: number, days: numb
 export type SortKey = 'featured' | 'price' | 'speed';
 export type SpeedFilter = 'any' | '1' | '3' | '7';
 
+export interface CategoryOption {
+  key: 'All' | EquipmentCategory;
+  label: string;
+  count: number;
+}
+
+export interface VendorFilterOption {
+  id: string;
+  displayName: string;
+  count: number;
+}
+
 export interface CatalogFilterState {
   category: 'All' | EquipmentCategory;
   vendorIds: string[];
@@ -355,6 +367,96 @@ export function cartTotals(lines: CartLine[], catalogItems: CatalogProductVM[]):
   return { monthly, oneTime, slowestLeadDays };
 }
 
+type CatalogFilterDimension = 'category' | 'vendorIds' | 'speed' | 'maxPrice';
+
+function matchesCatalogFilters(
+  item: CatalogProductVM,
+  f: CatalogFilterState,
+  skip: CatalogFilterDimension[] = [],
+): boolean {
+  if (!skip.includes('category') && f.category !== 'All' && item.offer.category !== f.category) return false;
+  if (!skip.includes('vendorIds') && f.vendorIds.length > 0 && !f.vendorIds.includes(item.vendor.id)) return false;
+  if (!skip.includes('speed') && f.speed !== 'any' && item.offer.deliveryLeadDays > Number(f.speed)) return false;
+  if (!skip.includes('maxPrice') && item.price.amount > f.maxPrice) return false;
+  return true;
+}
+
+/** Sidebar counts reflect every active filter except the group being counted. */
+export function catalogFilterOptions(
+  items: CatalogProductVM[],
+  filters: CatalogFilterState,
+  allVendors: Vendor[],
+): { categories: CategoryOption[]; vendors: VendorFilterOption[] } {
+  const forCategory = items.filter((it) => matchesCatalogFilters(it, filters, ['category']));
+  const categories: CategoryOption[] = [
+    { key: 'All', label: 'All', count: forCategory.length },
+    ...(Object.keys(CATEGORY_LABELS) as EquipmentCategory[])
+      .map((key) => ({
+        key,
+        label: CATEGORY_LABELS[key],
+        count: forCategory.filter((it) => it.offer.category === key).length,
+      }))
+      .filter((c) => c.count > 0),
+  ];
+
+  const forVendor = items.filter((it) => matchesCatalogFilters(it, filters, ['vendorIds']));
+  const vendors: VendorFilterOption[] = allVendors
+    .map((v) => ({
+      id: v.id,
+      displayName: v.displayName,
+      count: forVendor.filter((it) => it.vendor.id === v.id).length,
+    }))
+    .filter((v) => v.count > 0);
+
+  return { categories, vendors };
+}
+
+/**
+ * Keeps category and vendor selections consistent when both change at once.
+ */
+export function resolveCatalogFilters(
+  items: CatalogProductVM[],
+  current: CatalogFilterState,
+  patch: Partial<CatalogFilterState>,
+): CatalogFilterState {
+  const merged: CatalogFilterState = { ...current, ...patch };
+  const categoryChanged = 'category' in patch;
+  const vendorsChanged = 'vendorIds' in patch;
+
+  if (categoryChanged && !vendorsChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
+    const applies = items.some(
+      (item) => merged.vendorIds.includes(item.vendor.id) && item.offer.category === merged.category,
+    );
+    if (!applies) merged.category = 'All';
+  }
+
+  if (vendorsChanged && !categoryChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
+    const validIds = new Set(
+      items
+        .filter((item) => item.offer.category === merged.category)
+        .map((item) => item.vendor.id),
+    );
+    merged.vendorIds = merged.vendorIds.filter((id) => validIds.has(id));
+  }
+
+  if (categoryChanged && vendorsChanged && merged.category !== 'All' && merged.vendorIds.length > 0) {
+    const validIds = new Set(
+      items
+        .filter((item) => item.offer.category === merged.category)
+        .map((item) => item.vendor.id),
+    );
+    merged.vendorIds = merged.vendorIds.filter((id) => validIds.has(id));
+    if (merged.vendorIds.length > 0) {
+      const applies = items.some(
+        (item) => merged.vendorIds.includes(item.vendor.id) && item.offer.category === merged.category,
+      );
+      if (!applies) merged.category = 'All';
+    }
+  }
+
+  return merged;
+}
+
 /** Text search from the top-nav bar: every word must match name, vendor, or category. */
 export function searchCatalog(items: CatalogProductVM[], query: string): CatalogProductVM[] {
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
@@ -370,13 +472,7 @@ export function filterAndSortCatalog(
   items: CatalogProductVM[],
   f: CatalogFilterState,
 ): CatalogProductVM[] {
-  let list = items.filter((it) => {
-    if (f.category !== 'All' && it.offer.category !== f.category) return false;
-    if (f.vendorIds.length > 0 && !f.vendorIds.includes(it.vendor.id)) return false;
-    if (f.speed !== 'any' && it.offer.deliveryLeadDays > Number(f.speed)) return false;
-    if (it.price.amount > f.maxPrice) return false;
-    return true;
-  });
+  let list = items.filter((it) => matchesCatalogFilters(it, f));
 
   if (f.sort === 'price') {
     list = list.slice().sort((a, b) => a.price.amount - b.price.amount);

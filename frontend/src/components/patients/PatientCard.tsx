@@ -33,8 +33,10 @@ export function PatientCard({ patient }: { patient: Patient }) {
             </>
           )}
         </div>
-        <div className="pt-3.5">
-          <div className="line-clamp-2 text-[13.5px] font-medium leading-5 tracking-tight">{name}</div>
+        {/* Same meta block as the catalog ProductCard, so patient and equipment cards
+            share one type treatment and line rhythm. */}
+        <div className="product-card-meta">
+          <div className="product-card-name text-[13.5px] font-medium tracking-tight">{name}</div>
         </div>
       </article>
     </Link>

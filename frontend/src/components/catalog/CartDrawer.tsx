@@ -63,7 +63,7 @@ export function CartDrawer({
         <div className="flex-1 overflow-y-auto px-5.5 py-4">
           <div className="grid gap-5.5">
             {groups.map((g) => (
-              <div key={g.patientId} className="animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]">
+              <div key={g.patientId} className="animate-chip-in motion-reduce:animate-none">
                 <div className="flex items-baseline justify-between gap-2.5 border-b border-ink pb-1.5">
                   <span className="font-mono text-[12.5px] tabular-nums">{g.patientName}</span>
                   <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
@@ -189,7 +189,7 @@ export function CartDrawer({
               onClick={onPlaceOrder}
               className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
             >
-              Place order
+              Add to cart
             </button>
           </div>
         </div>
