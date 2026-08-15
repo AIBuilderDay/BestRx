@@ -37,11 +37,23 @@
   --risk: #b42318;
   --risk-bg: #fef3f2;
 
-  /* Chart series ramp */
+  /* Chart series ramp — grayscale, the default for a single-hue trend or the row-level price
+     ladder. Categorical charts distinguishing several unrelated things (e.g. the budget donut's
+     per-product / per-nurse split) use --chart-1..4 below instead. */
   --s1: #0a0a0a;
   --s2: #525252;
   --s3: #969696;
   --s4: #cfcfcf;
+
+  /* Muted categorical ramp — one hue per slot, desaturated so four slices read calm on a donut
+     rather than a saturated pie-chart rainbow. Validated with the dataviz skill's
+     validate_palette.js: lightness band, chroma floor, CVD-adjacent separation, and normal-vision
+     separation all pass; contrast vs surface lands in the WARN band, legal here only because every
+     slice already carries a direct text label + value, never color alone. */
+  --chart-1: #d9607a;
+  --chart-2: #c2941f;
+  --chart-3: #2e9e86;
+  --chart-4: #6b87d6;
 
   /* Radii */
   --radius-control: 7px;
@@ -73,6 +85,10 @@
     --s2: #a8a8a8;
     --s3: #6b6b6b;
     --s4: #3d3d3d;
+    --chart-1: #d4677e;
+    --chart-2: #b08228;
+    --chart-3: #339e82;
+    --chart-4: #6f85d4;
   }
 }
 
@@ -99,6 +115,10 @@
   --s2: #a8a8a8;
   --s3: #6b6b6b;
   --s4: #3d3d3d;
+  --chart-1: #d4677e;
+  --chart-2: #b08228;
+  --chart-3: #339e82;
+  --chart-4: #6f85d4;
 }
 
 /* Tailwind v4: tokens become utilities — bg-surface, text-ink-2, border-line, rounded-card, … */
@@ -128,6 +148,10 @@
   --color-s2: var(--s2);
   --color-s3: var(--s3);
   --color-s4: var(--s4);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
 
   --radius-control: 7px;
   --radius-card: 10px;

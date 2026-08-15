@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { moneyLabel } from '../../lib/catalog';
 import type { BreakdownSlice } from '../../lib/budgetBreakdown';
 
-/** Fixed categorical order from the design system's four-step ramp — never cycled or reassigned. */
-const SLICE_COLOR = ['stroke-s1', 'stroke-s2', 'stroke-s3', 'stroke-s4'];
-const SLICE_DOT = ['bg-s1', 'bg-s2', 'bg-s3', 'bg-s4'];
+/**
+ * Fixed categorical order from the muted rainbow ramp (--chart-1..4 in tokens.css) — never cycled
+ * or reassigned. Validated with the dataviz skill's validate_palette.js (lightness band, chroma
+ * floor, CVD-adjacent separation, normal-vision separation); each slice also carries a direct text
+ * label, so the one WARN-band contrast reading is legal rather than color-alone.
+ */
+const SLICE_COLOR = ['stroke-chart-1', 'stroke-chart-2', 'stroke-chart-3', 'stroke-chart-4'];
+const SLICE_DOT = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4'];
 
 const SIZE = 220;
 const CENTER = SIZE / 2;
@@ -51,10 +56,9 @@ export function DonutChart({ slices, totalLabel }: { slices: BreakdownSlice[]; t
               className="transition-opacity"
               opacity={hoverIndex === null || hoverIndex === i ? 1 : 0.35}
             >
-              {/* A hairline outline half a step lighter than the fill defines every segment's edge
-                  regardless of the fill's own contrast against the surface — s4 (#cfcfcf / #3d3d3d)
-                  measures under the 2:1 floor against this app's card surface in both themes, so a
-                  fill-only ring would be nearly invisible for that slice without this. */}
+              {/* A hairline outline defines every segment's edge regardless of the fill's own
+                  contrast against the surface — one slot in the ramp lands in the WARN contrast
+                  band, so a fill-only ring could read faint there without this. */}
               <circle
                 cx={CENTER}
                 cy={CENTER}
