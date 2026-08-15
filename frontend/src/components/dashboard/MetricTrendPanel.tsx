@@ -1,23 +1,16 @@
-import {
-  generateTrendSeries,
-  partitionsCurrentValue,
-  TREND_RANGES,
-  type MetricKey,
-  type TrendRange,
-} from '../../lib/costTrendMock';
+import { generatePpdTrend } from '../../lib/costTrendMock';
+import { TREND_RANGES, type TrendRange } from '../../lib/trendRange';
 import { SimpleTrendChart } from './SimpleTrendChart';
 
 export interface TrendMetricVM {
-  key: MetricKey;
   label: string;
   currentValue: number;
   formatValue: (value: number) => string;
 }
 
 /**
- * Shared chart panel below the stat tiles. Selecting a tile swaps the metric shown here; the range
- * pills pick how far back the (placeholder) history reaches. See costTrendMock.ts for why this
- * data is synthetic rather than derived.
+ * Placeholder trend panel for Cost per patient-day — the one tile left with no real over-time
+ * data; see costTrendMock.ts for why. The range pills pick how far back the placeholder reaches.
  */
 export function MetricTrendPanel({
   metric,
@@ -28,8 +21,7 @@ export function MetricTrendPanel({
   range: TrendRange;
   onRangeChange: (range: TrendRange) => void;
 }) {
-  const series = generateTrendSeries(metric.key, range, metric.currentValue);
-  const partitioned = partitionsCurrentValue(metric.key, range);
+  const series = generatePpdTrend(range, metric.currentValue);
 
   return (
     <section className="mt-4 rounded-card border border-ink bg-surface p-4">
@@ -39,10 +31,7 @@ export function MetricTrendPanel({
           <p className="mt-1 text-[12px] text-ink-3">
             Illustrative history — the dataset covers Aug 1–22, 2026 only, so everything on this
             chart before the real figure is placeholder trend data standing in until historical
-            figures exist.{' '}
-            {partitioned
-              ? "These points are split so they sum to the real total on the tile above."
-              : 'The most recent point matches the real value on the tile above exactly.'}
+            figures exist. The most recent point matches the real value on the tile above exactly.
           </p>
         </div>
 

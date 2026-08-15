@@ -23,6 +23,7 @@ import {
 } from '../data/db';
 import { CATEGORY_LABELS } from './catalog';
 import { bucketIndexFor, periodContains, type CostPeriod } from './costPeriod';
+import type { TrendRange } from './trendRange';
 import type { Order, Vendor, VendorOffer } from '../types/domain';
 
 /** On-time delivery floor a vendor must clear before its price counts as a real alternative. */
@@ -275,6 +276,56 @@ export function spendTrend(
       partial: lastOrderDate !== null && bucket.endIso > lastOrderDate,
     };
   });
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/**
+ * Real spend for each of the last 7 real days on file, ending at the newest order — the 1-week
+ * range on the Total Spend tile. Every bucket is real; a day with no orders is a real $0, not a
+ * gap. Anchored to the newest order rather than a hardcoded date so this stays correct if the
+ * dataset grows.
+ */
+export function dailySpendTrend(hospiceId: string, period: CostPeriod): TrendBucket[] {
+  const lastOrderDate = newestOrderDate(hospiceId);
+  if (lastOrderDate === null) return [];
+
+  const end = new Date(`${lastOrderDate}T00:00:00Z`);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(end.getTime() - (6 - i) * DAY_MS);
+    return d.toISOString().slice(0, 10);
+  });
+
+  const totalsByDay = new Map<string, number>();
+  for (const order of getOrdersForHospice(hospiceId)) {
+    const date = order.orderedAt?.slice(0, 10);
+    if (date === undefined || !days.includes(date)) continue;
+    totalsByDay.set(date, (totalsByDay.get(date) ?? 0) + orderExtendedUsd(order, period));
+  }
+
+  return days.map((date) => ({
+    label: WEEKDAY_LABELS[new Date(`${date}T00:00:00Z`).getUTCDay()],
+    actualUsd: round2(totalsByDay.get(date) ?? 0),
+    partial: false,
+  }));
+}
+
+/**
+ * Real spend for the Total Spend tile's range picker — the single dispatch point between the two
+ * ranges the dataset can actually back (1wk daily, 1mo weekly) and the three it can't. Null means
+ * "no real data for this range," never a fabricated series; the caller renders an honest empty
+ * state instead of a chart.
+ */
+export function spendTrendForRange(
+  hospiceId: string,
+  period: CostPeriod,
+  lines: BasketLine[],
+  range: TrendRange,
+): TrendBucket[] | null {
+  if (range === '1w') return dailySpendTrend(hospiceId, period);
+  if (range === '1m') return spendTrend(lines, period, hospiceId);
+  return null;
 }
 
 function newestOrderDate(hospiceId: string): string | null {

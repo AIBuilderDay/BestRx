@@ -1,62 +1,29 @@
 /**
- * Placeholder trend history for the two KPI tiles that still use a time-series chart — Total Spend
- * and Cost per patient-day. Budget utilization opens a real donut breakdown instead
- * (lib/budgetBreakdown.ts) and Potential Savings opens a real vendor ranking instead
- * (lib/vendorSavings.ts); neither needs placeholder history.
+ * Placeholder trend history for Cost per patient-day — the one KPI tile left with no real
+ * over-time data. Total Spend now uses real derivations (lib/costLedger.ts:
+ * dailySpendTrend/spendTrend); Budget utilization opens a real donut breakdown instead
+ * (lib/budgetBreakdown.ts); Potential Savings opens a real vendor ranking instead
+ * (lib/vendorSavings.ts). None of those need placeholder history anymore.
  *
  * The dataset holds one month of real orders (Aug 1-22, 2026) - there is no prior month and no
- * multi-month history anywhere in frontend/src/data. A per-tile "history leading up to today"
- * chart across 1wk/1mo/3mo/6mo/1yr ranges cannot be honestly built from it.
+ * multi-month history anywhere in frontend/src/data, so a PPD "history leading up to today" chart
+ * across 3mo/6mo/1yr cannot be honestly built from it. Per explicit product direction, this ships
+ * anyway using generated placeholder history, with the most recent point pinned to the real current
+ * value shown on the tile. Every consumer must visibly label its output as illustrative (see
+ * MetricTrendPanel) - this is the one place in the app that intentionally shows a number nothing in
+ * the data backs. Swap this module for a real historical series once one exists.
  *
- * Per explicit product direction, this ships anyway using generated placeholder history, with the
- * most recent point pinned to the real current KPI value shown in the tile above the chart. Every
- * consumer of this module must visibly label its output as illustrative (see MetricTrendPanel) -
- * this is the one place in the app that intentionally shows a number nothing in the data backs.
- * Swap this module for a real historical series once one exists; nothing else needs to change,
- * since the shape (TrendPoint[]) matches what a real endpoint would return.
- *
- * Spend and PPD are mechanically related in the real formula - PPD is spend divided by a constant
- * (census x days) - so both metrics for a given range are generated from the SAME underlying
- * relative shape and scaled by that metric's own real current value, rather than each metric
- * randomizing independently. That is what makes the two charts agree with each other - spend
- * rising while PPD falls in the same week never happens, because both are the one shape multiplied
- * by a different constant.
- *
- * One more thing has to hold for the numbers to "add up": spend is a dollar amount that
- * accumulates over a period, while PPD is a rate that doesn't. At the 1wk/1mo ranges - buckets
- * shorter than the month `currentValue` itself measures - spend's points are a partition that SUMS
- * to currentValue (four weeks of spend adding up to the month's total), never four points each
- * independently hovering near the whole month's figure. PPD keeps scaling from the shared shape at
- * every range, since a rate doesn't accumulate across sub-periods - "this week's $/patient-day" is
- * comparable in size to "this month's", not a quarter of it.
+ * PPD is a rate (spend / census / days), not a dollar amount that accumulates over a period, so
+ * every range scales the same shared per-range shape toward the real current value - never a
+ * partition, since "this week's $/patient-day" is comparable in size to "this month's," not a
+ * fraction of it.
  */
 
-export type MetricKey = 'spend' | 'ppd';
-export type TrendRange = '1w' | '1m' | '3m' | '6m' | '1y';
+import { TREND_RANGES, type TrendRange } from './trendRange';
 
 export interface TrendPoint {
   label: string;
   value: number;
-}
-
-export interface RangeMeta {
-  key: TrendRange;
-  label: string;
-  points: number;
-  /** True where the app holds any real data for this range (drives the disabled-pill state). */
-  hasRealData: boolean;
-}
-
-export const TREND_RANGES: RangeMeta[] = [
-  { key: '1w', label: '1wk', points: 7, hasRealData: true },
-  { key: '1m', label: '1mo', points: 4, hasRealData: true },
-  { key: '3m', label: '3mo', points: 3, hasRealData: false },
-  { key: '6m', label: '6mo', points: 6, hasRealData: false },
-  { key: '1y', label: '1yr', points: 12, hasRealData: false },
-];
-
-export function getRangeMeta(range: TrendRange): RangeMeta {
-  return TREND_RANGES.find((r) => r.key === range) ?? TREND_RANGES[1];
 }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -99,16 +66,15 @@ function seedForRange(range: TrendRange): number {
 const shapeCache = new Map<TrendRange, number[]>();
 
 /**
- * One relative shape per range, shared by every metric: a smoothed random walk of multipliers
- * ending at exactly 1 (so scaling by any metric's real current value pins that metric's last point
- * exactly, with no separate override needed). Cached so repeated calls for the same range - one
- * per metric, every render - don't redo the walk or drift from each other by floating point noise.
+ * One relative shape per range: a smoothed random walk of multipliers ending at exactly 1, so
+ * scaling by the real current value pins the last point exactly. Cached so repeated calls for the
+ * same range don't redo the walk.
  */
 function shapeFor(range: TrendRange): number[] {
   const cached = shapeCache.get(range);
   if (cached) return cached;
 
-  const meta = getRangeMeta(range);
+  const meta = TREND_RANGES.find((r) => r.key === range) ?? TREND_RANGES[1];
   const rand = mulberry32(seedForRange(range));
   const shape: number[] = new Array(meta.points);
   shape[meta.points - 1] = 1;
@@ -120,47 +86,12 @@ function shapeFor(range: TrendRange): number[] {
   return shape;
 }
 
-const ACCUMULATES: Record<MetricKey, boolean> = {
-  spend: true,
-  ppd: false,
-};
-
-/** Sub-month ranges: each point is a slice of the current month, not its own independent month. */
-const isSubMonthRange = (range: TrendRange): boolean => range === '1w' || range === '1m';
-
-/**
- * True when this metric+range pair should partition `currentValue` across its points (they sum to
- * it) rather than each independently scale toward it. Only accumulating dollar metrics, only at
- * sub-month granularity — see the module doc comment for why.
- */
-export function partitionsCurrentValue(metric: MetricKey, range: TrendRange): boolean {
-  return ACCUMULATES[metric] && isSubMonthRange(range);
-}
-
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-/**
- * Placeholder history for one KPI tile, scaled from the range's shared shape so it moves in the
- * same relative pattern as the other metric at this range.
- *
- * For a rate metric, or an accumulating metric at month-or-longer granularity, the final point
- * equals `currentValue` exactly (the shape ends at 1). For an accumulating metric at sub-month
- * granularity, every point is instead a share of `currentValue` proportional to the shape, so the
- * whole series sums to it - see `partitionsCurrentValue`.
- */
-export function generateTrendSeries(
-  metric: MetricKey,
-  range: TrendRange,
-  currentValue: number,
-): TrendPoint[] {
-  const meta = getRangeMeta(range);
+/** Placeholder PPD history for one range, scaled so the final point equals `currentValue` exactly. */
+export function generatePpdTrend(range: TrendRange, currentValue: number): TrendPoint[] {
+  const meta = TREND_RANGES.find((r) => r.key === range) ?? TREND_RANGES[1];
   const labels = labelsFor(range, meta.points);
   const shape = shapeFor(range);
-
-  if (partitionsCurrentValue(metric, range)) {
-    const shapeSum = shape.reduce((sum, s) => sum + s, 0);
-    return labels.map((label, i) => ({ label, value: round2((shape[i] / shapeSum) * currentValue) }));
-  }
-
   return labels.map((label, i) => ({ label, value: round2(shape[i] * currentValue) }));
 }

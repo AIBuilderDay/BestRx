@@ -19,7 +19,7 @@ import {
   type AccountSortKey,
   type PpdOverrides,
 } from '../lib/budgetLedger';
-import { basketTotals, buildBasket, spendTrend, vendorColumns } from '../lib/costLedger';
+import { basketTotals, buildBasket, vendorColumns } from '../lib/costLedger';
 import { getPeriod } from '../lib/costPeriod';
 import type { User, UserRole } from '../types/domain';
 
@@ -67,7 +67,6 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const columns = useMemo(() => vendorColumns(hospiceId), [hospiceId]);
   const lines = useMemo(() => buildBasket(hospiceId, period), [hospiceId, period]);
   const totals = useMemo(() => basketTotals(lines, columns), [lines, columns]);
-  const trend = useMemo(() => spendTrend(lines, period, hospiceId), [lines, period, hospiceId]);
 
   const accountRows = useMemo(
     () => buildAccountRows(hospiceId, period, overrides),
@@ -140,7 +139,6 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             lines={lines}
             totals={totals}
             columns={columns}
-            trend={trend}
             budgetTotals={budgetTotals}
             accountRows={accountRows}
             openHcpcs={openHcpcs}

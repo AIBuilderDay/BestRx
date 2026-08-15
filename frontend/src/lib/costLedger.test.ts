@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   basketTotals,
   buildBasket,
+  dailySpendTrend,
   ledgerPpd,
   priceLadder,
   SERVICE_FLOOR_PCT,
   spendTrend,
+  spendTrendForRange,
   vendorColumns,
 } from './costLedger';
 import { getPeriod } from './costPeriod';
@@ -117,6 +119,49 @@ describe('spendTrend', () => {
 
   it('flags the bucket that runs past the newest order on file', () => {
     expect(trend.map((b) => b.partial)).toEqual([false, false, false, true]);
+  });
+});
+
+describe('dailySpendTrend', () => {
+  const daily = dailySpendTrend('HSP-001', period);
+
+  it('returns the 7 real days ending at the newest order on file, none partial', () => {
+    expect(daily).toHaveLength(7);
+    expect(daily.map((d) => d.label)).toEqual(['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']);
+    expect(daily.every((d) => d.partial === false)).toBe(true);
+  });
+
+  it('matches real per-day spend exactly, computed independently from the raw orders', () => {
+    // Aug 16-22, 2026 - the dataset's last real week.
+    expect(daily.map((d) => d.actualUsd)).toEqual([126, 234, 208, 997, 990.5, 1037.5, 244.5]);
+  });
+
+  it('sums to the real week total, not a fraction or multiple of it', () => {
+    const sum = daily.reduce((a, b) => a + b.actualUsd, 0);
+    expect(sum).toBeCloseTo(3837.5, 1);
+  });
+
+  it('returns an empty series rather than throwing for a hospice with no orders', () => {
+    expect(dailySpendTrend('HSP-999', period)).toEqual([]);
+  });
+});
+
+describe('spendTrendForRange', () => {
+  it('routes 1w to real daily buckets', () => {
+    const result = spendTrendForRange('HSP-001', period, lines, '1w');
+    expect(result).toHaveLength(7);
+    expect(result?.[0].actualUsd).toBe(126);
+  });
+
+  it('routes 1m to the real weekly buckets, identical to spendTrend', () => {
+    const result = spendTrendForRange('HSP-001', period, lines, '1m');
+    expect(result).toEqual(spendTrend(lines, period, 'HSP-001'));
+  });
+
+  it('returns null for ranges with no real history, never a fabricated series', () => {
+    expect(spendTrendForRange('HSP-001', period, lines, '3m')).toBeNull();
+    expect(spendTrendForRange('HSP-001', period, lines, '6m')).toBeNull();
+    expect(spendTrendForRange('HSP-001', period, lines, '1y')).toBeNull();
   });
 });
 

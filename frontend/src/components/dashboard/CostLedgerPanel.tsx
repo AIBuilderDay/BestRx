@@ -2,23 +2,24 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { moneyCents, moneyLabel } from '../../lib/catalog';
 import { accountBreakdown, productBreakdown } from '../../lib/budgetBreakdown';
 import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
-import type { BasketLine, BasketTotals, TrendBucket, VendorColumn } from '../../lib/costLedger';
+import type { BasketLine, BasketTotals, VendorColumn } from '../../lib/costLedger';
 import { ledgerPpd } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
-import type { TrendRange } from '../../lib/costTrendMock';
+import type { TrendRange } from '../../lib/trendRange';
 import { buildProductSavings, countGenuineSavings, totalPotentialSavingsUsd } from '../../lib/vendorSavings';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
 import { MetricTrendPanel, type TrendMetricVM } from './MetricTrendPanel';
 import { ProductSavingsPanel } from './ProductSavingsPanel';
-import { SpendTrendCard } from './SpendTrendCard';
+import { SpendRangePanel } from './SpendRangePanel';
 import { StatTiles, type StatTileVM } from './StatTiles';
 import { VendorPriceMatrix } from './VendorPriceMatrix';
 
 const DEFAULT_TREND_RANGE: TrendRange = '1m';
 
-/** The four selectable stat tiles. Only spend/ppd open a (placeholder) trend chart. */
+/** The four selectable stat tiles. Spend and PPD each open a range-picker panel — spend's is real
+ *  data, PPD's is a placeholder (see costTrendMock.ts). */
 type TileKey = 'spend' | 'ppd' | 'delta' | 'budget';
 
 export function CostLedgerPanel({
@@ -27,7 +28,6 @@ export function CostLedgerPanel({
   lines,
   totals,
   columns,
-  trend,
   budgetTotals,
   accountRows,
   openHcpcs,
@@ -40,7 +40,6 @@ export function CostLedgerPanel({
   lines: BasketLine[];
   totals: BasketTotals;
   columns: VendorColumn[];
-  trend: TrendBucket[];
   budgetTotals: AccountTotals;
   accountRows: AccountBudgetRow[];
   openHcpcs: string | null;
@@ -99,9 +98,10 @@ export function CostLedgerPanel({
     },
   ];
 
-  const trendMetrics: Record<'spend' | 'ppd', TrendMetricVM> = {
-    spend: { key: 'spend', label: 'Total Spend', currentValue: totals.actualUsd, formatValue: moneyLabel },
-    ppd: { key: 'ppd', label: 'Cost per patient-day', currentValue: ppd.ppdUsd, formatValue: moneyCents },
+  const ppdTrendMetric: TrendMetricVM = {
+    label: 'Cost per patient-day',
+    currentValue: ppd.ppdUsd,
+    formatValue: moneyCents,
   };
 
   const selectMetric = (key: string) => {
@@ -123,14 +123,18 @@ export function CostLedgerPanel({
     );
   } else if (selectedMetric === 'delta') {
     panel = <ProductSavingsPanel rows={productSavings} />;
-  } else if (selectedMetric === 'spend' || selectedMetric === 'ppd') {
+  } else if (selectedMetric === 'spend') {
     panel = (
-      <MetricTrendPanel
-        metric={trendMetrics[selectedMetric]}
+      <SpendRangePanel
+        hospiceId={hospiceId}
+        period={period}
+        lines={lines}
         range={trendRange}
         onRangeChange={setTrendRange}
       />
     );
+  } else if (selectedMetric === 'ppd') {
+    panel = <MetricTrendPanel metric={ppdTrendMetric} range={trendRange} onRangeChange={setTrendRange} />;
   }
 
   return (
@@ -161,10 +165,10 @@ export function CostLedgerPanel({
       <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">
         Paid is what this hospice actually spent, each order at the vendor that took it. See{' '}
         <strong className="font-medium text-ink-2">Potential Savings</strong> above for an
-        AI-suggested vendor on every product ordered this period.
+        AI-suggested vendor on every product ordered this period, or select{' '}
+        <strong className="font-medium text-ink-2">Total Spend</strong> to see it broken out over
+        time.
       </p>
-
-      <SpendTrendCard buckets={trend} />
     </div>
   );
 }
