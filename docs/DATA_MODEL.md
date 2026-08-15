@@ -35,6 +35,7 @@ usable.
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
 | `vendor_offers.json` | 31 | `id` (OFR-) | `vendorId`, `hcpcs` |
 | `product_reviews.json` | 644 | `id` (REV-) | `offerId`, `reviewerId` |
+| `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 
 ```
@@ -47,6 +48,7 @@ emr_events ──> patients        inbound signals from the EMR via BetterRX eRx
 users      ──> hospices|vendors  admissions nurses, case managers, field nurses, DON, admin, dispatchers
 vendor_offers ──> vendors, equipment_catalog   the storefront: price, ETA, rating per vendor per item
 product_reviews ──> vendor_offers, users        individual nurse star ratings per vendor SKU
+patient_notes   ──> patients, users             care-team sticky notes on a patient chart
 budgets    ──> hospices, patients   caps per role and per patient purchase
 ```
 
@@ -152,3 +154,18 @@ until a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
+
+## AI token ledger (localStorage, not a JSON table)
+
+Every Anthropic call made by the enhanced search (`src/lib/ai/`) appends a record to
+localStorage key `bestrx.ai_usage.v1`:
+
+```ts
+{ id, at, feature: 'rerank' | 'agent_order', model, inputTokens, outputTokens,
+  costUsd, latencyMs, ok }
+```
+
+`summarizeUsage()` in `src/lib/ai/usage.ts` returns per-feature totals plus a grand total —
+this is the data source for the cost dashboard's "AI spend" figures. Any new AI surface must
+record into the same ledger with a new `feature` value (extend `AiFeature` in
+`src/types/ai.ts`). Spec: [specs/enhanced-search.md](specs/enhanced-search.md).

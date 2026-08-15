@@ -58,7 +58,7 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
         <div
           role="menu"
           data-testid="profile-menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-30 w-60 rounded-panel border border-line bg-surface p-1.5 shadow-lg"
+          className="profile-menu-panel absolute right-0 top-[calc(100%+10px)] z-30 w-60 rounded-panel border border-line bg-surface p-1.5 shadow-lg"
         >
           <div className="px-3 pb-2.5 pt-2">
             <div className="text-[13px] font-medium text-ink">{user.name}</div>

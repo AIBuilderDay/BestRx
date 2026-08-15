@@ -1,21 +1,25 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { can, type Permission } from "../../lib/auth";
 import { RESET_CATALOG_FILTERS_STATE } from "../../lib/catalog";
 import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
+import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
 // "dashboard" isn't one of this bar's own links — it's reached from the profile menu — but views
 // still pass it as activeSection so linkClass() has a real, never-matching value instead of a lie.
-export type NavSection = "catalog" | "patients" | "dashboard";
+export type NavSection = "catalog" | "orders" | "patients" | "dashboard";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: "Orders", permissions: ["storefront:purchase", "pickup:trigger"] },
+  { label: "Pickups", permissions: ["pickup:trigger"] },
+  { label: "Vendors", permissions: ["vendors:manage"] },
 ];
 
-/** Sticky app header: brand, section nav, catalog search, cart icon, and the profile menu. */
+const canViewOrders = (user: User): boolean =>
+  can(user, "orders:all") || can(user, "orders:own-patients") || can(user, "orders:own");
+
+/** Sticky app header: brand, section nav, the AI search bar, cart icon, and the profile menu. */
 export function TopNav({
   user,
   cartCount,
@@ -29,26 +33,10 @@ export function TopNav({
   onOpenCart: () => void;
   onSignOut: () => void;
 }) {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const urlQuery = searchParams.get("q") ?? "";
-  const [query, setQuery] = useState(urlQuery);
-
-  // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
-  useEffect(() => {
-    setQuery(urlQuery);
-  }, [urlQuery]);
-
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
-    navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : "/catalog");
-  };
-
   const linkClass = (section: NavSection) =>
     section === activeSection
-      ? "text-ink"
-      : "text-ink-2 transition-colors hover:text-ink";
+      ? "nav-link text-ink"
+      : "nav-link text-ink-2 hover:text-ink";
 
   return (
     <header className="sticky top-0 z-20 grid grid-cols-[1fr_minmax(0,520px)_1fr] items-center gap-6 border-b border-line bg-bg/92 px-8 py-3.5 backdrop-blur-sm">
@@ -66,6 +54,15 @@ export function TopNav({
           >
             Catalog
           </Link>
+          {canViewOrders(user) ? (
+            <Link
+              to="/orders"
+              aria-current={activeSection === "orders" ? "page" : undefined}
+              className={linkClass("orders")}
+            >
+              Orders
+            </Link>
+          ) : null}
           {can(user, "orders:own-patients") ? (
             <Link
               to="/patients"
@@ -89,32 +86,7 @@ export function TopNav({
         </nav>
       </div>
 
-      <form
-        onSubmit={submitSearch}
-        role="search"
-        className="flex w-full min-w-0 items-center gap-2 rounded-full border border-line-strong bg-surface px-3.5 py-2 text-ink-3 transition-colors focus-within:border-ink"
-      >
-        <svg
-          width="13"
-          height="13"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.5-3.5" />
-        </svg>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search equipment…"
-          aria-label="Search equipment"
-          className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
-        />
-      </form>
+      <NavSearch user={user} />
 
       <div className="flex shrink-0 items-center gap-3 justify-self-end">
         <button
@@ -122,11 +94,11 @@ export function TopNav({
           onClick={onOpenCart}
           aria-label={`Cart, ${cartCount} item${cartCount === 1 ? "" : "s"}`}
           data-testid="cart-button"
-          className="p-1 text-ink transition-opacity hover:opacity-70"
+          className="p-1 text-ink transition-transform duration-200 ease-out hover:-translate-y-0.5 hover:opacity-70 active:scale-95"
         >
           <svg
-            width="38"
-            height="38"
+            width="36"
+            height="36"
             viewBox="0 0 32 32"
             fill="none"
             stroke="currentColor"

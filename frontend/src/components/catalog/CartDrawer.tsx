@@ -1,5 +1,6 @@
 import type { CartGroupVM, CartTotals } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
+import type { AgentOrderAction } from '../../types/ai';
 
 export function CartDrawer({
   open,
@@ -10,6 +11,7 @@ export function CartDrawer({
   onClose,
   onViewCart,
   onPlaceOrder,
+  agentAdded = null,
 }: {
   open: boolean;
   groups: CartGroupVM[];
@@ -19,6 +21,8 @@ export function CartDrawer({
   onClose: () => void;
   onViewCart: () => void;
   onPlaceOrder: () => void;
+  /** The line the AI agent just added — spotlighted so the nurse can verify it. */
+  agentAdded?: AgentOrderAction | null;
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
   const empty = groups.length === 0;
@@ -59,14 +63,25 @@ export function CartDrawer({
         <div className="flex-1 overflow-y-auto px-5.5 py-4">
           <div className="grid gap-5.5">
             {groups.map((g) => (
-              <div key={g.patientId} className="animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]">
+              <div key={g.patientId} className="animate-chip-in motion-reduce:animate-none">
                 <div className="flex items-baseline justify-between gap-2.5 border-b border-ink pb-1.5">
                   <span className="font-mono text-[12.5px] tabular-nums">{g.patientName}</span>
                   <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
                 </div>
                 <div className="mt-3 grid gap-3">
-                  {g.lines.map((l) => (
-                    <div key={l.offerId} className="grid grid-cols-[46px_1fr_auto] items-center gap-2.5">
+                  {g.lines.map((l) => {
+                    // Gate on `open` so the ring animation starts when the drawer is
+                    // actually visible — the drawer stays mounted while closed.
+                    const byAgent =
+                      open &&
+                      agentAdded !== null &&
+                      agentAdded.offerId === l.offerId &&
+                      agentAdded.patientId === l.patientId;
+                    return (
+                    <div
+                      key={l.offerId}
+                      className={`grid grid-cols-[46px_1fr_auto] items-center gap-2.5 ${byAgent ? 'agent-added rounded-sm p-1 -m-1' : ''}`}
+                    >
                       <img
                         src={l.imagePath}
                         alt=""
@@ -75,6 +90,14 @@ export function CartDrawer({
                       <div className="min-w-0">
                         <div className="text-[12.5px]">{l.name}</div>
                         <div className="text-[11px] text-ink-3">{l.metaLine}</div>
+                        {byAgent && (
+                          <div className="mt-0.5 flex items-center gap-1 text-[10.5px] text-ai-ink" data-testid="agent-added-chip">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+                            </svg>
+                            Added by AI — review before ordering
+                          </div>
+                        )}
                         {l.dupe && (
                           <div className="mt-0.5 text-[11px] text-ink">{g.patientName} already has this item</div>
                         )}
@@ -120,7 +143,8 @@ export function CartDrawer({
                         {l.priceUnit === '/mo' ? '/mo' : ''}
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

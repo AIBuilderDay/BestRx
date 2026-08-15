@@ -16,6 +16,7 @@ import type {
   Order,
   OrderEvent,
   Patient,
+  PatientNote,
   ProductReview,
   User,
   Vendor,
@@ -30,6 +31,7 @@ import inventoryJson from './inventory.json';
 import orderEventsJson from './order_events.json';
 import ordersJson from './orders.json';
 import patientsJson from './patients.json';
+import patientNotesJson from './patient_notes.json';
 import productReviewsJson from './product_reviews.json';
 import usersJson from './users.json';
 import vendorOffersJson from './vendor_offers.json';
@@ -42,6 +44,7 @@ export const hospices = hospicesJson as unknown as Hospice[];
 export const vendors = vendorsJson as unknown as Vendor[];
 export const users = usersJson as unknown as User[];
 export const patients = patientsJson as unknown as Patient[];
+export const patientNotes = patientNotesJson as unknown as PatientNote[];
 export const orders = ordersJson as unknown as Order[];
 export const orderEvents = orderEventsJson as unknown as OrderEvent[];
 export const inventory = inventoryJson as unknown as InventoryUnit[];
@@ -49,6 +52,9 @@ export const emrEvents = emrEventsJson as unknown as EmrEvent[];
 export const vendorOffers = vendorOffersJson as unknown as VendorOffer[];
 export const productReviews = productReviewsJson as unknown as ProductReview[];
 export const budgets = budgetsJson as unknown as Budget[];
+
+export const getNotesForPatient = (patientId: string): PatientNote[] =>
+  patientNotes.filter((n) => n.patientId === patientId);
 
 export const getOrder = (id: string): Order | undefined => orders.find((o) => o.id === id);
 

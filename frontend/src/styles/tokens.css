@@ -56,6 +56,18 @@
   --chart-3: #1e9e6e;
   --chart-4: #3e6fde;
 
+  /* AI accent — the enhanced-search blues (dark → light, deliberately purple-free).
+     Used ONLY to mark AI-powered surfaces; see mockups/enhanced-search.html. */
+  --ai-navy: #0a2540;
+  --ai-indigo: #1e3a8a;
+  --ai-royal: #1d4ed8;
+  --ai-sky: #0ea5e9;
+  --ai-bright: #38bdf8;
+  --ai-crest: #7dd3fc;
+  --ai-ink: #1d4ed8; /* accent used AS text — dark enough for light surfaces */
+  --ai-glow: rgba(59, 130, 246, 0.28);
+  --ai-glow-opacity: 0.45;
+
   /* Radii */
   --radius-control: 7px;
   --radius-card: 10px;
@@ -90,6 +102,8 @@
     --chart-2: #b08228;
     --chart-3: #339e82;
     --chart-4: #6f85d4;
+    --ai-ink: #7cc0ff;
+    --ai-glow-opacity: 0.72;
   }
 }
 
@@ -120,6 +134,8 @@
   --chart-2: #b08228;
   --chart-3: #339e82;
   --chart-4: #6f85d4;
+  --ai-ink: #7cc0ff;
+  --ai-glow-opacity: 0.72;
 }
 
 /* Tailwind v4: tokens become utilities — bg-surface, text-ink-2, border-line, rounded-card, … */
@@ -153,8 +169,23 @@
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
+  --color-ai-navy: var(--ai-navy);
+  --color-ai-indigo: var(--ai-indigo);
+  --color-ai-royal: var(--ai-royal);
+  --color-ai-sky: var(--ai-sky);
+  --color-ai-bright: var(--ai-bright);
+  --color-ai-crest: var(--ai-crest);
+  --color-ai-ink: var(--ai-ink);
 
   --radius-control: 7px;
   --radius-card: 10px;
   --radius-panel: 12px;
+
+  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-card-in: cardIn 0.5s var(--ease-smooth) both;
+  --animate-detail-in: detailIn 0.5s var(--ease-smooth) both;
+  --animate-chip-in: chipIn 0.35s var(--ease-smooth) both;
+  --animate-sheet-in: sheetIn 0.45s var(--ease-smooth) both;
+  --animate-sticky-note-in: stickyNoteIn 0.3s var(--ease-smooth) both;
+  --animate-note-backdrop-in: noteBackdropIn 0.2s var(--ease-smooth) both;
 }
