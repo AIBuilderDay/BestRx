@@ -10,7 +10,7 @@ import {
 } from '../lib/patients';
 import type { User } from '../types/domain';
 
-export default function Patients({ user }: { user: User }) {
+export default function Patients({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
   const [query, setQuery] = useState('');
 
@@ -28,6 +28,7 @@ export default function Patients({ user }: { user: User }) {
         cartCount={cartCount}
         activeSection="patients"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">

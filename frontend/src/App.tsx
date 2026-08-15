@@ -9,7 +9,6 @@ import Catalog from './views/Catalog';
 import Login from './views/Login';
 import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
-import Settings from './views/Settings';
 
 /**
  * Routed app with /login as a real route, so signing in pushes a history entry and the browser
@@ -37,15 +36,14 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<Login onSignIn={signIn} />} />
             <Route path="/" element={<Navigate to="/catalog" replace />} />
-            <Route path="/catalog/:offerId" element={user ? <Catalog user={user} /> : toLogin} />
-            <Route path="/catalog" element={user ? <Catalog user={user} /> : toLogin} />
-            <Route path="/cart" element={user ? <Cart user={user} /> : toLogin} />
-            <Route path="/patients" element={user ? <Patients user={user} /> : toLogin} />
+            <Route path="/catalog/:offerId" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/catalog" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/cart" element={user ? <Cart user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/patients" element={user ? <Patients user={user} onSignOut={signOut} /> : toLogin} />
             <Route
               path="/patients/:patientId"
-              element={user ? <PatientDetail user={user} /> : toLogin}
+              element={user ? <PatientDetail user={user} onSignOut={signOut} /> : toLogin}
             />
-            <Route path="/settings" element={user ? <Settings user={user} onSignOut={signOut} /> : toLogin} />
             <Route path="*" element={<Navigate to="/catalog" replace />} />
           </Routes>
         </CartProvider>
