@@ -70,7 +70,7 @@ export function ProductCard({
           </button>
         </div>
 
-        {/* Both arrangements priced side by side, so the rent/buy comparison needs no
+        {/* Both arrangements priced side by side, so the rental/purchase comparison needs no
             interaction. The filled cell is the one the card is currently pricing at. */}
         <PriceSplitBar item={item} unit={unit} onUnitChange={onUnitChange} />
 
@@ -99,7 +99,7 @@ export function ProductCard({
   );
 }
 
-const UNIT_LABEL: Record<PriceUnit, string> = { month: 'Rent', purchase: 'Buy' };
+const UNIT_LABEL: Record<PriceUnit, string> = { month: 'Rental', purchase: 'Purchase' };
 
 /**
  * The rent-versus-buy bar under the image: one cell per arrangement the vendor actually offers,
@@ -124,7 +124,7 @@ function PriceSplitBar({
       className="grid divide-x divide-line border-y border-line"
       style={{ gridTemplateColumns: `repeat(${Math.max(units.length, 1)}, minmax(0, 1fr))` }}
       role={single ? undefined : 'group'}
-      aria-label={single ? undefined : 'Rent or buy'}
+      aria-label={single ? undefined : 'Rental or purchase'}
     >
       {units.map((u) => {
         const price = offerPriceFor(item.offer, u);

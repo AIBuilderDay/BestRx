@@ -1,7 +1,7 @@
 import type { PriceUnit, PricingMode } from '../../lib/catalog';
 
 /**
- * Rent-versus-buy switch. The catalog header renders the page-level version, which sets what every
+ * Rental-versus-purchase switch. The catalog header renders the page-level version, which sets what every
  * card shows; a card with both prices renders the compact version to override itself.
  */
 export function PricingModeToggle({
@@ -13,8 +13,8 @@ export function PricingModeToggle({
 }) {
   return (
     <div className="inline-flex overflow-hidden rounded-[10px] border border-line-strong" role="group" aria-label="Pricing">
-      <ToggleButton active={mode === 'rent'} onClick={() => onChange('rent')} label="Rent" hint="monthly" />
-      <ToggleButton active={mode === 'buy'} onClick={() => onChange('buy')} label="Buy" hint="one-time" />
+      <ToggleButton active={mode === 'rent'} onClick={() => onChange('rent')} label="Rental" hint="monthly" />
+      <ToggleButton active={mode === 'buy'} onClick={() => onChange('buy')} label="Purchase" hint="one-time" />
     </div>
   );
 }
@@ -28,9 +28,9 @@ export function UnitToggle({
   onChange: (next: PriceUnit) => void;
 }) {
   return (
-    <div className="inline-flex overflow-hidden rounded-[8px] border border-line" role="group" aria-label="Rent or buy">
-      <MiniButton active={unit === 'month'} onClick={() => onChange('month')} label="Rent" />
-      <MiniButton active={unit === 'purchase'} onClick={() => onChange('purchase')} label="Buy" />
+    <div className="inline-flex overflow-hidden rounded-[8px] border border-line" role="group" aria-label="Rental or purchase">
+      <MiniButton active={unit === 'month'} onClick={() => onChange('month')} label="Rental" />
+      <MiniButton active={unit === 'purchase'} onClick={() => onChange('purchase')} label="Purchase" />
     </div>
   );
 }

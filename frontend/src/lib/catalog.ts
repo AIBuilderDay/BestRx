@@ -62,7 +62,7 @@ export function availableUnits(offer: VendorOffer): PriceUnit[] {
 
 /**
  * Price this offer under `unit`, falling back to the arrangement it does sell. A walker has no
- * rental rate, so in Rent mode it prices as the purchase it is — the card tags it rather than
+ * rental rate, so in Rental mode it prices as the purchase it is — the card tags it rather than
  * hiding it, because a nurse who searched for a walker should find one.
  */
 export function offerPriceFor(offer: VendorOffer, unit: PriceUnit): ItemPrice | null {
@@ -124,7 +124,7 @@ export function buildCatalogItems(
 
 /**
  * Highest price across the storefront as currently priced, for the "max price" filter's upper
- * bound. Rent and buy are different orders of magnitude, so the ceiling moves with the mode.
+ * bound. Rental and purchase are different orders of magnitude, so the ceiling moves with the mode.
  */
 export function priceCeiling(items: CatalogProductVM[]): number {
   const max = Math.max(0, ...items.map((it) => it.price.amount));

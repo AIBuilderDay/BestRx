@@ -294,7 +294,7 @@ export function EquipmentDetailView({
             onChange={(e) => setDraftComment(e.target.value)}
             placeholder="Share what happened with this delivery — timing, setup, family experience."
             rows={3}
-            className="mt-2.5 w-full resize-y border border-line bg-surface px-2.5 py-2 text-[13px] text-ink outline-none focus:border-line-strong"
+            className="mt-2.5 w-full resize-none overflow-y-auto border border-line bg-surface px-2.5 py-2 text-[13px] text-ink outline-none focus:border-line-strong"
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[11px] text-ink-3">Posting as {user.name.split(' ')[0]}</span>
