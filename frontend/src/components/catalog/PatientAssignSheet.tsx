@@ -36,17 +36,15 @@ function QuantityPicker({ value, onChange }: { value: number; onChange: (n: numb
   );
 }
 
-/** Two-step modal: pick patient(s), then quantity — cart add or direct place order. */
+/** Two-step modal: pick patient(s), then choose the quantity to add to the cart. */
 export function PatientAssignSheet({
   product,
   patients,
-  mode,
   onClose,
   onConfirm,
 }: {
   product: CatalogProductVM | null;
   patients: Patient[];
-  mode: 'cart' | 'order';
   onClose: () => void;
   onConfirm: (selectedPatientIds: string[], qty: number) => void;
 }) {
@@ -83,14 +81,7 @@ export function PatientAssignSheet({
     setStep('quantity');
   };
 
-  const confirmLabel =
-    mode === 'order'
-      ? selected.length > 1
-        ? `Place ${selected.length} orders`
-        : 'Place order'
-      : selected.length > 1
-        ? `Add ${selected.length} lines to cart`
-        : 'Add to cart';
+  const confirmLabel = selected.length > 1 ? `Add ${selected.length} lines to cart` : 'Add to cart';
 
   return (
     <div

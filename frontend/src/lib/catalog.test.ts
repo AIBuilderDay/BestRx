@@ -11,6 +11,7 @@ import {
   paginateCatalog,
   patientOwnsEquipment,
   priceCeiling,
+  searchCatalog,
 } from './catalog';
 
 describe('itemPrice', () => {
@@ -42,7 +43,7 @@ describe('buildCatalogItems', () => {
 
   it('reads price, vendor label, and item rating from JSON', () => {
     const bed = items.find((it) => it.offer.id === 'OFR-001')!;
-    expect(bed.price).toEqual({ amount: 72, unit: '/mo' });
+    expect(bed.price).toEqual({ amount: 1045, unit: 'one-time' });
     expect(bed.vendor.displayName).toBe('Vendor 1');
     expect(bed.offer.deliveryLeadDays).toBe(1);
     expect(bed.offer.productName).toBe('Hospital Bed');
@@ -57,6 +58,12 @@ describe('offerPrice', () => {
     const items = buildCatalogItems();
     const walker = items.find((it) => it.offer.id === 'OFR-015')!;
     expect(offerPrice(walker.offer)).toEqual({ amount: 55, unit: 'one-time' });
+  });
+
+  it('maps a monthly rental offer to the /mo unit', () => {
+    const items = buildCatalogItems();
+    const concentrator = items.find((it) => it.offer.id === 'OFR-002')!;
+    expect(offerPrice(concentrator.offer)).toEqual({ amount: 124.5, unit: '/mo' });
   });
 });
 
@@ -217,5 +224,31 @@ describe('paginateCatalog', () => {
       firstItem: 61,
       lastItem: 65,
     });
+  });
+});
+
+describe('searchCatalog', () => {
+  const items = buildCatalogItems();
+
+  it('returns all items for an empty or whitespace query', () => {
+    expect(searchCatalog(items, '')).toHaveLength(items.length);
+    expect(searchCatalog(items, '   ')).toHaveLength(items.length);
+  });
+
+  it('matches product names case-insensitively', () => {
+    const results = searchCatalog(items, 'HOSPITAL BED');
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((it) => /hospital bed/i.test(it.offer.productName))).toBe(true);
+  });
+
+  it('matches vendor display names', () => {
+    const vendorName = items[0]!.vendor.displayName;
+    const results = searchCatalog(items, vendorName);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((it) => it.vendor.displayName === vendorName)).toBe(true);
+  });
+
+  it('requires every word in the query to match', () => {
+    expect(searchCatalog(items, 'hospital zzzznope')).toHaveLength(0);
   });
 });

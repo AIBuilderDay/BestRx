@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { can } from '../lib/auth';
 import {
   buildOrderListItemVM,
@@ -22,8 +22,10 @@ import { OrderReceiptDialog } from '../components/orders/OrderReceiptDialog';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { useCart } from '../context/CartContext';
 
-export default function Orders({ user }: { user: User }) {
+export default function Orders({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') ?? '';
   const [filters, setFilters] = useState<OrderFilterState>(defaultOrderFilters);
   const [currentPage, setCurrentPage] = useState(1);
   const [receiptItem, setReceiptItem] = useState<OrderListItemVM | null>(null);
@@ -33,14 +35,19 @@ export default function Orders({ user }: { user: User }) {
     [user],
   );
 
+  const effectiveFilters = useMemo(
+    () => ({ ...filters, query: searchQuery }),
+    [filters, searchQuery],
+  );
+
   const filteredSorted = useMemo(
-    () => filterAndSortOrders(allItems, filters),
-    [allItems, filters],
+    () => filterAndSortOrders(allItems, effectiveFilters),
+    [allItems, effectiveFilters],
   );
   const ordersPage = paginateOrders(filteredSorted, currentPage);
   const filterOptions = useMemo(
-    () => orderFilterOptions(allItems, filters),
-    [allItems, filters],
+    () => orderFilterOptions(allItems, effectiveFilters),
+    [allItems, effectiveFilters],
   );
 
   const applyFilters = (patch: Partial<OrderFilterState>) => {
@@ -69,11 +76,12 @@ export default function Orders({ user }: { user: User }) {
         cartCount={cartCount}
         activeSection="orders"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
         <OrderFilters
-          filters={filters}
+          filters={effectiveFilters}
           categories={filterOptions.categories}
           patients={filterOptions.patients}
           onChange={applyFilters}
@@ -86,16 +94,7 @@ export default function Orders({ user }: { user: User }) {
               <h1 className="text-3xl font-normal tracking-tight">Orders</h1>
               <p className="mt-1 text-[13px] text-ink-2">{ordersSubtitle(allItems)}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                type="text"
-                placeholder="Search order, patient, or MRN"
-                value={filters.query}
-                onChange={(e) => applyFilters({ query: e.target.value })}
-                className="h-10 w-[220px] rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus:border-ink"
-              />
-              <OrderSortMenu sort={filters.sort} onChange={(sort) => applyFilters({ sort })} />
-            </div>
+            <OrderSortMenu sort={filters.sort} onChange={(sort) => applyFilters({ sort })} />
           </div>
 
           <OrderListSection

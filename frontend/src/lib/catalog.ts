@@ -457,6 +457,17 @@ export function resolveCatalogFilters(
   return merged;
 }
 
+/** Text search from the top-nav bar: every word must match name, vendor, or category. */
+export function searchCatalog(items: CatalogProductVM[], query: string): CatalogProductVM[] {
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return items;
+  return items.filter((it) => {
+    const haystack =
+      `${it.offer.productName} ${it.offer.description} ${it.vendor.displayName} ${it.vendor.name} ${CATEGORY_LABELS[it.offer.category]}`.toLowerCase();
+    return words.every((w) => haystack.includes(w));
+  });
+}
+
 export function filterAndSortCatalog(
   items: CatalogProductVM[],
   f: CatalogFilterState,

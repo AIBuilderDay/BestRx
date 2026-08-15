@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { TopNav } from '../components/layout/TopNav';
 import { PatientCard } from '../components/patients/PatientCard';
@@ -10,16 +11,17 @@ import {
 } from '../lib/patients';
 import type { User } from '../types/domain';
 
-export default function Patients({ user }: { user: User }) {
+export default function Patients({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
-  const [query, setQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') ?? '';
 
   const caseload = useMemo(
     () => getCaseloadPatients(user.id, user.orgId),
     [user.id, user.orgId],
   );
   const attentionTotal = useMemo(() => caseloadAttentionTotal(caseload), [caseload]);
-  const filtered = useMemo(() => filterCaseload(caseload, query), [caseload, query]);
+  const filtered = useMemo(() => filterCaseload(caseload, searchQuery), [caseload, searchQuery]);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -28,27 +30,25 @@ export default function Patients({ user }: { user: User }) {
         cartCount={cartCount}
         activeSection="patients"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-normal tracking-tight">My patients</h1>
-            <div className="mt-1 text-[13px] text-ink-2">
-              {caseloadSubtitle(caseload, attentionTotal)}
-            </div>
+        <div className="mb-5">
+          <h1 className="text-3xl font-normal tracking-tight">My patients</h1>
+          <div className="mt-1 text-[13px] text-ink-2">
+            {caseloadSubtitle(caseload, attentionTotal)}
           </div>
-          <input
-            type="text"
-            placeholder="Search patients or MRN"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-[250px] rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-ink"
-          />
         </div>
 
         {filtered.length === 0 ? (
-          <div className="py-5 text-[13px] text-ink-3">No patients on your caseload match that.</div>
+          <div className="py-5 text-[13px] text-ink-3">
+            {searchQuery ? (
+              <>No patients on your caseload match &ldquo;{searchQuery}&rdquo;.</>
+            ) : (
+              'No patients on your caseload match that.'
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
             {filtered.map((patient, i) => (
