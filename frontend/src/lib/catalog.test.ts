@@ -10,6 +10,7 @@ import {
   paginateCatalog,
   patientOwnsEquipment,
   priceCeiling,
+  searchCatalog,
 } from './catalog';
 
 describe('itemPrice', () => {
@@ -165,5 +166,31 @@ describe('paginateCatalog', () => {
       firstItem: 61,
       lastItem: 65,
     });
+  });
+});
+
+describe('searchCatalog', () => {
+  const items = buildCatalogItems();
+
+  it('returns all items for an empty or whitespace query', () => {
+    expect(searchCatalog(items, '')).toHaveLength(items.length);
+    expect(searchCatalog(items, '   ')).toHaveLength(items.length);
+  });
+
+  it('matches product names case-insensitively', () => {
+    const results = searchCatalog(items, 'HOSPITAL BED');
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((it) => /hospital bed/i.test(it.offer.productName))).toBe(true);
+  });
+
+  it('matches vendor display names', () => {
+    const vendorName = items[0]!.vendor.displayName;
+    const results = searchCatalog(items, vendorName);
+    expect(results.length).toBeGreaterThan(0);
+    expect(results.every((it) => it.vendor.displayName === vendorName)).toBe(true);
+  });
+
+  it('requires every word in the query to match', () => {
+    expect(searchCatalog(items, 'hospital zzzznope')).toHaveLength(0);
   });
 });

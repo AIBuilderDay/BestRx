@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { patients, vendors } from '../data/db';
 import { can } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
@@ -13,6 +13,7 @@ import {
   filterAndSortCatalog,
   RESET_CATALOG_FILTERS_STATE,
   paginateCatalog,
+  searchCatalog,
   patientFullName,
   priceCeiling,
   setCartLineQty,
@@ -39,10 +40,12 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: 'speed', label: 'Fastest' },
 ];
 
-export default function Catalog({ user }: { user: User }) {
+export default function Catalog({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { offerId } = useParams<{ offerId?: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') ?? '';
   const assignablePatients = useMemo(
     () => patients.filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased'),
     [user.orgId],
@@ -70,6 +73,10 @@ export default function Catalog({ user }: { user: User }) {
     setFilters(defaultCatalogFilters(priceMax));
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!location.state || !('resetCatalogFilters' in location.state)) return;
@@ -155,7 +162,7 @@ export default function Catalog({ user }: { user: User }) {
     say('Filters cleared');
   };
 
-  const filteredSorted = filterAndSortCatalog(catalogItems, filters);
+  const filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
   const catalogPage = paginateCatalog(filteredSorted, currentPage);
   const cartGroups = buildCartGroups(lines, catalogItems, patients);
   const totals = cartTotals(lines, catalogItems);
@@ -180,6 +187,7 @@ export default function Catalog({ user }: { user: User }) {
         cartCount={totalUnitsInCart(lines)}
         activeSection="catalog"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
@@ -219,6 +227,15 @@ export default function Catalog({ user }: { user: User }) {
               <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
                 <div>
                   <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
+                  {searchQuery ? (
+                    <div className="mt-1.5 text-[13px] text-ink-2">
+                      {filteredSorted.length} result{filteredSorted.length === 1 ? '' : 's'} for
+                      {' '}&ldquo;{searchQuery}&rdquo;{' '}
+                      <Link to="/catalog" className="underline underline-offset-2 hover:text-ink">
+                        Clear
+                      </Link>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {SORTS.map((s) => (
@@ -239,7 +256,7 @@ export default function Catalog({ user }: { user: User }) {
               </div>
 
               {filteredSorted.length === 0 ? (
-                <div className="py-15 text-center text-[13px] text-ink-3">No equipment matches these filters.</div>
+                <div className="py-15 text-center text-[13px] text-ink-3">{searchQuery ? <>No equipment matches &ldquo;{searchQuery}&rdquo;.</> : 'No equipment matches these filters.'}</div>
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
                   {catalogPage.items.map((item, i) => (
