@@ -11,8 +11,8 @@ and [tickets/](tickets/).
 Built for the **BetterRX Builder Day bounty, August 2026** ($10,000 award, judged by three BetterRX
 staff). Source material: [bounty/BOUNTY_BRIEF.md](bounty/BOUNTY_BRIEF.md), the organizer FAQ in
 [bounty/BOUNTY_FAQ.md](bounty/BOUNTY_FAQ.md), the live Q&A in
-[bounty/BRIEFING_NOTES.md](bounty/BRIEFING_NOTES.md), and our own planning session in
-[whiteboards/](whiteboards/). Where they disagree, the most recent wins: briefing notes, then FAQ,
+[bounty/BRIEFING_NOTES.md](bounty/BRIEFING_NOTES.md), and our own planning session (captured in
+§7–8 below). Where they disagree, the most recent wins: briefing notes, then FAQ,
 then brief.
 
 ---
@@ -153,8 +153,8 @@ Two risk states cut across the stages: **at_risk** (a delivery will miss its dea
 
 ## 8. Scope: P0, P1, P2
 
-Straight from [whiteboards/whiteboard-1-scope.png](whiteboards/whiteboard-1-scope.png). **P0 is the
-demo.** Do not start a P1 until the P0 path clicks end to end.
+Straight from our planning session. **P0 is the demo.** Do not start a P1 until the P0 path clicks
+end to end.
 
 ### P0 — must exist for the pitch
 
