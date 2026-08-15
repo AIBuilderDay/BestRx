@@ -30,11 +30,9 @@ export function validatePatientNote(title: string, body: string, patientId: stri
   return validateNoteText(title, patientId) ?? validateNoteText(body, patientId);
 }
 
-export function notesForPatient(patientId: string, stored: PatientNote[], session: PatientNote[] = []): PatientNote[] {
-  const sessionForPatient = session.filter((n) => n.patientId === patientId);
-  return [...sessionForPatient, ...stored.filter((n) => n.patientId === patientId)].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
-  );
+/** Newest first — the order the chart reads in, and the order the API returns notes in. */
+export function sortNotes(notes: PatientNote[]): PatientNote[] {
+  return [...notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export function noteAuthorLabel(authorId: string): string {
@@ -43,15 +41,29 @@ export function noteAuthorLabel(authorId: string): string {
   return user.name.split(' ')[0];
 }
 
+/** Date and time for a note footer, read in the dataset's own zone.
+ *
+ * The fixtures are Mountain time (docs/DATA_MODEL.md), and the wall-clock reading is the fact a
+ * nurse cares about — "9:15 AM" is when the family was called. Handing the string to `new Date`
+ * and formatting it locally would re-render that 9:15 as 11:15 for a reader in New York and roll
+ * it to the next day in Tokyo, so the parts are read straight off the string instead.
+ */
 export function formatNoteTimestamp(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString('en-US', {
+  const [year, month, day] = iso.slice(0, 10).split('-').map(Number);
+  const hour24 = Number(iso.slice(11, 13));
+  const minute = iso.slice(14, 16);
+
+  if (!year || !month || !day || Number.isNaN(hour24) || !minute) return formatNoteDate(iso);
+
+  const date = new Date(year, month - 1, day).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
   });
+  const suffix = hour24 < 12 ? 'AM' : 'PM';
+  const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+
+  return `${date}, ${hour12}:${minute} ${suffix}`;
 }
 
 /** Date-only label for sticky-note footers. */
@@ -65,25 +77,7 @@ export function formatNoteDate(isoDate: string): string {
   });
 }
 
-export function createSessionPatientNote(
-  patientId: string,
-  authorId: string,
-  title: string,
-  body: string,
-): PatientNote {
-  const createdAt = new Date().toISOString().slice(0, 19) + '-06:00';
-  return {
-    id: `PN-S-${Date.now()}`,
-    patientId,
-    authorId,
-    title: title.trim(),
-    body: body.trim(),
-    date: createdAt.slice(0, 10),
-    createdAt,
-  };
-}
-
-/** Blank note used by the compose overlay before saving. */
+/** Blank note used by the compose overlay before saving. The API assigns the real id and time. */
 export function createDraftPatientNote(patientId: string, authorId: string): PatientNote {
   const createdAt = new Date().toISOString().slice(0, 19) + '-06:00';
   return {

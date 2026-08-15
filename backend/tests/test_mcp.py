@@ -74,6 +74,11 @@ async def test_handshake_exposes_every_tool() -> None:
             "update_order_status",
             "get_cart",
             "checkout_cart",
+            "list_patient_notes",
+            "create_patient_note",
+            "update_patient_note",
+            "delete_patient_note",
+            "get_ai_usage",
             "health",
         } <= names
 
@@ -176,6 +181,64 @@ async def test_checkout_of_an_emptied_cart_is_refused() -> None:
             await mcp_client.call_tool("checkout_cart", {"userId": USER})
 
 
+async def test_note_round_trip_writes_through_to_the_shared_store() -> None:
+    """A note written over MCP is the same note the REST chart reads back."""
+    async with mcp_session() as mcp_client:
+        created = (
+            await mcp_client.call_tool(
+                "create_patient_note",
+                {
+                    "patientId": PATIENT_A,
+                    "authorId": USER,
+                    "title": "Filter check",
+                    "body": "Vendor to check the concentrator filter next route.",
+                },
+            )
+        ).data
+        note_id = created["id"]
+
+        updated = (
+            await mcp_client.call_tool(
+                "update_patient_note",
+                {"noteId": note_id, "title": "Filter checked", "body": "Vendor replaced it."},
+            )
+        ).data
+        assert updated["title"] == "Filter checked"
+        assert updated["createdAt"] == created["createdAt"]
+
+        listed = (
+            await mcp_client.call_tool("list_patient_notes", {"patientId": PATIENT_A})
+        ).data
+        assert note_id in [note["id"] for note in listed]
+
+        await mcp_client.call_tool("delete_patient_note", {"noteId": note_id})
+        remaining = (
+            await mcp_client.call_tool("list_patient_notes", {"patientId": PATIENT_A})
+        ).data
+        assert note_id not in [note["id"] for note in remaining]
+
+
+async def test_note_rules_reach_the_model_as_readable_errors() -> None:
+    async with mcp_session() as mcp_client:
+        patient = (await mcp_client.call_tool("get_patient", {"patientId": PATIENT_A})).data
+
+        with pytest.raises(ToolError, match="patient's name"):
+            await mcp_client.call_tool(
+                "create_patient_note",
+                {
+                    "patientId": PATIENT_A,
+                    "authorId": USER,
+                    "title": "Delivery",
+                    "body": f"{patient['firstName']} prefers mornings.",
+                },
+            )
+
+        with pytest.raises(ToolError, match="Note PN-9999 not found"):
+            await mcp_client.call_tool(
+                "delete_patient_note", {"noteId": "PN-9999"}
+            )
+
+
 async def test_write_tools_are_not_annotated_read_only() -> None:
     """A client that hides destructive tools needs the annotations to be honest."""
     async with mcp_session() as mcp_client:
@@ -184,3 +247,6 @@ async def test_write_tools_are_not_annotated_read_only() -> None:
         assert tools["list_orders"].annotations.readOnlyHint is True
         assert tools["update_order_status"].annotations.readOnlyHint is False
         assert tools["checkout_cart"].annotations.readOnlyHint is False
+        assert tools["list_patient_notes"].annotations.readOnlyHint is True
+        assert tools["create_patient_note"].annotations.readOnlyHint is False
+        assert tools["delete_patient_note"].annotations.destructiveHint is True

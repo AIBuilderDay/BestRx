@@ -14,6 +14,7 @@ from app.ai.usage import reset_usage_ledger  # noqa: E402
 from app.carts import CartStore, reset_cart_store  # noqa: E402
 from app.config import Settings, get_settings  # noqa: E402
 from app.main import app  # noqa: E402
+from app.notes import NoteStore, reset_note_store  # noqa: E402
 from app.services import notifications  # noqa: E402
 from app.store import OrderStore, reset_store  # noqa: E402
 from app.subscriptions import reset_subscription_store  # noqa: E402
@@ -24,6 +25,7 @@ def _isolate_state() -> None:
     """Every test gets a fresh store, subscription store, ledger, and settings cache."""
     reset_store()
     reset_cart_store()
+    reset_note_store()
     reset_subscription_store()
     reset_usage_ledger()
     reset_ai_client()
@@ -34,6 +36,11 @@ def _isolate_state() -> None:
 @pytest.fixture
 def carts() -> CartStore:
     return CartStore()
+
+
+@pytest.fixture
+def notes() -> NoteStore:
+    return NoteStore()
 
 
 @pytest.fixture

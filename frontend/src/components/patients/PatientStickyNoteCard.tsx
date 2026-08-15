@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode, Ref } from 'react';
 import type { PatientNote } from '../../types/domain';
-import { formatNoteDate, noteAuthorLabel } from '../../lib/patientNotes';
+import { formatNoteTimestamp, noteAuthorLabel } from '../../lib/patientNotes';
 
 /** Shared sticky-note surface for grid cards and the expanded overlay. */
 export function PatientStickyNoteCard({
@@ -112,7 +112,7 @@ export function PatientStickyNoteCard({
       {actions ? <div className="patient-sticky-note-actions">{actions}</div> : null}
 
       <footer className="patient-sticky-note-footer">
-        <time dateTime={note.date}>{formatNoteDate(note.date)}</time>
+        <time dateTime={note.createdAt}>{formatNoteTimestamp(note.createdAt)}</time>
         <span>{noteAuthorLabel(note.authorId)}</span>
       </footer>
     </article>

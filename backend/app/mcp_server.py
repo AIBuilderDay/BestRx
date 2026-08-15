@@ -22,10 +22,13 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import ToolError
 
 from . import fixtures
+from .ai.usage import get_usage_ledger
 from .carts import get_cart_store
 from .config import get_settings
 from .lifecycle import allowed_next
+from .notes import get_note_store
 from .services import carts as carts_service
+from .services import notes as notes_service
 from .services import orders as orders_service
 from .store import get_store
 from .subscriptions import get_subscription_store
@@ -36,8 +39,8 @@ mcp: FastMCP = FastMCP(
     name="BestRx",
     instructions=(
         "Hospice durable-medical-equipment (DME) ordering. Use these tools to search the "
-        "equipment catalog and vendor offers, look up patients and orders, and manage a user's "
-        "cart.\n\n"
+        "equipment catalog and vendor offers, look up patients and orders, read and write the "
+        "care-team notes on a patient's chart, and manage a user's cart.\n\n"
         "Two catalogs exist and are not interchangeable: `list_products` returns vendor offers "
         "(per-vendor pricing, what a nurse adds to a cart), while `list_equipment` returns the "
         "raw HCPCS catalog with no prices. `list_vendors` is the simulated storefront; "
@@ -526,6 +529,80 @@ def checkout_cart(
     return {"orders": created, "orderIds": [order["id"] for order in created]}
 
 
+# ── Patient notes ─────────────────────────────────────────────────────────────
+
+
+def _note_error(exc: Exception) -> ToolError:
+    return ToolError(str(exc))
+
+
+@mcp.tool(tags={"notes"}, annotations=_READ)
+def list_patient_notes(patientId: str | None = None) -> list[Row]:
+    """List care-team notes pinned to patient charts, newest first.
+
+    Notes are free text written by nurses — delivery preferences, equipment observations, family
+    logistics. They never contain the patient's own name; a note refers to "patient" or "family".
+
+    Args:
+        patientId: Restrict to one patient's chart. Omit for every note.
+    """
+    return notes_service.list_notes(get_note_store(), patientId)
+
+
+@mcp.tool(tags={"notes"}, annotations=_CREATE)
+def create_patient_note(patientId: str, authorId: str, title: str, body: str) -> Row:
+    """Pin a new note to a patient's chart. The whole care team sees it.
+
+    The patient's own first or last name is rejected: refer to them as "patient" or "family".
+
+    Args:
+        patientId: The chart the note belongs to.
+        authorId: The user writing the note.
+        title: Short heading shown on the folded sticky note.
+        body: The note text.
+    """
+    try:
+        return notes_service.create_note(get_note_store(), patientId, authorId, title, body)
+    except (notes_service.UnknownPatient, notes_service.UnknownUser) as exc:
+        raise _note_error(exc) from exc
+    except notes_service.InvalidNote as exc:
+        raise _note_error(exc) from exc
+
+
+@mcp.tool(tags={"notes"}, annotations=_REPLACE)
+def update_patient_note(noteId: str, title: str, body: str) -> Row:
+    """Replace a note's title and body. Its author and creation time are left unchanged.
+
+    This overwrites the existing text rather than appending to it — read the note with
+    `list_patient_notes` first if you mean to extend what is already there.
+
+    Args:
+        noteId: The note to edit, e.g. "PN-0001".
+        title: The replacement heading.
+        body: The replacement note text.
+    """
+    try:
+        return notes_service.update_note(get_note_store(), noteId, title, body)
+    except (notes_service.NoteNotFound, notes_service.UnknownPatient) as exc:
+        raise _note_error(exc) from exc
+    except notes_service.InvalidNote as exc:
+        raise _note_error(exc) from exc
+
+
+@mcp.tool(tags={"notes"}, annotations=_REPLACE)
+def delete_patient_note(noteId: str) -> Row:
+    """Delete a note from a patient's chart. This cannot be undone — confirm with the user first.
+
+    Args:
+        noteId: The note to delete.
+    """
+    try:
+        notes_service.delete_note(get_note_store(), noteId)
+    except notes_service.NoteNotFound as exc:
+        raise _note_error(exc) from exc
+    return {"noteId": noteId, "deleted": True}
+
+
 # ── Push and meta ─────────────────────────────────────────────────────────────
 
 
@@ -579,6 +656,16 @@ def unsubscribe_push(endpoint: str) -> Row:
     """
     get_subscription_store(get_settings()).delete(endpoint)
     return {"unsubscribed": True, "endpoint": endpoint}
+
+
+@mcp.tool(tags={"meta"}, annotations=_READ)
+def get_ai_usage() -> Row:
+    """Every AI call this process has made, with token counts and what it cost in USD.
+
+    In memory only: a restart clears the ledger, so the totals describe this process, not all time.
+    """
+    ledger = get_usage_ledger()
+    return {"records": ledger.records(), "summary": ledger.summary()}
 
 
 @mcp.tool(tags={"meta"}, annotations=_READ)

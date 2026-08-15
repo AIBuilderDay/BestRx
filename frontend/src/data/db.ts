@@ -3,8 +3,6 @@
  *
  * The rows come from the API, fetched once at app boot into `store.ts`. This module is the only
  * place that reads that snapshot; import from here, never from `store.ts` or a raw .json file.
- * Patient notes are the one exception: the API does not serve them yet, so they are read straight
- * from the fixture, still behind this module.
  *
  * The table accessors are functions rather than arrays because the data now arrives after this
  * module is evaluated — a `const patients = [...]` binding would capture the empty snapshot
@@ -13,7 +11,6 @@
  * Lookups return `undefined` for a missing id rather than throwing — callers must handle it.
  */
 
-import patientNotesJson from './patient_notes.json';
 import { getSnapshot } from './store';
 import type {
   Budget,
@@ -44,12 +41,10 @@ export const vendorOffers = (): VendorOffer[] => getSnapshot().vendorOffers;
 export const productReviews = (): ProductReview[] => getSnapshot().productReviews;
 export const budgets = (): Budget[] => getSnapshot().budgets;
 
-// Patient notes are not served by the API yet, so they come straight from the fixture file. The
-// family members store does the same for the same reason (see lib/familyMembers.ts).
-export const patientNotes = patientNotesJson as unknown as PatientNote[];
+export const patientNotes = (): PatientNote[] => getSnapshot().patientNotes;
 
 export const getNotesForPatient = (patientId: string): PatientNote[] =>
-  patientNotes.filter((n) => n.patientId === patientId);
+  patientNotes().filter((n) => n.patientId === patientId);
 
 export const getOrder = (id: string): Order | undefined => orders().find((o) => o.id === id);
 

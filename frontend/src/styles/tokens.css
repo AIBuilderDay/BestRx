@@ -202,4 +202,5 @@
   --animate-sheet-in: sheetIn 0.45s var(--ease-smooth) both;
   --animate-sticky-note-in: stickyNoteIn 0.3s var(--ease-smooth) both;
   --animate-note-backdrop-in: noteBackdropIn 0.2s var(--ease-smooth) both;
+  --animate-note-backdrop-out: noteBackdropOut 0.9s var(--ease-smooth) both;
 }

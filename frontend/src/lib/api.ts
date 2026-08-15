@@ -9,7 +9,13 @@
  * Reads throw on failure; callers catch and render an error state.
  */
 
-import { appendOrderEvent, upsertOrder, type Snapshot } from '../data/store';
+import {
+  appendOrderEvent,
+  removePatientNote,
+  upsertOrder,
+  upsertPatientNote,
+  type Snapshot,
+} from '../data/store';
 import type {
   Budget,
   CatalogEntry,
@@ -19,6 +25,7 @@ import type {
   Order,
   OrderEvent,
   Patient,
+  PatientNote,
   ProductReview,
   User,
   Vendor,
@@ -124,6 +131,7 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     vendorOffers,
     productReviews,
     budgets,
+    patientNotes,
   ] = await Promise.all([
     request<CatalogEntry[]>('/equipment'),
     request<Hospice[]>('/hospices'),
@@ -137,6 +145,7 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     request<VendorOffer[]>('/products'),
     request<ProductReview[]>('/reviews'),
     request<Budget[]>('/budgets'),
+    request<PatientNote[]>('/patient-notes'),
   ]);
 
   return {
@@ -152,6 +161,7 @@ export async function fetchSnapshot(): Promise<Snapshot> {
     vendorOffers,
     productReviews,
     budgets,
+    patientNotes,
   };
 }
 
@@ -198,6 +208,83 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   // Keep the boot snapshot current so the synchronous lookups in src/lib/ see the new order.
   upsertOrder(order);
   return order;
+}
+
+// ── Patient notes ─────────────────────────────────────────────────────────────
+// Notes are the one table a nurse writes from the chart, so every write goes to the API and the
+// boot snapshot is updated from the row the server actually stored.
+
+/** Thrown for a 422: the note broke a chart rule. `message` is written to be shown to the nurse. */
+export class InvalidNoteError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidNoteError';
+  }
+}
+
+/** A 422 body is `{"detail": "<message for the nurse>"}`; anything else rethrows unchanged. */
+function asNoteError(error: unknown): unknown {
+  const message = error instanceof Error ? error.message : '';
+  if (!message.startsWith('422')) return error;
+
+  const match = message.match(/\{.*\}/s);
+  if (match) {
+    try {
+      const parsed = JSON.parse(match[0]) as { detail?: unknown };
+      if (typeof parsed.detail === 'string') return new InvalidNoteError(parsed.detail);
+    } catch {
+      // Fall through to the generic message below.
+    }
+  }
+  return new InvalidNoteError('That note could not be saved.');
+}
+
+export const fetchPatientNotes = (patientId: string): Promise<PatientNote[]> =>
+  request<PatientNote[]>(`/patients/${patientId}/notes`);
+
+export async function createPatientNote(
+  patientId: string,
+  authorId: string,
+  title: string,
+  body: string,
+): Promise<PatientNote> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+
+  try {
+    const note = await request<PatientNote>(`/patients/${patientId}/notes`, {
+      method: 'POST',
+      body: JSON.stringify({ authorId, title, body }),
+    });
+    upsertPatientNote(note);
+    return note;
+  } catch (error) {
+    throw asNoteError(error);
+  }
+}
+
+export async function updatePatientNote(
+  noteId: string,
+  title: string,
+  body: string,
+): Promise<PatientNote> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+
+  try {
+    const note = await request<PatientNote>(`/notes/${noteId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ title, body }),
+    });
+    upsertPatientNote(note);
+    return note;
+  } catch (error) {
+    throw asNoteError(error);
+  }
+}
+
+export async function deletePatientNote(noteId: string): Promise<void> {
+  if (!isApiConfigured()) throw new ApiUnavailableError();
+  await request<void>(`/notes/${noteId}`, { method: 'DELETE' });
+  removePatientNote(noteId);
 }
 
 // ── Carts ─────────────────────────────────────────────────────────────────────

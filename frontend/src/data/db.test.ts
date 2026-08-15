@@ -107,7 +107,7 @@ describe('mock database integrity', () => {
   });
 
   it('stores patient notes linked to patients and authors', () => {
-    for (const note of patientNotes) {
+    for (const note of patientNotes()) {
       expect(getPatient(note.patientId), note.id).toBeDefined();
       expect(users().some((u) => u.id === note.authorId), note.id).toBe(true);
       expect(note.title.trim().length, note.id).toBeGreaterThan(0);

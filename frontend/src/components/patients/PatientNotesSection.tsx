@@ -1,11 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { PatientNote, User } from '../../types/domain';
+import { getNotesForPatient } from '../../data/db';
+import { createDraftPatientNote, sortNotes } from '../../lib/patientNotes';
 import {
-  createDraftPatientNote,
-  createSessionPatientNote,
-  notesForPatient,
-} from '../../lib/patientNotes';
+  createPatientNote,
+  deletePatientNote,
+  fetchPatientNotes,
+  updatePatientNote,
+} from '../../lib/api';
 import { PatientStickyNote } from './PatientStickyNote';
 import { PatientStickyNoteOverlay } from './PatientStickyNoteOverlay';
 
@@ -14,54 +17,66 @@ type NoteOverlayState = {
   mode: 'view' | 'compose';
 };
 
-/** Folded sticky-note cards for the patient chart. */
-export function PatientNotesSection({
-  patientId,
-  user,
-  storedNotes,
-  sessionNotes,
-  onAddNote,
-  onSessionNotesChange,
-}: {
-  patientId: string;
-  user: User;
-  storedNotes: PatientNote[];
-  sessionNotes: PatientNote[];
-  onAddNote: (note: PatientNote) => void;
-  onSessionNotesChange: (notes: PatientNote[]) => void;
-}) {
-  const [deletedIds, setDeletedIds] = useState<string[]>([]);
-  const [editedNotes, setEditedNotes] = useState<Record<string, PatientNote>>({});
+/**
+ * Folded sticky-note cards for the patient chart.
+ *
+ * Every write goes to the API and the list is re-read from the boot snapshot the API client keeps
+ * current, so a note added here is still on the chart after a reload and is visible to the rest of
+ * the care team. A failed write leaves the note as it was and says so, rather than showing a note
+ * the server never stored.
+ */
+export function PatientNotesSection({ patientId, user }: { patientId: string; user: User }) {
+  const [notes, setNotes] = useState<PatientNote[]>(() => sortNotes(getNotesForPatient(patientId)));
   const [overlay, setOverlay] = useState<NoteOverlayState | null>(null);
+  const [error, setError] = useState('');
 
-  const notes = useMemo(() => {
-    const merged = notesForPatient(patientId, storedNotes, sessionNotes)
-      .filter((note) => !deletedIds.includes(note.id))
-      .map((note) => editedNotes[note.id] ?? note);
-    return merged;
-  }, [patientId, storedNotes, sessionNotes, deletedIds, editedNotes]);
+  // Re-read from the API when the chart opens: the boot snapshot can be minutes old, and another
+  // nurse may have written a note since.
+  useEffect(() => {
+    let cancelled = false;
 
-  const saveNote = (updated: PatientNote) => {
-    if (updated.id === 'draft') {
-      onAddNote(createSessionPatientNote(patientId, user.id, updated.title, updated.body));
-      return;
-    }
+    setNotes(sortNotes(getNotesForPatient(patientId)));
+    fetchPatientNotes(patientId)
+      .then((fetched) => {
+        if (!cancelled) setNotes(sortNotes(fetched));
+      })
+      .catch(() => {
+        // The snapshot's notes are already on screen; a refresh failure is not worth an alert.
+      });
 
-    if (updated.id.startsWith('PN-S-')) {
-      onSessionNotesChange(sessionNotes.map((note) => (note.id === updated.id ? updated : note)));
-    } else {
-      setEditedNotes((prev) => ({ ...prev, [updated.id]: updated }));
-    }
-    setOverlay((prev) => (prev?.note.id === updated.id ? { ...prev, note: updated } : prev));
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [patientId]);
 
-  const deleteNote = (noteId: string) => {
-    if (noteId.startsWith('PN-S-')) {
-      onSessionNotesChange(sessionNotes.filter((note) => note.id !== noteId));
-    } else {
-      setDeletedIds((prev) => [...prev, noteId]);
-    }
-  };
+  /** Saves through the API. Throws when the write is refused; the overlay renders the message. */
+  const saveNote = useCallback(
+    async (updated: PatientNote): Promise<PatientNote> => {
+      const saved =
+        updated.id === 'draft'
+          ? await createPatientNote(patientId, user.id, updated.title, updated.body)
+          : await updatePatientNote(updated.id, updated.title, updated.body);
+
+      setNotes(sortNotes(getNotesForPatient(patientId)));
+      setOverlay((prev) => (prev?.note.id === updated.id ? { note: saved, mode: 'view' } : prev));
+      setError('');
+      return saved;
+    },
+    [patientId, user.id],
+  );
+
+  const deleteNote = useCallback(
+    async (noteId: string) => {
+      try {
+        await deletePatientNote(noteId);
+        setNotes(sortNotes(getNotesForPatient(patientId)));
+        setError('');
+      } catch {
+        setError('That note could not be deleted. Try again.');
+      }
+    },
+    [patientId],
+  );
 
   return (
     <section className="overflow-hidden border border-line bg-surface">
@@ -83,6 +98,12 @@ export function PatientNotesSection({
       </div>
 
       <div className="p-4">
+        {error ? (
+          <p role="alert" className="mb-3 text-[13px] text-danger">
+            {error}
+          </p>
+        ) : null}
+
         {notes.length === 0 ? (
           <p className="text-[13px] text-ink-3">No notes yet — add the first one above.</p>
         ) : (
