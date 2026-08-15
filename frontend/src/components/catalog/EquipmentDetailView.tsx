@@ -7,6 +7,7 @@ import {
   RESET_CATALOG_FILTERS_STATE,
   moneyLabel,
   offerPriceFor,
+  vendorAlternatives,
   type CatalogProductVM,
   type PriceUnit,
 } from '../../lib/catalog';
@@ -15,15 +16,20 @@ import {
   formatReviewDate,
   normalizeStarRating,
   offerRatingSummary,
+  REVIEW_SORT_LABELS,
   reviewCountsByStar,
   reviewerLabel,
   reviewsForOffer,
+  sortReviews,
+  type ReviewSort,
   type ReviewStarFilter,
 } from '../../lib/reviews';
 import type { ProductReview } from '../../types/domain';
 import { CatalogPagination } from './CatalogPagination';
 import { ItemStarRating } from './ItemStarRating';
 import { UnitToggle } from './PricingModeToggle';
+import { VendorSelect } from './VendorSelect';
+import { SortSelect } from './SortSelect';
 import { DetailReveal } from '../ui/DetailReveal';
 
 const REVIEWS_PAGE_SIZE = 5;
@@ -49,6 +55,11 @@ function StarPicker({ value, onChange }: { value: number; onChange: (n: number) 
   );
 }
 
+const REVIEW_SORT_OPTIONS = (Object.keys(REVIEW_SORT_LABELS) as ReviewSort[]).map((value) => ({
+  value,
+  label: REVIEW_SORT_LABELS[value],
+}));
+
 const STAR_FILTERS: { key: ReviewStarFilter; label: string }[] = [
   { key: 'all', label: 'All stars' },
   { key: 5, label: '5 star' },
@@ -61,40 +72,46 @@ const STAR_FILTERS: { key: ReviewStarFilter; label: string }[] = [
 /** Full catalog main-panel view for one vendor SKU — mirrors the patient detail page layout. */
 export function EquipmentDetailView({
   product,
+  catalogItems,
   user,
   sessionReviews,
   unit,
   onUnitChange,
+  onSelectVendor,
   onAddReview,
   onAddToCart,
 }: {
   product: CatalogProductVM;
+  /** The whole storefront, so the page can offer the other vendors selling this same HCPCS. */
+  catalogItems: CatalogProductVM[];
   user: User;
   sessionReviews: ProductReview[];
   /** The arrangement being priced — the page mode, or this item's override. */
   unit: PriceUnit;
   onUnitChange: (next: PriceUnit) => void;
+  /** Repoint the page at another vendor's offer of the same item. */
+  onSelectVendor: (offerId: string) => void;
   onAddReview: (rating: number, comment: string) => void;
   onAddToCart: () => void;
 }) {
   const [draftRating, setDraftRating] = useState(5);
   const [draftComment, setDraftComment] = useState('');
   const [starFilter, setStarFilter] = useState<ReviewStarFilter>('all');
+  const [reviewSort, setReviewSort] = useState<ReviewSort>('recent');
   const [reviewPage, setReviewPage] = useState(1);
   const [imgBroken, setImgBroken] = useState(false);
+  const [vendorMenuOpen, setVendorMenuOpen] = useState(false);
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
 
   const reviews = useMemo(
-    () =>
-      reviewsForOffer(product.offer.id, sessionReviews)
-        .slice()
-        .sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt)),
+    () => reviewsForOffer(product.offer.id, sessionReviews),
     [product.offer.id, sessionReviews],
   );
 
   const starCounts = useMemo(() => reviewCountsByStar(reviews), [reviews]);
   const filteredReviews = useMemo(
-    () => filterReviewsByStar(reviews, starFilter),
-    [reviews, starFilter],
+    () => sortReviews(filterReviewsByStar(reviews, starFilter), reviewSort),
+    [reviews, starFilter, reviewSort],
   );
   const reviewPageData = useMemo(
     () => paginateItems(filteredReviews, reviewPage, REVIEWS_PAGE_SIZE),
@@ -103,10 +120,14 @@ export function EquipmentDetailView({
 
   useEffect(() => {
     setReviewPage(1);
-  }, [starFilter, product.offer.id]);
+  }, [starFilter, reviewSort, product.offer.id]);
 
   const rating = offerRatingSummary(product.offer.id, sessionReviews);
-  const { offer, vendor } = product;
+  const { offer } = product;
+  const vendorChoices = useMemo(
+    () => vendorAlternatives(catalogItems, product, unit),
+    [catalogItems, product, unit],
+  );
   // Priced against this view's own unit, so an override changes the number on screen.
   const price = offerPriceFor(offer, unit) ?? product.price;
   const inStockLabel = offer.inStock ? 'In stock' : 'Out of stock — longer lead time';
@@ -138,7 +159,10 @@ export function EquipmentDetailView({
         </Link>
       </DetailReveal>
 
-      <DetailReveal step={1}>
+      {/* The reveal animation leaves a permanent stacking context (opacity/transform with
+          fill-mode: both), so the vendor menu cannot escape it — lift the whole block above the
+          sections below while the menu is open. */}
+      <DetailReveal step={1} className={vendorMenuOpen ? 'relative z-20' : ''}>
         <div className="mb-6 flex gap-5">
           <div className="w-[min(42%,200px)] min-w-[160px] flex-none self-stretch overflow-hidden border border-line bg-bg-subtle">
             {!imgBroken ? (
@@ -177,6 +201,19 @@ export function EquipmentDetailView({
                 </span>
               )}
             </div>
+            {/* Delivery first, then who is delivering it: the vendor choice is the last thing the
+                nurse makes, and it is only decidable once the lead time is on screen. */}
+            <div className="mt-2.5 text-[13px] text-ink-3" data-testid="equipment-detail-lead">
+              <span className="font-semibold text-ink">{offer.deliveryLeadDays}</span>{' '}
+              {offer.deliveryLeadDays === 1 ? 'day' : 'days'} to deliver
+            </div>
+            <div className="mt-2 max-w-[320px]" data-testid="equipment-detail-vendor">
+              <VendorSelect
+                choices={vendorChoices}
+                onSelect={onSelectVendor}
+                onOpenChange={setVendorMenuOpen}
+              />
+            </div>
             <button
               type="button"
               onClick={onAddToCart}
@@ -195,8 +232,6 @@ export function EquipmentDetailView({
               <h2 className="text-[13px] font-semibold tracking-tight">Listing details</h2>
             </div>
             <dl className="grid flex-1 grid-cols-[auto_minmax(0,1fr)] content-start gap-x-3.5 gap-y-2 p-4 text-[13px]">
-              <dt className="text-ink-3">Vendor</dt>
-              <dd className="text-right">{vendor.displayName}</dd>
               <dt className="text-ink-3">Code</dt>
               <dd className="text-right font-mono tabular-nums">{offer.hcpcs}</dd>
               <dt className="text-ink-3">Category</dt>
@@ -222,12 +257,30 @@ export function EquipmentDetailView({
       </div>
 
       <DetailReveal step={4}>
-        <section className="mt-8 overflow-hidden border border-line bg-surface">
-        <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
-          <h2 className="text-[13px] font-semibold tracking-tight">Reviews</h2>
-          <p className="mt-0.5 text-xs text-ink-3">
-            Ratings are for this specific listing from nurses who received it — not the vendor overall.
-          </p>
+        {/* overflow-hidden keeps the card's corners clean, but would clip the open sort menu —
+            release it only while that menu is open. */}
+        <section
+          className={`mt-8 border border-line bg-surface ${sortMenuOpen ? '' : 'overflow-hidden'}`}
+        >
+        <div className={`flex flex-wrap items-end justify-between gap-3 border-b border-line bg-bg-subtle px-4 py-3.5 ${sortMenuOpen ? 'relative z-10' : ''}`}>
+          <div className="min-w-0">
+            <h2 className="text-[13px] font-semibold tracking-tight">
+              Reviews <span className="font-mono text-ink-3">({reviews.length})</span>
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-3">
+              Ratings are for this specific listing from nurses who received it — not the vendor overall.
+            </p>
+          </div>
+          <div className="flex flex-none items-center gap-2 text-xs text-ink-3">
+            <span>Sort</span>
+            <SortSelect
+              value={reviewSort}
+              options={REVIEW_SORT_OPTIONS}
+              onChange={setReviewSort}
+              ariaLabel="Sort reviews"
+              onOpenChange={setSortMenuOpen}
+            />
+          </div>
         </div>
 
         <div className="grid gap-5 p-4 lg:grid-cols-[200px_minmax(0,1fr)]">
@@ -254,8 +307,10 @@ export function EquipmentDetailView({
             })}
           </div>
 
-          <div className="min-w-0">
-            <ul className="grid gap-0">
+          <div className="flex min-w-0 flex-col">
+            {/* A full page of five reviews sets the floor, so paging to a short last page or a
+                thin star filter does not collapse the panel and jump the page under the reader. */}
+            <ul className="grid min-h-[26rem] content-start gap-0">
               {filteredReviews.length === 0 ? (
                 <li className="py-4 text-xs text-ink-3">No reviews match this filter.</li>
               ) : (

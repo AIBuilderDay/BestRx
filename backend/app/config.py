@@ -36,6 +36,30 @@ class Settings:
         )
     )
 
+    # Demo driver: how often a background task walks new orders one step forward. 0 disables it,
+    # which is what the tests use — a task mutating the store mid-assertion makes them flaky.
+    auto_advance_seconds: float = float(os.environ.get("AUTO_ADVANCE_SECONDS", "5"))
+
+    # The AI endpoints. The key lives here and never reaches the browser — that is the whole
+    # reason the model calls moved out of the frontend.
+    anthropic_api_key: str = os.environ.get("ANTHROPIC_API_KEY", "")
+    # Haiku 4.5: fast enough for a nurse waiting on a search, cheap enough to call per query.
+    ai_model: str = os.environ.get("AI_MODEL", "claude-haiku-4-5")
+    # Hard ceiling on how long a nurse waits before the caller falls back to plain search.
+    ai_timeout_seconds: float = float(os.environ.get("AI_TIMEOUT_SECONDS", "15"))
+    # The agent may call MCP tools this many times before we stop and answer with what we have.
+    ai_max_tool_turns: int = int(os.environ.get("AI_MAX_TOOL_TURNS", "6"))
+
+    @property
+    def ai_enabled(self) -> bool:
+        """Without a key the AI endpoints answer 503 and every caller falls back to plain search."""
+        return bool(self.anthropic_api_key)
+
+    @property
+    def auto_advance_enabled(self) -> bool:
+        """False when AUTO_ADVANCE_SECONDS is 0: orders then move only when asked to."""
+        return self.auto_advance_seconds > 0
+
     @property
     def push_enabled(self) -> bool:
         """Push is best-effort. Without a queue the API still serves orders normally."""

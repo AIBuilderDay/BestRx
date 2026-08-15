@@ -2,11 +2,12 @@
 
 Where the numbers in [`vendor_offers.json`](../frontend/src/data/vendor_offers.json) come from.
 
-**The prices are synthetic; the bands are real.** Sample Vendor 1–3 are fictional, so no price here
+**The prices are synthetic; the bands are real.** The three storefront vendors now name real Utah
+suppliers, but no price here
 is a real quote from a real supplier — publishing one would be inventing vendor facts, which
 [CLAUDE.md](../CLAUDE.md) forbids. What is sourced is the *range*: each purchase price was scraped
 from retail DME listings for that HCPCS code, and each vendor's figure was then placed inside that
-range. Vendor 1 sits at the premium end, Vendor 3 at the value end, matching the vendor tiering in
+range. `VND-001` sits at the premium end, `VND-003` at the value end, matching the vendor tiering in
 `vendors.json`.
 
 All figures are whole dollars.

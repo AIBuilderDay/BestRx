@@ -15,9 +15,13 @@ import type { EquipmentCategory, Order, OrderStatus, Patient, User } from '../ty
 
 export type OrderSortKey = 'recent' | 'status';
 
+/** Window of order-creation dates, counted back from today. 'All' applies no date bound. */
+export type OrderDateRange = 'All' | 'today' | '7d' | '30d';
+
 export interface OrderFilterState {
   category: 'All' | EquipmentCategory;
   patientIds: string[];
+  dateRange: OrderDateRange;
   sort: OrderSortKey;
   query: string;
 }
@@ -27,6 +31,8 @@ export interface OrderListItemVM extends PatientEquipmentVM {
   patientName: string;
   imagePath: string | null;
   category: EquipmentCategory | null;
+  /** Raw ISO timestamp, kept for sorting and date filtering. Empty when the order has none. */
+  orderedAt: string;
   orderedAtLabel: string;
   /** Total units across the order's equipment lines. */
   qty: number;
@@ -56,6 +62,7 @@ export function defaultOrderFilters(): OrderFilterState {
   return {
     category: 'All',
     patientIds: [],
+    dateRange: 'All',
     sort: 'recent',
     query: '',
   };
@@ -146,6 +153,7 @@ export function buildOrderListItemVM(order: Order): OrderListItemVM {
     patientName: patient ? patientFullName(patient) : '—',
     imagePath: primaryImagePath(order),
     category: primaryCategory(order),
+    orderedAt: order.orderedAt ?? '',
     orderedAtLabel: formatOrderedAt(order.orderedAt),
     qty,
     qtyLabel: `Qty ${qty}`,
@@ -165,36 +173,77 @@ function matchesQuery(item: OrderListItemVM, query: string): boolean {
   );
 }
 
-type OrderFilterDimension = 'category' | 'patientIds' | 'query';
+export const ORDER_DATE_RANGES: { key: OrderDateRange; label: string; days: number | null }[] = [
+  { key: 'All', label: 'Any date', days: null },
+  { key: 'today', label: 'Today', days: 1 },
+  { key: '7d', label: 'Last 7 days', days: 7 },
+  { key: '30d', label: 'Last 30 days', days: 30 },
+];
+
+/**
+ * Start of the window for a range, as a timestamp. Windows are whole days counted back from
+ * today's midnight, so "Today" means today's calendar date rather than the last 24 hours.
+ */
+function dateRangeStart(range: OrderDateRange, now: Date): number | null {
+  const days = ORDER_DATE_RANGES.find((r) => r.key === range)?.days ?? null;
+  if (days === null) return null;
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  start.setDate(start.getDate() - (days - 1));
+  return start.getTime();
+}
+
+function matchesDateRange(item: OrderListItemVM, range: OrderDateRange, now: Date): boolean {
+  const start = dateRangeStart(range, now);
+  if (start === null) return true;
+  if (!item.orderedAt) return false;
+  const at = new Date(item.orderedAt).getTime();
+  // An unparseable timestamp is not evidence the order falls in the window.
+  return Number.isFinite(at) && at >= start;
+}
+
+type OrderFilterDimension = 'category' | 'patientIds' | 'dateRange' | 'query';
 
 function matchesOrderFilters(
   item: OrderListItemVM,
   filters: OrderFilterState,
   skip: OrderFilterDimension[] = [],
+  now: Date = new Date(),
 ): boolean {
   if (!skip.includes('category') && filters.category !== 'All' && item.category !== filters.category) return false;
   if (!skip.includes('patientIds') && filters.patientIds.length > 0 && !filters.patientIds.includes(item.patientId)) {
     return false;
   }
+  if (!skip.includes('dateRange') && !matchesDateRange(item, filters.dateRange, now)) return false;
   if (!skip.includes('query') && !matchesQuery(item, filters.query)) return false;
   return true;
 }
 
-export function filterAndSortOrders(items: OrderListItemVM[], filters: OrderFilterState): OrderListItemVM[] {
-  let out = items.filter((item) => matchesOrderFilters(item, filters));
+/** Newest first, by order-creation time. Orders with no timestamp sort last. */
+function byOrderedAtDesc(a: OrderListItemVM, b: OrderListItemVM): number {
+  if (!a.orderedAt) return b.orderedAt ? 1 : 0;
+  if (!b.orderedAt) return -1;
+  // ISO-8601 with the same offset sorts lexically; parse so mixed offsets still compare correctly.
+  return new Date(b.orderedAt).getTime() - new Date(a.orderedAt).getTime();
+}
 
-  out = out.slice().sort((a, b) => {
-    if (filters.sort === 'status') {
-      const ao = orders().find((o) => o.id === a.orderId);
-      const bo = orders().find((o) => o.id === b.orderId);
-      return (STATUS_SORT_RANK[ao?.status ?? 'ordered'] ?? 0) - (STATUS_SORT_RANK[bo?.status ?? 'ordered'] ?? 0);
-    }
-    const ao = orders().find((o) => o.id === a.orderId)?.orderedAt ?? '';
-    const bo = orders().find((o) => o.id === b.orderId)?.orderedAt ?? '';
-    return bo.localeCompare(ao);
-  });
+export function filterAndSortOrders(
+  items: OrderListItemVM[],
+  filters: OrderFilterState,
+  now: Date = new Date(),
+): OrderListItemVM[] {
+  const statusOf = (item: OrderListItemVM): OrderStatus =>
+    orders().find((o) => o.id === item.orderId)?.status ?? 'ordered';
 
-  return out;
+  return items
+    .filter((item) => matchesOrderFilters(item, filters, [], now))
+    .sort((a, b) => {
+      if (filters.sort === 'status') {
+        const rank = (STATUS_SORT_RANK[statusOf(a)] ?? 0) - (STATUS_SORT_RANK[statusOf(b)] ?? 0);
+        // Within one status, the newest order still leads.
+        return rank !== 0 ? rank : byOrderedAtDesc(a, b);
+      }
+      return byOrderedAtDesc(a, b);
+    });
 }
 
 /**
@@ -271,19 +320,34 @@ export function orderPatientOptions(
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export function orderDateRangeOptions(
+  items: OrderListItemVM[],
+  now: Date = new Date(),
+): { key: OrderDateRange; label: string; count: number }[] {
+  return ORDER_DATE_RANGES.map(({ key, label }) => ({
+    key,
+    label,
+    count: items.filter((item) => matchesDateRange(item, key, now)).length,
+  }));
+}
+
 /** Sidebar counts reflect every active filter except the group being counted. */
 export function orderFilterOptions(
   items: OrderListItemVM[],
   filters: OrderFilterState,
+  now: Date = new Date(),
 ): {
   categories: ReturnType<typeof orderCategoryOptions>;
   patients: ReturnType<typeof orderPatientOptions>;
+  dateRanges: ReturnType<typeof orderDateRangeOptions>;
 } {
-  const forCategory = items.filter((item) => matchesOrderFilters(item, filters, ['category']));
-  const forPatient = items.filter((item) => matchesOrderFilters(item, filters, ['patientIds']));
+  const forCategory = items.filter((item) => matchesOrderFilters(item, filters, ['category'], now));
+  const forPatient = items.filter((item) => matchesOrderFilters(item, filters, ['patientIds'], now));
+  const forDate = items.filter((item) => matchesOrderFilters(item, filters, ['dateRange'], now));
   return {
     categories: orderCategoryOptions(forCategory),
     patients: orderPatientOptions(forPatient),
+    dateRanges: orderDateRangeOptions(forDate, now),
   };
 }
 

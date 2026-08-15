@@ -43,7 +43,7 @@ export interface PatientEquipmentVM {
   costUnit: '/mo' | 'one-time' | 'mixed';
   /** False when a line has no matching vendor offer, making the total incomplete. */
   costPriced: boolean;
-  /** "DME-10361 · Vendor 3 · Qty 1" — the card's second line. */
+  /** "DME-10361 · IOC Home Medical · Qty 1" — the card's second line. */
   metaLine: string;
 }
 

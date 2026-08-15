@@ -1,22 +1,23 @@
 [
   {
     "id": "VND-001",
-    "name": "Sample Vendor 1",
-    "displayName": "Vendor 1",
+    "name": "Alpine Home Medical",
+    "displayName": "Alpine Home Medical",
     "market": "Salt Lake City, UT",
-    "contracted": false,
     "serviceAreaZips": [
       "84101",
       "84102",
       "84103",
       "84115",
-      "84117"
+      "84117",
+      "84107",
+      "84020"
     ],
-    "hours": "Mon-Sat 7:00-19:00",
+    "hours": "Mon-Fri 8:30-18:00; Sat-Sun closed",
     "contact": {
-      "dispatchPhone": "801-555-0141",
-      "dispatchEmail": "dispatch@vendor1.example",
-      "repName": "Alicia Romero"
+      "dispatchPhone": "801-463-0044",
+      "dispatchEmail": null,
+      "repName": null
     },
     "fleet": {
       "trucks": 6,
@@ -34,29 +35,42 @@
       "avgDeliveryHours": 5.1,
       "podCapturePct": 99
     },
-    "logoPath": "/images/vendors/vendor-1.svg",
+    "logoPath": null,
     "overallRating": 4.6,
-    "overallRatingCount": 252
+    "overallRatingCount": 173,
+    "realVendorId": "RVND-UT-001",
+    "sourceUrl": "https://www.alpinehomemedical.com/our-locations/salt-lake-city-ut/",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount"
+      ],
+      "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about Alpine Home Medical. Identity and contact details are scraped from https://www.alpinehomemedical.com/our-locations/salt-lake-city-ut/."
+    },
+    "contracted": false
   },
   {
     "id": "VND-002",
-    "name": "Sample Vendor 2",
-    "displayName": "Vendor 2",
-    "market": "Salt Lake City / Provo, UT",
-    "contracted": true,
+    "name": "Affinity Home Medical",
+    "displayName": "Affinity Home Medical",
+    "market": "Salt Lake City, UT",
     "serviceAreaZips": [
-      "84601",
-      "84604",
-      "84606",
-      "84097",
-      "84058",
-      "84115"
+      "84115",
+      "84101",
+      "84106",
+      "84109",
+      "84117",
+      "84121"
     ],
-    "hours": "Mon-Fri 8:00-17:00",
+    "hours": "Mon-Fri 9:30-18:00; Sat 10:00-15:00; Sun closed",
     "contact": {
-      "dispatchPhone": "801-555-0192",
-      "dispatchEmail": "dispatch@vendor2.example",
-      "repName": "Devon Marsh"
+      "dispatchPhone": "801-906-3900",
+      "dispatchEmail": null,
+      "repName": null
     },
     "fleet": {
       "trucks": 3,
@@ -74,27 +88,42 @@
       "avgDeliveryHours": 9.4,
       "podCapturePct": 92
     },
-    "logoPath": "/images/vendors/vendor-2.svg",
+    "logoPath": null,
     "overallRating": 3.9,
-    "overallRatingCount": 249
+    "overallRatingCount": 172,
+    "realVendorId": "RVND-UT-002",
+    "sourceUrl": "https://affinityhomemedical.com/",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount"
+      ],
+      "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about Affinity Home Medical. Identity and contact details are scraped from https://affinityhomemedical.com/."
+    },
+    "contracted": true
   },
   {
     "id": "VND-003",
-    "name": "Sample Vendor 3",
-    "displayName": "Vendor 3",
-    "market": "Ogden, UT",
-    "contracted": false,
+    "name": "IOC Home Medical",
+    "displayName": "IOC Home Medical",
+    "market": "Orem, UT",
     "serviceAreaZips": [
-      "84401",
-      "84403",
-      "84404",
-      "84405"
+      "84097",
+      "84057",
+      "84058",
+      "84601",
+      "84604",
+      "84606"
     ],
-    "hours": "Mon-Fri 9:00-17:00",
+    "hours": "Mon-Fri 9:00-18:00; Sat-Sun closed",
     "contact": {
-      "dispatchPhone": "801-555-0177",
-      "dispatchEmail": "dispatch@vendor3.example",
-      "repName": "Karen Vo"
+      "dispatchPhone": "801-226-4741",
+      "dispatchEmail": null,
+      "repName": null
     },
     "fleet": {
       "trucks": 2,
@@ -112,8 +141,22 @@
       "avgDeliveryHours": 14.2,
       "podCapturePct": 85
     },
-    "logoPath": "/images/vendors/vendor-3.svg",
-    "overallRating": 3.1,
-    "overallRatingCount": 143
+    "logoPath": null,
+    "overallRating": 3,
+    "overallRatingCount": 63,
+    "realVendorId": "RVND-UT-006",
+    "sourceUrl": "https://iocdme.com/",
+    "sourceRetrieved": "2026-08-15",
+    "simulated": {
+      "fields": [
+        "fleet",
+        "sla",
+        "performance30d",
+        "overallRating",
+        "overallRatingCount"
+      ],
+      "note": "Operational telemetry and ratings on this row are simulated for the demo. No DME supplier publishes truck counts, on-time percentages, POD capture rates or contracted SLA hours, so these figures are not claims about IOC Home Medical. Identity and contact details are scraped from https://iocdme.com/."
+    },
+    "contracted": false
   }
 ]

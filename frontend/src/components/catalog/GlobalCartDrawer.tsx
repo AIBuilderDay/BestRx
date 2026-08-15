@@ -17,6 +17,7 @@ export function GlobalCartDrawer() {
     placeOrder,
     placing,
     toast,
+    toastImage,
     agentAdded,
     setAgentAdded,
   } = useCart();
@@ -37,7 +38,7 @@ export function GlobalCartDrawer() {
         onRemove={(offerId, patientId, unit) => setCartLineQty(offerId, patientId, unit, 0)}
         onClose={() => {
           setCartOpen(false);
-          setAgentAdded(null); // the spotlight is a one-time confirmation, not a permanent badge
+          setAgentAdded([]); // the spotlight is a one-time confirmation, not a permanent badge
         }}
         onViewCart={() => {
           setCartOpen(false);
@@ -47,7 +48,7 @@ export function GlobalCartDrawer() {
         placing={placing}
         agentAdded={agentAdded}
       />
-      <Toast message={toast} />
+      <Toast message={toast} imagePath={toastImage} />
     </>
   );
 }

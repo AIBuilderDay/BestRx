@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { patients } from '../../data/db';
-import { buildCatalogItems, upsertCartLine } from '../../lib/catalog';
-import { looksLikeOrderCommand, parseAgentOrder } from '../../lib/ai/agentOrder';
+import { looksLikeOrderCommand } from '../../lib/ai/agentOrder';
+import { runAgentOrder } from '../../lib/ai/client';
 import { burstAtCart, flyCometToCart } from '../../lib/fx/agentComet';
 import type { User } from '../../types/domain';
 import { useCart } from '../../context/CartContext';
@@ -20,6 +19,9 @@ const PLACEHOLDERS: Record<Mode, string> = {
  * order-shaped commands go to the agent (fills the cart, human confirms checkout);
  * everything else becomes an AI-ranked search on the catalog. Any AI failure lands
  * on plain search results — this bar never dead-ends.
+ *
+ * The agent runs on the API and writes the cart there through its MCP tools, so what comes back is
+ * the cart the server already holds — this component renders it rather than building one.
  */
 export function NavSearch({ user }: { user: User }) {
   const navigate = useNavigate();
@@ -28,11 +30,12 @@ export function NavSearch({ user }: { user: User }) {
   const [query, setQuery] = useState(urlQuery);
   const [mode, setMode] = useState<Mode>(searchParams.get('ai') === '1' ? 'ai' : 'search');
   const [thinking, setThinking] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [notice, setNotice] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const aliveRef = useRef(true);
-  const { setLines, setCartOpen, setAgentAdded } = useCart();
+  const { adoptServerCart, setCartOpen, setAgentAdded } = useCart();
 
   // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
   useEffect(() => {
@@ -46,30 +49,55 @@ export function NavSearch({ user }: { user: User }) {
     };
   }, []);
 
+  // The fallback notice is transient — it explains the navigation that just happened, then clears.
+  useEffect(() => {
+    if (!notice) return;
+    const timer = setTimeout(() => setNotice(''), 4000);
+    return () => clearTimeout(timer);
+  }, [notice]);
+
   const switchMode = (next: Mode) => {
     setMode(next);
     setNotice('');
     inputRef.current?.focus();
   };
 
-  const runAgentOrder = async (command: string) => {
-    const items = buildCatalogItems();
-    const assignable = patients().filter((p) => p.hospiceId === user.orgId && p.status !== 'deceased');
+  // Cmd/Ctrl+K focuses the bar from anywhere in the app.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'k' || !(e.metaKey || e.ctrlKey)) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  // Tab inside the bar flips Search ↔ AI instead of leaving it. Shift+Tab still tabs out
+  // backwards, so the bar is never a keyboard trap.
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Tab' || e.shiftKey) return;
+    e.preventDefault();
+    switchMode(mode === 'search' ? 'ai' : 'search');
+  };
+
+  const placeAgentOrder = async (command: string) => {
     setThinking(true);
     setNotice('');
     try {
-      const action = await parseAgentOrder(command, items, assignable);
+      const { cart, added } = await runAgentOrder(command, user.id);
       if (!aliveRef.current) return;
-      if (!action) {
-        // Model couldn't safely resolve a patient or product — fall back to AI search.
+      if (!cart || added.length === 0) {
+        // The agent couldn't safely resolve a patient or product — fall back to AI search.
         setNotice("Couldn't match a patient or item — showing results instead");
         navigate(`/catalog?q=${encodeURIComponent(command)}&ai=1`);
         return;
       }
-      // Cart state first — the order is never lost to a visual effect.
-      // Rental is the catalog's default arrangement; the nurse can switch the line in the cart.
-      setLines((prev) => upsertCartLine(prev, action.offerId, action.patientId, 'month', action.quantity));
-      setAgentAdded(action);
+      // Cart state first — the order is never lost to a visual effect. The API already wrote it,
+      // so this renders the server's copy rather than pushing one back.
+      adoptServerCart(cart);
+      setAgentAdded(added);
       setQuery('');
       setThinking(false); // calm the bar before the comet leaves it
       navigate('/catalog');
@@ -103,14 +131,14 @@ export function NavSearch({ user }: { user: User }) {
       return;
     }
     if (looksLikeOrderCommand(q)) {
-      void runAgentOrder(q);
+      void placeAgentOrder(q);
       return;
     }
     navigate(`/catalog?q=${encodeURIComponent(q)}&ai=1`);
   };
 
   return (
-    <div className="w-full min-w-0">
+    <div className="relative w-full min-w-0">
       <div ref={shellRef} className={`ai-shell ${mode === 'ai' ? 'ai-on' : ''} ${thinking ? 'ai-thinking' : ''}`}>
         <form
           onSubmit={submit}
@@ -165,21 +193,50 @@ export function NavSearch({ user }: { user: User }) {
                 navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog', { replace: true });
               }
             }}
+            onKeyDown={onInputKeyDown}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             placeholder={PLACEHOLDERS[mode]}
             aria-label={mode === 'ai' ? 'Ask AI or give an order command' : 'Search equipment'}
+            aria-keyshortcuts="Meta+K Control+K"
             data-testid="nav-search-input"
             className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
           />
-          {thinking && (
-            <span className="ai-status shrink-0 whitespace-nowrap pr-1 text-[11px]" data-testid="ai-status">
-              Placing the order…
-            </span>
+          {thinking ? (
+            <svg
+              className="shrink-0 animate-spin text-ai-ink"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+              data-testid="ai-spinner"
+            >
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.25" />
+              <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          ) : (
+            // The hint is a discovery aid — once the bar has focus the shortcut has done its job.
+            !focused && (
+              <kbd
+                aria-hidden="true"
+                className="hidden shrink-0 rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-3 sm:block"
+              >
+                ⌘K
+              </kbd>
+            )
           )}
         </form>
       </div>
-      {notice && (
-        <div className="absolute mt-1 text-[11px] text-ink-3" role="status">
-          {notice}
+      {/* Status toast under the bar: the agent's progress, then any fallback notice. */}
+      {(thinking || notice) && (
+        <div className="absolute left-0 mt-1.5 flex w-full justify-center" role="status" aria-live="polite">
+          <span
+            className="inline-flex items-center gap-1.5 rounded-control border border-line bg-surface px-2.5 py-1 text-center text-[11px] shadow-sm"
+            data-testid="ai-status"
+          >
+            {thinking ? <span className="ai-status">Placing the order…</span> : <span className="text-ink-2">{notice}</span>}
+          </span>
         </div>
       )}
     </div>

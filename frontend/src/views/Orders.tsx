@@ -94,6 +94,7 @@ export default function Orders({ user, onSignOut }: { user: User; onSignOut: () 
           filters={effectiveFilters}
           categories={filterOptions.categories}
           patients={filterOptions.patients}
+          dateRanges={filterOptions.dateRanges}
           onChange={applyFilters}
           onReset={resetFilters}
         />
@@ -175,6 +176,7 @@ export default function Orders({ user, onSignOut }: { user: User; onSignOut: () 
         filters={effectiveFilters}
         categories={filterOptions.categories}
         patients={filterOptions.patients}
+        dateRanges={filterOptions.dateRanges}
         resultCount={filteredSorted.length}
         onChange={applyFilters}
         onReset={resetFilters}

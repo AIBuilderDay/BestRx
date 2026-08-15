@@ -34,8 +34,8 @@ import {
   type CartLine,
   type PriceUnit,
 } from '../lib/catalog';
-import { checkoutCart, fetchCart, updateCart, type CartLineInput } from '../lib/api';
-import type { AgentOrderAction } from '../types/ai';
+import { checkoutCart, fetchCart, updateCart, type CartDto, type CartLineInput } from '../lib/api';
+import type { AgentAddedLine } from '../types/ai';
 
 interface CartContextValue {
   lines: CartLine[];
@@ -56,10 +56,20 @@ interface CartContextValue {
   placing: boolean;
   /** Current transient message, or '' when nothing is showing. */
   toast: string;
-  say: (message: string) => void;
-  /** The line the AI agent just added, so the drawer can spotlight it. */
-  agentAdded: AgentOrderAction | null;
-  setAgentAdded: (action: AgentOrderAction | null) => void;
+  /** Product image for the current message, when it is about a specific item. */
+  toastImage: string | undefined;
+  say: (message: string, imagePath?: string) => void;
+  /** Every line the AI agent just added, so the drawer can spotlight all of them. */
+  agentAdded: AgentAddedLine[];
+  setAgentAdded: (lines: AgentAddedLine[]) => void;
+  /**
+   * Take the server's cart as-is, without pushing it back.
+   *
+   * The ordering agent writes the cart on the API before this browser hears about it, so the
+   * response is already authoritative — echoing it back with `setLines` would be a redundant write
+   * and could race the agent's own.
+   */
+  adoptServerCart: (cart: CartDto) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -73,15 +83,17 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
   const [cartOpen, setCartOpen] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [toast, setToast] = useState('');
+  const [toastImage, setToastImage] = useState<string | undefined>(undefined);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [agentAdded, setAgentAdded] = useState<AgentOrderAction | null>(null);
+  const [agentAdded, setAgentAdded] = useState<AgentAddedLine[]>([]);
 
   // Serialises pushes so two quick edits reach the server in the order they were made.
   const queue = useRef<Promise<unknown>>(Promise.resolve());
 
-  const say = useCallback((message: string) => {
+  const say = useCallback((message: string, imagePath?: string) => {
     clearTimeout(toastTimer.current);
     setToast(message);
+    setToastImage(imagePath);
     toastTimer.current = setTimeout(() => setToast(''), 3000);
   }, []);
 
@@ -128,6 +140,11 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
     },
     [userId, say],
   );
+
+  /** Render a cart the server already holds. Deliberately does not push — see the interface. */
+  const adoptServerCart = useCallback((cart: CartDto) => {
+    setLinesState(toInput(cart.lines));
+  }, []);
 
   /** Apply an edit locally, then send the result. */
   const setLines = useCallback<React.Dispatch<React.SetStateAction<CartLine[]>>>(
@@ -204,20 +221,24 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
       placeOrder,
       placing,
       toast,
+      toastImage,
       say,
       agentAdded,
       setAgentAdded,
+      adoptServerCart,
     }),
     [
       lines,
       cartOpen,
       setLines,
+      adoptServerCart,
       setLineQty,
       clearCart,
       catalogItems,
       placeOrder,
       placing,
       toast,
+      toastImage,
       say,
       agentAdded,
     ],

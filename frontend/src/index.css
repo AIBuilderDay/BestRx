@@ -274,7 +274,7 @@ button:not(:disabled) {
   position: relative;
   isolation: isolate;
   animation:
-    agentAddedWash 2.4s ease-out both,
+    agentAddedWash 6s ease-out both,
     agentRingPop 0.9s ease-out both;
 }
 
@@ -295,9 +295,12 @@ button:not(:disabled) {
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+  /* same cadence as the nav search ring: one fast ignite crest, then the ambient
+     colour swell for as long as the highlight holds */
   animation:
-    aiSweep 1.2s linear 2,
-    agentRingFade 2.4s ease-out both;
+    aiIgnite 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    aiSweep 7s linear 0.9s infinite,
+    agentRingFade 6s ease-out both;
   pointer-events: none;
 }
 
@@ -311,9 +314,11 @@ button:not(:disabled) {
   background: var(--ai-wave);
   background-size: 300% 100%;
   filter: blur(10px);
+  /* slower than the ring, so glow and border never repeat in step */
   animation:
-    aiSweep 1.2s linear 2,
-    agentGlowFade 2.4s ease-out both;
+    aiIgnite 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    aiSweep 9s linear 0.9s infinite,
+    agentGlowFade 6s ease-out both;
   pointer-events: none;
 }
 

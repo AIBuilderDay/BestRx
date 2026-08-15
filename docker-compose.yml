@@ -47,9 +47,17 @@ services:
       - ./backend/tests:/app/tests
       # The frontend's data directory is the one copy of the fixtures under version control.
       - ./frontend/src/data:/app/data:ro
+    # backend/.env.local holds ANTHROPIC_API_KEY. It is git-ignored, and the key stays in this
+    # container — the browser never sees it, which is why the model calls live behind /ai/*.
+    env_file:
+      - path: ./backend/.env.local
+        required: false
     environment:
       - PYTHONUNBUFFERED=1
       - CORS_ORIGINS=http://localhost:5173
+      # How often orders placed this session walk one step forward, so the demo has live status
+      # changes to show. Set to 0 to freeze the board and drive it by hand instead.
+      - AUTO_ADVANCE_SECONDS=${AUTO_ADVANCE_SECONDS-5}
       # Uncomment to send real push notifications from a local container. Needs AWS credentials
       # mounted in, and the notification service deployed.
       # - PUSH_QUEUE_URL=

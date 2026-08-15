@@ -17,7 +17,7 @@ app/
 ├── fixtures.py     read-only access to the JSON tables
 ├── mcp_server.py   every endpoint mirrored as MCP tools, mounted at /mcp
 ├── routers/        HTTP endpoints, including /stream
-└── services/       order logic and the SQS publisher
+└── services/       order logic, the SQS publisher, and the auto-advance demo driver
 
 scripts/
 └── sync-data.sh    copy fixtures for running on the host
@@ -87,6 +87,24 @@ Invalid transitions return `409` with what *is* possible:
 ```json
 { "detail": { "message": "...", "currentStatus": "ordered", "allowedNext": ["dispatched"] } }
 ```
+
+### Orders advance themselves
+
+Nobody is standing behind a real vendor's dispatch system during a demo, so `services/autoadvance.py`
+ticks every `AUTO_ADVANCE_SECONDS` (default `5`, `0` disables) and moves each in-flight order one
+step along its track: `ordered → dispatched → in_transit → delivered`. An order placed at the
+storefront therefore reaches `delivered` about fifteen seconds later, firing SSE and a push at each
+step.
+
+It calls the same `change_status` a `PATCH` does, so an automatic move is indistinguishable from a
+manual one — same validation, same event, same fan-out, same enqueue. The event records
+`actorId: "system:auto-advance"`, so a timeline reader can still tell the two apart.
+
+**Only orders created since the process started move.** The seeded fixtures are the baseline the
+board is read against, and draining them to `delivered` on a timer would rewrite the dataset the
+demo is explaining. Note that `canonical` does not express this — only six of the 66 seeded orders
+are canonical — so the store tracks the ids it minted (`is_session_order`). The test suite sets
+`AUTO_ADVANCE_SECONDS=0`.
 
 ## Carts
 

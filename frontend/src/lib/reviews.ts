@@ -80,3 +80,31 @@ export function filterReviewsByStar(reviews: ProductReview[], filter: ReviewStar
   if (filter === 'all') return reviews;
   return reviews.filter((r) => normalizeStarRating(r.rating) === filter);
 }
+
+/** Matches the `sort`/`order` pair on GET /reviews, so the UI and the API agree on what each means. */
+export type ReviewSort = 'recent' | 'oldest' | 'highest' | 'lowest';
+
+export const REVIEW_SORT_LABELS: Record<ReviewSort, string> = {
+  recent: 'Most recent',
+  oldest: 'Oldest first',
+  highest: 'Highest rated',
+  lowest: 'Lowest rated',
+};
+
+/**
+ * Order reviews for display. Rating sorts break ties on date descending, so a star band still
+ * reads newest-first — the same rule the backend applies.
+ */
+export function sortReviews(reviews: ProductReview[], sort: ReviewSort): ProductReview[] {
+  const byNewest = [...reviews].sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt));
+  switch (sort) {
+    case 'recent':
+      return byNewest;
+    case 'oldest':
+      return byNewest.reverse();
+    case 'highest':
+      return byNewest.sort((a, b) => normalizeStarRating(b.rating) - normalizeStarRating(a.rating));
+    case 'lowest':
+      return byNewest.sort((a, b) => normalizeStarRating(a.rating) - normalizeStarRating(b.rating));
+  }
+}

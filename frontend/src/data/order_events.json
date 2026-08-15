@@ -13,7 +13,7 @@
     "at": "2026-08-03T10:30:00-06:00",
     "event": "dispatched",
     "actorId": "USR-007",
-    "detail": "Accepted by Sample Vendor 1 dispatch."
+    "detail": "Accepted by Alpine Home Medical dispatch."
   },
   {
     "id": "EVT-0002",
@@ -45,7 +45,7 @@
     "at": "2026-08-14T11:00:00-06:00",
     "event": "dispatched",
     "actorId": "USR-008",
-    "detail": "Accepted by Sample Vendor 2 dispatch."
+    "detail": "Accepted by Affinity Home Medical dispatch."
   },
   {
     "id": "EVT-0006",
@@ -69,7 +69,7 @@
     "at": "2026-08-14T14:06:00-06:00",
     "event": "escalated",
     "actorId": "USR-001",
-    "detail": "Escalation opened with Sample Vendor 2."
+    "detail": "Escalation opened with Affinity Home Medical."
   },
   {
     "id": "EVT-0009",
@@ -125,7 +125,7 @@
     "at": "2026-08-14T07:06:00-06:00",
     "event": "vendor_notified",
     "actorId": null,
-    "detail": "SMS with magic link sent to Sample Vendor 2 dispatch."
+    "detail": "SMS with magic link sent to Affinity Home Medical dispatch."
   },
   {
     "id": "EVT-0016",
@@ -149,7 +149,7 @@
     "at": "2026-08-12T10:05:00-06:00",
     "event": "escalated",
     "actorId": "USR-004",
-    "detail": "Escalated to the Sample Vendor 3 account rep."
+    "detail": "Escalated to the IOC Home Medical account rep."
   },
   {
     "id": "EVT-0019",
@@ -189,7 +189,7 @@
     "at": "2026-08-14T12:10:00-06:00",
     "event": "dispatched",
     "actorId": "USR-007",
-    "detail": "Sample Vendor 1 confirmed for tomorrow morning delivery."
+    "detail": "Alpine Home Medical confirmed for tomorrow morning delivery."
   },
   {
     "id": "EVT-0023",

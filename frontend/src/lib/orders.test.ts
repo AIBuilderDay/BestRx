@@ -30,11 +30,36 @@ describe('filterAndSortOrders', () => {
     const filtered = filterAndSortOrders(items, {
       category: 'All',
       patientIds: [patientId],
+      dateRange: 'All',
       sort: 'recent',
       query: '',
     });
     expect(filtered.length).toBeGreaterThan(0);
     expect(filtered.every((it) => it.patientId === patientId)).toBe(true);
+  });
+
+  it('puts a just-placed order first under Most recent', () => {
+    const justPlaced = { ...items[0]!, orderId: 'ORD-NEW', orderedAt: new Date().toISOString() };
+    const sorted = filterAndSortOrders([...items, justPlaced], {
+      category: 'All',
+      patientIds: [],
+      dateRange: 'All',
+      sort: 'recent',
+      query: '',
+    });
+    expect(sorted[0]?.orderId).toBe('ORD-NEW');
+  });
+
+  it('keeps only orders created inside the date window', () => {
+    const now = new Date('2026-08-15T12:00:00-06:00');
+    const recent = { ...items[0]!, orderId: 'ORD-RECENT', orderedAt: '2026-08-14T08:00:00-06:00' };
+    const old = { ...items[0]!, orderId: 'ORD-OLD', orderedAt: '2026-06-01T08:00:00-06:00' };
+    const filtered = filterAndSortOrders(
+      [recent, old],
+      { category: 'All', patientIds: [], dateRange: '7d', sort: 'recent', query: '' },
+      now,
+    );
+    expect(filtered.map((it) => it.orderId)).toEqual(['ORD-RECENT']);
   });
 });
 
@@ -46,12 +71,14 @@ describe('orderFilterOptions', () => {
     const allPatients = orderFilterOptions(items, {
       category: 'All',
       patientIds: [],
+      dateRange: 'All',
       sort: 'recent',
       query: '',
     }).patients;
     const respiratoryPatients = orderFilterOptions(items, {
       category: 'respiratory',
       patientIds: [],
+      dateRange: 'All',
       sort: 'recent',
       query: '',
     }).patients;
@@ -70,6 +97,7 @@ describe('orderFilterOptions', () => {
     const options = orderFilterOptions(items, {
       category: 'All',
       patientIds: [patientId!],
+      dateRange: 'All',
       sort: 'recent',
       query: '',
     }).categories;

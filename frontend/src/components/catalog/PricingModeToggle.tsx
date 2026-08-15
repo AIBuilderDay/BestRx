@@ -28,7 +28,7 @@ export function UnitToggle({
   onChange: (next: PriceUnit) => void;
 }) {
   return (
-    <div className="inline-flex overflow-hidden rounded-[8px] border border-line" role="group" aria-label="Rental or purchase">
+    <div className="inline-flex overflow-hidden border border-line" role="group" aria-label="Rental or purchase">
       <MiniButton active={unit === 'month'} onClick={() => onChange('month')} label="Rental" />
       <MiniButton active={unit === 'purchase'} onClick={() => onChange('purchase')} label="Purchase" />
     </div>

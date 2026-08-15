@@ -79,11 +79,28 @@ export interface VendorSla {
   pickupHours: number;
 }
 
+/**
+ * Which fields on a `Vendor` row are fabricated, and why.
+ *
+ * A storefront vendor now carries a real supplier's name and published contact details, but its
+ * operational telemetry is invented — no supplier publishes truck counts, on-time percentages, POD
+ * capture rates or contracted SLA hours. Anything listing one of these fields must render it as
+ * simulated, so a demo figure is never read as a claim about the named company.
+ */
+export interface VendorSimulation {
+  /** Keys of `Vendor` whose values are fabricated. */
+  fields: string[];
+  note: string;
+}
+
 export interface Vendor {
   id: string;
+  /** The real supplier this storefront row represents. Identity and contact are scraped. */
   name: string;
-  /** Short label shown in the catalog and cart (e.g. "Vendor 1"). */
+  /** Short label shown in the catalog and cart (e.g. "Alpine Home Medical"). */
   displayName: string;
+  /** The `RealVendor` this row was built from. */
+  realVendorId: string;
   market: string;
   /**
    * The hospice's incumbent vendor — the one whose prices the cost ledger treats as the baseline
@@ -92,7 +109,8 @@ export interface Vendor {
   contracted: boolean;
   serviceAreaZips: string[];
   hours: string;
-  contact: { dispatchPhone: string; dispatchEmail: string; repName: string };
+  /** `dispatchEmail` and `repName` are null unless the supplier publishes them. */
+  contact: { dispatchPhone: string; dispatchEmail: string | null; repName: string | null };
   fleet: { trucks: number; routesToday: number; capacityUsedPct: number };
   sla: VendorSla;
   performance30d: {
@@ -101,13 +119,18 @@ export interface Vendor {
     avgDeliveryHours: number;
     podCapturePct: number;
   };
-  logoPath: string;
+  logoPath: string | null;
   /**
    * Hospice-wide vendor scorecard metric. Visible only to director_of_nursing and hospice_admin —
    * not shown on the catalog storefront.
    */
   overallRating: number;
   overallRatingCount: number;
+  /** Where the name, phone and market came from. */
+  sourceUrl: string;
+  sourceRetrieved: string;
+  /** Names the fabricated fields above. Never render those without this disclosure. */
+  simulated: VendorSimulation;
 }
 
 export interface RealVendorLocation {

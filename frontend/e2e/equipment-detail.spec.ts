@@ -14,7 +14,7 @@ test('equipment detail summary shows title, then rating and price on one row', a
 
   const summary = page.getByTestId('equipment-detail-summary');
   await expect(summary.getByRole('heading', { level: 1, name: 'Standard Wheelchair' })).toBeVisible();
-  await expect(summary.getByText('Vendor 1', { exact: true })).toHaveCount(0);
+  await expect(summary.getByText('Alpine Home Medical', { exact: true })).toHaveCount(0);
 
   const ratingPrice = page.getByTestId('equipment-detail-rating-price');
   await expect(ratingPrice).toContainText('4.5');
@@ -30,5 +30,5 @@ test('equipment detail summary shows title, then rating and price on one row', a
   expect(ratingPriceBox.x).toBeLessThanOrEqual(titleBox.x + 4);
 
   await expect(page.getByRole('heading', { level: 2, name: 'Listing details' })).toBeVisible();
-  await expect(page.getByRole('definition').filter({ hasText: 'Vendor 1' })).toBeVisible();
+  await expect(page.getByRole('definition').filter({ hasText: 'Alpine Home Medical' })).toBeVisible();
 });

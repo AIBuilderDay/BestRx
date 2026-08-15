@@ -10,7 +10,7 @@ PATIENT_B = "PT-88502"
 # OFR-001 and OFR-002 are both VND-001; OFR-001 is a purchase, OFR-002 a monthly rental.
 OFFER_V1_PURCHASE = "OFR-001"
 OFFER_V1_RENTAL = "OFR-002"
-OFFER_BOTH = "OFR-003"  # wheelchair Vendor 1 both rents and sells
+OFFER_BOTH = "OFR-003"  # wheelchair Alpine Home Medical both rents and sells
 OFFER_PURCHASE_ONLY = "OFR-005"  # walker: sold outright, never rented
 
 

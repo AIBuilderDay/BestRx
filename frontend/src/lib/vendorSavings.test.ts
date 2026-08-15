@@ -124,6 +124,7 @@ function fakeVendor(overrides: Partial<Vendor> = {}): Vendor {
     id: 'VND-X',
     name: 'Fake Vendor',
     displayName: 'Fake Vendor',
+    realVendorId: 'RVND-TEST-X',
     market: 'Test',
     contracted: false,
     serviceAreaZips: [],
@@ -135,6 +136,9 @@ function fakeVendor(overrides: Partial<Vendor> = {}): Vendor {
     logoPath: '',
     overallRating: 4,
     overallRatingCount: 100,
+    sourceUrl: '',
+    sourceRetrieved: '',
+    simulated: { fields: [], note: 'Synthetic test fixture — not a real supplier.' },
     ...overrides,
   };
 }

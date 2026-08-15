@@ -100,6 +100,20 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     if (offerId) navigate('/catalog');
   };
 
+  /**
+   * Move the detail page to another vendor's offer of the same item. Replaces rather than pushes:
+   * comparing three vendors should not leave three entries to back out through. The rent/buy
+   * override follows only when the new vendor actually sells that arrangement.
+   */
+  const selectVendor = (fromOfferId: string, toOfferId: string) => {
+    const override = unitOverrides[fromOfferId];
+    const next = catalogItems.find((it) => it.offer.id === toOfferId);
+    if (override && next?.availableUnits.includes(override)) {
+      setUnitOverrides((prev) => ({ ...prev, [toOfferId]: override }));
+    }
+    navigate(`/catalog/${toOfferId}`, { replace: true });
+  };
+
   const openCartSheet = (id: string) => {
     setSheetOfferId(id);
     setCartOpen(false);
@@ -131,7 +145,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
             patientFullName(patients().find((p) => p.id === selectedPatientIds[0])!)) ||
           selectedPatientIds[0]
         : `${selectedPatientIds.length} patients`;
-    say(`${sheetProduct.offer.productName} ${qty} added for ${names}`);
+    say(`${sheetProduct.offer.productName} ${qty} added for ${names}`, sheetProduct.offer.imagePath);
     setSheetOfferId(null);
   };
 
@@ -139,7 +153,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     if (!sheetProduct || !familyPatient) return;
     const unit = unitFor(sheetProduct.offer.id);
     setLines((prev) => upsertCartLine(prev, sheetProduct.offer.id, familyPatient.id, unit, qty));
-    say(`${sheetProduct.offer.productName} added to your cart`);
+    say(`${sheetProduct.offer.productName} added to your cart`, sheetProduct.offer.imagePath);
     setSheetOfferId(null);
   };
 
@@ -170,10 +184,11 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     say('Filters cleared');
   };
 
-  // AI search: the model re-orders the (filter-respecting) catalog around the query and,
-  // when the query names one patient, their sanitized context. Deterministic results render
+  // AI search: the API re-orders the (filter-respecting) catalog around the query and, when the
+  // query names one patient, their sanitized context. Only offer ids and the hospice go up — the
+  // API joins the catalog facts and matches the patient itself. Deterministic results render
   // immediately; the AI order is applied when it lands. Any failure = plain keyword search.
-  const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, assignablePatients);
+  const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, user.orgId);
   const aiFailed = aiMode && !!searchQuery && aiRerank.failed;
   const aiActive = aiMode && !!searchQuery && !aiRerank.failed;
   let filteredSorted: typeof catalogItems;
@@ -231,12 +246,14 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
             detailProduct ? (
               <EquipmentDetailView
                 product={detailProduct}
+                catalogItems={catalogItems}
                 user={user}
                 sessionReviews={sessionReviews}
                 unit={unitFor(detailProduct.offer.id)}
                 onUnitChange={(next) =>
                   setUnitOverrides((prev) => ({ ...prev, [detailProduct.offer.id]: next }))
                 }
+                onSelectVendor={(nextOfferId) => selectVendor(detailProduct.offer.id, nextOfferId)}
                 onAddReview={addReview}
                 onAddToCart={() => openCartSheet(detailProduct.offer.id)}
               />
@@ -376,6 +393,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       {isFamily ? (
         <FamilyPurchaseSheet
           product={sheetProduct}
+          unit={sheetProduct ? unitFor(sheetProduct.offer.id) : 'month'}
           patientName={familyPatient ? patientFullName(familyPatient) : 'your family member'}
           onClose={() => setSheetOfferId(null)}
           onAddToCart={familyAddToCart}
@@ -383,6 +401,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       ) : (
         <PatientAssignSheet
           product={sheetProduct}
+          unit={sheetProduct ? unitFor(sheetProduct.offer.id) : 'month'}
           patients={assignablePatients}
           onClose={() => setSheetOfferId(null)}
           onConfirm={confirmSheet}

@@ -46,6 +46,11 @@ class OrderStore:
             self._events.append({**row, "seq": index})
         self._next_seq = len(self._events) + 1
 
+        # Ids created since this process started, as opposed to seeded from the fixtures. The demo
+        # driver only walks these forward — `canonical` does not answer the question, since 60 of
+        # the 66 seeded orders are non-canonical too.
+        self._session_order_ids: set[str] = set()
+
         self._subscribers: set[asyncio.Queue[Row]] = set()
         self._loop: asyncio.AbstractEventLoop | None = None
 
@@ -70,13 +75,24 @@ class OrderStore:
             self._orders[order["id"]] = dict(order)
 
     def next_order_id(self) -> str:
-        """Continue the DME-##### series the fixtures use."""
+        """Continue the DME-##### series the fixtures use, and claim the id for this session.
+
+        Claiming under the same lock that reads the high-water mark means two concurrent creates
+        cannot be handed the same id.
+        """
         with self._lock:
             highest = 0
             for raw_id in self._orders:
                 if raw_id.startswith("DME-") and raw_id[4:].isdigit():
                     highest = max(highest, int(raw_id[4:]))
-        return f"DME-{max(highest, 10000) + 1}"
+            order_id = f"DME-{max(highest, 10000) + 1}"
+            self._session_order_ids.add(order_id)
+        return order_id
+
+    def is_session_order(self, order_id: str) -> bool:
+        """True for an order created since startup, False for one seeded from the fixtures."""
+        with self._lock:
+            return order_id in self._session_order_ids
 
     # ── Events ────────────────────────────────────────────────────────────────
 

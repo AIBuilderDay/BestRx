@@ -2,7 +2,11 @@ import { useState } from 'react';
 import type { OrderFilterState } from '../../lib/orders';
 import { FilterSheet as SheetFrame } from '../ui/FilterSheet';
 import type { CategoryOption } from '../catalog/CatalogFilters';
-import { OrderFilterControls, type PatientFilterOption } from './OrderFilters';
+import {
+  OrderFilterControls,
+  type DateRangeFilterOption,
+  type PatientFilterOption,
+} from './OrderFilters';
 
 /**
  * Mobile order filter sheet. Wraps the shared sheet frame; adds a search box that narrows the
@@ -13,6 +17,7 @@ export function OrderFilterSheet({
   filters,
   categories,
   patients,
+  dateRanges,
   resultCount,
   onChange,
   onReset,
@@ -22,6 +27,7 @@ export function OrderFilterSheet({
   filters: OrderFilterState;
   categories: CategoryOption[];
   patients: PatientFilterOption[];
+  dateRanges: DateRangeFilterOption[];
   resultCount: number;
   onChange: (patch: Partial<OrderFilterState>) => void;
   onReset: () => void;
@@ -45,6 +51,8 @@ export function OrderFilterSheet({
         filters={filters}
         categories={shownCategories}
         patients={shownPatients}
+        // Four fixed windows, so the search box has nothing to narrow here.
+        dateRanges={dateRanges}
         onChange={onChange}
         onReset={onReset}
       />
