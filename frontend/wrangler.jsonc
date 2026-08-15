@@ -18,8 +18,9 @@
     // React Router owns the paths, so an unmatched request serves index.html and lets the app
     // resolve it. Without this a refresh on /patients returns 404.
     //
-    // This replaces public/_redirects, which is kept for reference but is not what does the work
-    // here.
+    // This is what replaced public/_redirects. That file's `/* /index.html 200` catch-all is
+    // rejected outright here: static-assets reads it as a rule that strips `/index` and then
+    // re-matches itself, and fails the upload with "Infinite loop detected in this rule".
     "not_found_handling": "single-page-application"
   },
 
