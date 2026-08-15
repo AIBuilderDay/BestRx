@@ -287,6 +287,20 @@ export function defaultCatalogFilters(priceMax: number): CatalogFilterState {
 
 export const RESET_CATALOG_FILTERS_STATE = { resetCatalogFilters: true } as const;
 
+/**
+ * How many filter facets are set away from their defaults — the count shown on the mobile
+ * "Filters · N" button. Sort is excluded; it has its own control. Each selected vendor counts
+ * once, matching how a shopper reads "two things narrowed down".
+ */
+export function activeFilterCount(f: CatalogFilterState, priceMax: number): number {
+  let n = 0;
+  if (f.category !== 'All') n += 1;
+  n += f.vendorIds.length;
+  if (f.speed !== 'any') n += 1;
+  if (f.maxPrice < priceMax) n += 1;
+  return n;
+}
+
 export interface CatalogPage<T> {
   items: T[];
   page: number;

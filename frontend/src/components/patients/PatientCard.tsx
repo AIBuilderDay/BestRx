@@ -11,7 +11,7 @@ export function PatientCard({ patient }: { patient: Patient }) {
   return (
     <Link to={`/patients/${patient.id}`} className="group block h-full min-w-0">
       <article className="h-full min-w-0">
-        <div className="relative aspect-[3/4] overflow-hidden border border-line bg-bg-subtle transition-colors group-hover:border-line-strong">
+        <div className="relative aspect-square overflow-hidden border border-line bg-bg-subtle transition-colors group-hover:border-line-strong lg:aspect-[3/4]">
           {imagePath && !imgBroken ? (
             <img
               src={imagePath}

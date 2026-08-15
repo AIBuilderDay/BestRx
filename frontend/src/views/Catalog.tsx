@@ -5,6 +5,7 @@ import { can, isFamilyMember } from '../lib/auth';
 import { createSessionReview } from '../lib/reviews';
 import type { ProductReview } from '../types/domain';
 import {
+  activeFilterCount,
   buildCatalogItems,
   catalogFilterOptions,
   defaultCatalogFilters,
@@ -26,6 +27,9 @@ import {
 import type { User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CatalogFilters } from '../components/catalog/CatalogFilters';
+import { MobileListToolbar } from '../components/ui/MobileListToolbar';
+import { SortSheet } from '../components/ui/SortSheet';
+import { FilterSheet } from '../components/catalog/FilterSheet';
 import { ProductCard } from '../components/catalog/ProductCard';
 import { PricingModeToggle } from '../components/catalog/PricingModeToggle';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
@@ -35,10 +39,10 @@ import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
 import { useCart } from '../context/CartContext';
 import { useAiRerank } from '../hooks/useAiRerank';
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: 'featured', label: 'Featured' },
-  { key: 'price', label: 'Price' },
-  { key: 'speed', label: 'Fastest' },
+const SORTS: { key: SortKey; label: string; hint: string }[] = [
+  { key: 'featured', label: 'Featured', hint: 'Our recommended order' },
+  { key: 'price', label: 'Price', hint: 'Lowest cost first' },
+  { key: 'speed', label: 'Fastest', hint: 'Shortest delivery lead time' },
 ];
 
 export default function Catalog({ user, onSignOut }: { user: User; onSignOut: () => void }) {
@@ -74,6 +78,8 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   const [currentPage, setCurrentPage] = useState(1);
   const { lines, setLines, setCartOpen, say } = useCart();
   const [sheetOfferId, setSheetOfferId] = useState<string | null>(null);
+  const [sortSheetOpen, setSortSheetOpen] = useState(false); // mobile sort picker
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false); // mobile filter sheet
 
   const resetFiltersToDefault = () => {
     setFilters(defaultCatalogFilters(priceMax));
@@ -210,7 +216,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         onSignOut={onSignOut}
       />
 
-      <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
+      <div className="grid grid-cols-1 items-start lg:grid-cols-[224px_minmax(0,1fr)]">
         <CatalogFilters
           filters={filters}
           categories={filterOptions.categories}
@@ -220,7 +226,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
           onReset={resetFilters}
         />
 
-        <main className="min-w-0 px-10 pb-20 pt-8.5">
+        <main className="min-w-0 px-4 pb-16 pt-5 sm:px-6 lg:px-10 lg:pb-20 lg:pt-8.5">
           {offerId ? (
             detailProduct ? (
               <EquipmentDetailView
@@ -248,7 +254,34 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
             )
           ) : (
             <>
-              <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
+              {/* Mobile: result count + Sort/Filters triggers. Replaces the desktop heading +
+                  sidebar + sort chips, which are hidden below lg. */}
+              <MobileListToolbar
+                resultText={
+                  searchQuery && !aiFailed
+                    ? `${filteredSorted.length} result${filteredSorted.length === 1 ? '' : 's'}`
+                    : `${filteredSorted.length} item${filteredSorted.length === 1 ? '' : 's'}`
+                }
+                filterCount={activeFilterCount(filters, priceMax)}
+                onOpenSort={() => setSortSheetOpen(true)}
+                onOpenFilters={() => setFilterSheetOpen(true)}
+              />
+              {aiMode && searchQuery ? (
+                <div className="mb-5 flex items-center gap-1.5 text-[12px] lg:hidden">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="text-ai-ink">
+                    <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+                  </svg>
+                  {aiRerank.busy ? (
+                    <span className="ai-status">Ranking for this search…</span>
+                  ) : aiRerank.failed ? (
+                    <span className="text-ink-3">AI unavailable — showing all equipment</span>
+                  ) : (
+                    <span className="text-ai-ink">AI-ranked, best match first</span>
+                  )}
+                </div>
+              ) : null}
+
+              <div className="mb-7.5 hidden flex-wrap items-end justify-between gap-5 lg:flex">
                 <div>
                   <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
                   {searchQuery && !aiFailed ? (
@@ -301,7 +334,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
               {filteredSorted.length === 0 ? (
                 <div className="py-15 text-center text-[13px] text-ink-3">{searchQuery ? <>No equipment matches &ldquo;{searchQuery}&rdquo;.</> : 'No equipment matches these filters.'}</div>
               ) : (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-[repeat(auto-fill,minmax(236px,1fr))] lg:gap-x-6.5 lg:gap-y-10">
                   {catalogPage.items.map((item, i) => (
                     <div
                       key={item.offer.id}
@@ -356,6 +389,25 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         />
       )}
 
+      <SortSheet
+        open={sortSheetOpen}
+        value={filters.sort}
+        options={SORTS}
+        onSelect={(sort) => applyFilters({ sort })}
+        onClose={() => setSortSheetOpen(false)}
+      />
+
+      <FilterSheet
+        open={filterSheetOpen}
+        filters={filters}
+        categories={filterOptions.categories}
+        vendors={filterOptions.vendors}
+        priceMax={priceMax}
+        resultCount={filteredSorted.length}
+        onChange={applyFilters}
+        onReset={resetFilters}
+        onClose={() => setFilterSheetOpen(false)}
+      />
     </div>
   );
 }
