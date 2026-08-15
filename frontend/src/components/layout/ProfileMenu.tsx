@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { can, isFamilyMember, ROLE_LABELS } from '../../lib/auth';
+import { isFamilyMember, ROLE_LABELS } from '../../lib/auth';
 import { familyCardLabel } from '../../lib/family';
 import type { User } from '../../types/domain';
 import { Tooltip } from '../ui/Tooltip';
@@ -79,19 +79,6 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
             >
               <span className="text-ink-2">Payment method</span>
               <span className="font-mono text-[12px] tabular-nums">{familyCardLabel}</span>
-            </div>
-          ) : null}
-
-          {can(user, 'reporting') || can(user, 'vendors:manage') ? (
-            <div
-              role="menuitem"
-              aria-disabled="true"
-              title="Coming soon"
-              data-testid="dashboard-item"
-              className="mt-1.5 flex cursor-default items-center justify-between rounded-control px-3 py-2 text-[13px] text-ink"
-            >
-              Dashboard
-              <span className="text-[10px] uppercase tracking-[0.09em] text-ink-3">Soon</span>
             </div>
           ) : null}
 

@@ -38,8 +38,8 @@ usable.
 | `order_events.json` | 188 | `id` (EVT-) | `orderId`, `actorId` |
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
-| `vendor_offers.json` | 17 | `id` (OFR-) | `vendorId`, `hcpcs` |
-| `product_reviews.json` | 408 | `id` (REV-) | `offerId`, `reviewerId` |
+| `vendor_offers.json` | 31 | `id` (OFR-) | `vendorId`, `hcpcs` |
+| `product_reviews.json` | 644 | `id` (REV-) | `offerId`, `reviewerId` |
 | `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 | `family_members.json` | 2 | `id` (FAM-) | `patientId`. A relative who signs in to a read-only family view; also the audience for delivery notifications. See below |
@@ -159,20 +159,59 @@ stored for director of nursing and hospice owner views. They are not shown on th
 **`vendors[].displayName`** is the short label shown in the catalog and cart (e.g. "Alpine Home Medical").
 Use it in the UI rather than trimming `name`.
 
+**`vendors[].contracted`** marks the hospice's incumbent vendor — the baseline the cost ledger
+compares every other vendor against. Exactly one vendor carries it (VND-002). It runs 81% on-time,
+deliberately below the 85% service floor, because "your contracted vendor is underperforming" is the
+situation the ledger exists to surface.
+
+Every code HSP-001 orders is priced by **all three** vendors, so the ledger's price matrix has no
+blank cells. When adding an offer, keep the market's shape — VND-001 highest, VND-002 mid,
+VND-003 lowest, each within roughly 15% of the Medicare-allowed rate in `equipment_catalog` — and
+set `unit` from `equipment_catalog.rental` (`month` for rentals, `purchase` otherwise). The cheapest
+vendor is deliberately the worst performer; that tension is the point of the screen.
+
 **`budgets`** carries both kinds from the whiteboard: a monthly cap per role, and a cap per one-time
 patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patient id when `scope` is
-`patient_purchase`. Role caps are **derived, not guessed** — `derivedFrom` holds the
-`ppdUsd x assignedPatients x days` that produced `limitUsd`, so a cap recomputes when census moves.
-`budgetCapUsd()` and `budgetUtilizationPct()` in `db.ts` do that math; use them rather than reading
-`limitUsd` directly.
+`patient_purchase`. Role caps are **derived, not guessed** — `derivedFrom.pctOfBudget` is the
+fraction of `hospices[].monthlyBudgetUsd` allotted to that role, so a cap recomputes when the
+hospice's total budget changes. `budgetCapUsd()` and `budgetUtilizationPct()` in `db.ts` do that
+math; use them rather than reading `limitUsd` directly. `lib/budgetLedger.ts` then splits a role's
+department budget evenly across its accounts (each account can override its own flat allotment,
+session-only) — `patients[].caseManagerId` caseload is shown for context on that screen but no
+longer drives any cap.
 
 ## Deriving PPD
 
 PPD (per patient day) is the number the hospice buyer manages against, so cost views express spend
-that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator,
-`orders[].equipment` joined to the matching `vendor_offers` price for its unit for the numerator, and
-`budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
-[PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
+that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator, and
+`orders[].equipment` joined to the matching `vendor_offers` price for its unit for the numerator.
+This is independent of role budget caps (see "Known inconsistencies" below), which are a flat
+dollar allotment, not a PPD rate. See [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
+
+## Known inconsistencies
+
+Real gaps in the sample data. Handle them explicitly rather than papering over them — the cost
+dashboard labels each one on screen.
+
+- **Budget caps no longer read patient counts at all.** An account's allotted budget is a flat
+  dollar split of its role's department budget, independent of caseload. `assignedPatients` still
+  displays on the budget screen (from `patients[].caseManagerId`) for context, but it's informational
+  only — an account with zero patients still gets its role's default share.
+- **PPD keeps its own denominator, separate from budget caps.** The PPD cost metric shown elsewhere
+  in the app uses `hospices[].activeCensus` (142 for HSP-001) — unrelated to and unaffected by the
+  budget-cap split above.
+- **No `hospice_admin` budget row.** The owner has no role cap, so no department budget can be
+  derived for that account. Render it as "no cap set", never as `$0`.
+- **Orders span Aug 1–22, 2026 only.** There is no history for a multi-month trend. `lib/costPeriod.ts`
+  exposes one period and buckets it weekly; adding history is a data change, not a code change.
+- **Service areas are narrow.** VND-001 covers 4 of HSP-001's 10 patient ZIPs, VND-002 covers 1,
+  VND-003 covers none. A vendor's price is not an available price if it cannot reach the patient, so
+  surface `serviceAreaZips` coverage wherever vendor prices are compared. On the Potential Savings
+  card (`lib/vendorSavings.ts`), coverage is grouped by patient location ("City, ST", derived from
+  `patients[].address`) rather than raw ZIP, and it's a hard gate: a vendor reaching none of a
+  hospice's patient locations is dropped from consideration before scoring, not just flagged. Under
+  the current data this means VND-003 is never suggested to HSP-001 (Salt Lake City) — it only
+  reaches Ogden — which zeroes out that hospice's genuine savings total.
 
 ## Where the data actually lives
 

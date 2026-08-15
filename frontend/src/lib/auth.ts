@@ -76,6 +76,17 @@ export const can = (user: User | null, permission: Permission): boolean =>
 /** Vendor-wide scorecard ratings — not shown on the catalog. DON and hospice owner only. */
 export const canViewVendorScorecard = (user: User | null): boolean => can(user, 'reporting');
 
+/**
+ * Where a user starts after signing in. Family members land on their read-only view. Reporting
+ * roles (Owner, Director of Nursing) open on the cost dashboard because cost is the question they
+ * log in to answer; everyone else opens on the storefront. Single source of truth for the
+ * post-login redirect and the "/" route alike.
+ */
+export const landingPathFor = (user: User): string => {
+  if (isFamilyMember(user)) return '/family';
+  return can(user, 'reporting') ? '/dashboard' : '/catalog';
+};
+
 export const findUserByEmail = (email: string): User | undefined => {
   const needle = email.trim().toLowerCase();
   if (needle === '') return undefined;

@@ -109,11 +109,13 @@ export const getReviewsForVendor = (vendorId: string): ProductReview[] => {
 export const getBudgetsForHospice = (hospiceId: string): Budget[] =>
   budgets().filter((b) => b.hospiceId === hospiceId);
 
-/** The cap a role budget works out to: per-patient-day allowance x patients carried x days. */
-export const budgetCapUsd = (budget: Budget): number =>
-  budget.derivedFrom
-    ? budget.derivedFrom.ppdUsd * budget.derivedFrom.assignedPatients * budget.derivedFrom.days
-    : budget.limitUsd;
+/** The cap a role budget works out to: the role's share of the hospice's total monthly budget. */
+export const budgetCapUsd = (budget: Budget): number => {
+  if (!budget.derivedFrom) return budget.limitUsd;
+  const hospice = getHospice(budget.hospiceId);
+  const monthlyBudgetUsd = hospice?.monthlyBudgetUsd ?? 0;
+  return Math.round(monthlyBudgetUsd * budget.derivedFrom.pctOfBudget * 100) / 100;
+};
 
 /** 0-100. Over-cap values exceed 100 on purpose — the caller decides how to show that. */
 export const budgetUtilizationPct = (budget: Budget): number => {

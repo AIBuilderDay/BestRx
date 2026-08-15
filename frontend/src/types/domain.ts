@@ -68,6 +68,8 @@ export interface Hospice {
   market: string;
   emr: 'HCHB' | 'Axxess' | 'WellSky' | 'MatrixCare';
   activeCensus: number;
+  /** Total monthly DME budget the hospice allots across roles/departments. */
+  monthlyBudgetUsd: number;
   logoPath: string;
 }
 
@@ -100,6 +102,11 @@ export interface Vendor {
   /** The `RealVendor` this row was built from. */
   realVendorId: string;
   market: string;
+  /**
+   * The hospice's incumbent vendor — the one whose prices the cost ledger treats as the baseline
+   * every other vendor is compared against. Exactly one vendor per market carries this.
+   */
+  contracted: boolean;
   serviceAreaZips: string[];
   hours: string;
   /** `dispatchEmail` and `repName` are null unless the supplier publishes them. */
@@ -378,12 +385,30 @@ export interface Budget {
   period: string;
   /**
    * The cap for the period. For role budgets this is derived, not guessed:
-   * ppdUsd x assignedPatients x days, following mockups/cost-ledger.html.
+   * pctOfBudget x hospice.monthlyBudgetUsd — the role/department's flat allotted share.
    */
   limitUsd: number;
   spentUsd: number;
   setById: string | null;
-  derivedFrom?: { ppdUsd: number; assignedPatients: number; days: number };
+  /** Fraction (0-1) of the hospice's monthlyBudgetUsd allotted to this role. */
+  derivedFrom?: { pctOfBudget: number };
+}
+
+export type AiUsageFeature =
+  | 'product_match'
+  | 'risk_explanation'
+  | 'patient_summary'
+  | 'budget_review';
+
+export interface AiUsageEvent {
+  id: string;
+  hospiceId: string;
+  userId: string;
+  feature: AiUsageFeature;
+  occurredAt: string;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
 }
 
 export interface EmrEvent {

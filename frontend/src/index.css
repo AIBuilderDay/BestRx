@@ -428,6 +428,17 @@ button:not(:disabled) {
   min-height: calc(1.25rem * 2);
 }
 
+/* A disqualified vendor's price bar. Striped so a cheap-but-failing vendor never reads as "good"
+   on colour alone. */
+.ladder-bar-risk {
+  background: repeating-linear-gradient(45deg, var(--warn) 0 4px, var(--warn-bg) 4px 8px);
+}
+
+/* Legend key matching the trend chart's dashed qualified-alternative line. */
+.legend-dash {
+  background: repeating-linear-gradient(90deg, var(--good) 0 5px, transparent 5px 9px);
+}
+
 /* Top-nav section links: underline wipes in from the left on hover, stays put when active. */
 .nav-link {
   position: relative;

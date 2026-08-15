@@ -1,0 +1,97 @@
+import { describe, expect, it } from 'vitest';
+import { NO_OVERRIDES, buildAccountRows } from './budgetLedger';
+import { buildBasket } from './costLedger';
+import { getPeriod } from './costPeriod';
+import {
+  accountBreakdown,
+  accountOverageBreakdown,
+  overBudgetProductBreakdown,
+  productBreakdown,
+} from './budgetBreakdown';
+
+const period = getPeriod('aug-2026');
+const lines = buildBasket('HSP-001', period);
+const rows = buildAccountRows('HSP-001', period, NO_OVERRIDES);
+
+describe('productBreakdown', () => {
+  const slices = productBreakdown(lines);
+
+  it('caps at 4 slices, top codes named and the remainder folded into Other', () => {
+    expect(slices).toHaveLength(4);
+    expect(slices.map((s) => s.key)).toEqual(['E0250', 'E0277', 'E1390', 'other']);
+  });
+
+  it('sums back to the real total spend', () => {
+    const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
+    const realTotal = lines.reduce((total, l) => total + l.actualUsd, 0);
+    expect(sum).toBeCloseTo(realTotal, 1);
+  });
+
+  it('matches the real per-code paid figures exactly', () => {
+    expect(slices.find((s) => s.key === 'E0250')?.valueUsd).toBeCloseTo(6484, 0);
+    expect(slices.find((s) => s.key === 'E0277')?.valueUsd).toBeCloseTo(5898, 0);
+    expect(slices.find((s) => s.key === 'other')?.valueUsd).toBeCloseTo(2286, 0);
+  });
+
+  it('sorts the named slices biggest first, with Other trailing regardless of its own size', () => {
+    const named = slices.filter((s) => s.key !== 'other');
+    for (let i = 1; i < named.length; i += 1) {
+      expect(named[i].valueUsd, `slice ${i}`).toBeLessThanOrEqual(named[i - 1].valueUsd);
+    }
+    expect(slices[slices.length - 1].key).toBe('other');
+  });
+});
+
+describe('accountBreakdown', () => {
+  const slices = accountBreakdown(rows);
+
+  it('drops zero-spend accounts rather than drawing an invisible sliver', () => {
+    // Only 3 of the 5 HSP-001 accounts placed any orders this period.
+    expect(slices).toHaveLength(3);
+    expect(slices.map((s) => s.label).sort()).toEqual(['Bea Cordova', 'Dana Whitfield', 'Marcus Lee']);
+  });
+
+  it('matches the real per-account spend exactly', () => {
+    expect(slices.find((s) => s.label === 'Bea Cordova')?.valueUsd).toBeCloseTo(8857.5, 1);
+    expect(slices.find((s) => s.label === 'Dana Whitfield')?.valueUsd).toBeCloseTo(6530, 1);
+    expect(slices.find((s) => s.label === 'Marcus Lee')?.valueUsd).toBeCloseTo(192.5, 1);
+  });
+
+  it('sums exactly to total spend, since no account is folded into Other', () => {
+    const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
+    expect(sum).toBeCloseTo(15580, 0);
+  });
+});
+
+describe('accountOverageBreakdown', () => {
+  const slices = accountOverageBreakdown(rows);
+
+  it('charts only account overage dollars', () => {
+    // Dana is the only account over its allotted budget this period (cap $4,000, spent $6,530).
+    // This is NOT the same figure as accountTotals().overageUsd, which nets against the whole
+    // hospice's headroom (Bea and the director are well under theirs) rather than summing each
+    // account's own overage in isolation.
+    const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
+    expect(sum).toBeCloseTo(2530, 0);
+    expect(sum).toBeLessThan(rows.reduce((total, row) => total + row.spentUsd, 0));
+  });
+});
+
+describe('overBudgetProductBreakdown', () => {
+  const slices = overBudgetProductBreakdown('HSP-001', period, rows);
+
+  it('charts products bought after accounts cross their allotted budgets', () => {
+    // Same $2,530 as accountOverageBreakdown (Dana's overage) — see the note there on why this
+    // isn't accountTotals().overageUsd.
+    const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
+    expect(sum).toBeCloseTo(2530, 0);
+    expect(sum).toBeLessThan(lines.reduce((total, line) => total + line.actualUsd, 0));
+  });
+
+  it('returns no products when the accounts never hit their limits', () => {
+    const protectedRows = rows.map((row) =>
+      row.capUsd === null ? row : { ...row, capUsd: row.spentUsd + 100, overageUsd: 0 },
+    );
+    expect(overBudgetProductBreakdown('HSP-001', period, protectedRows)).toEqual([]);
+  });
+});

@@ -14,28 +14,41 @@ export interface DateRangeFilterOption {
   count: number;
 }
 
-export function OrderFilters({
-  filters,
-  categories,
-  patients,
-  dateRanges,
-  onChange,
-  onReset,
-}: {
+type OrderFiltersProps = {
   filters: OrderFilterState;
   categories: CategoryOption[];
   patients: PatientFilterOption[];
   dateRanges: DateRangeFilterOption[];
   onChange: (patch: Partial<OrderFilterState>) => void;
   onReset: () => void;
-}) {
+};
+
+/** Desktop sticky sidebar. Hidden below lg, where the same controls open in a mobile sheet. */
+export function OrderFilters(props: OrderFiltersProps) {
+  return (
+    <aside className="sticky top-[57px] hidden min-h-[calc(100vh-57px)] border-r border-line px-5.5 py-7.5 pb-15 lg:block">
+      <OrderFilterControls {...props} />
+    </aside>
+  );
+}
+
+/** The filter controls themselves, layout-agnostic so the desktop sidebar and the mobile
+ *  filter sheet render exactly the same thing. */
+export function OrderFilterControls({
+  filters,
+  categories,
+  patients,
+  dateRanges,
+  onChange,
+  onReset,
+}: OrderFiltersProps) {
   const togglePatient = (id: string) => {
     const on = filters.patientIds.includes(id);
     onChange({ patientIds: on ? filters.patientIds.filter((p) => p !== id) : [...filters.patientIds, id] });
   };
 
   return (
-    <aside className="sticky top-[57px] min-h-[calc(100vh-57px)] border-r border-line px-5.5 py-7.5 pb-15">
+    <>
       <FilterGroup label="Category" first>
         <div className="grid gap-0.5">
           {categories.map((c) => (
@@ -113,7 +126,7 @@ export function OrderFilters({
       >
         Clear all
       </button>
-    </aside>
+    </>
   );
 }
 

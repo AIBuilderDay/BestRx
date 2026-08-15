@@ -98,6 +98,14 @@ export function offerPrice(offer: VendorOffer): ItemPrice | null {
   return offerPriceFor(offer, offer.unit);
 }
 
+/** Abbreviated money for chart axes, where a full figure would crowd the tick. */
+export function moneyCompact(amount: number): string {
+  if (Math.abs(amount) < 1000) return '$' + Math.round(amount).toString();
+  const thousands = amount / 1000;
+  const digits = Math.abs(thousands) < 10 ? 1 : 0;
+  return '$' + thousands.toFixed(digits) + 'k';
+}
+
 /** Money with cents, for the cart's line prices and totals where precision reads as trust. */
 export function moneyCents(amount: number): string {
   return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -343,6 +351,20 @@ export function defaultCatalogFilters(priceMax: number): CatalogFilterState {
 }
 
 export const RESET_CATALOG_FILTERS_STATE = { resetCatalogFilters: true } as const;
+
+/**
+ * How many filter facets are set away from their defaults — the count shown on the mobile
+ * "Filters · N" button. Sort is excluded; it has its own control. Each selected vendor counts
+ * once, matching how a shopper reads "two things narrowed down".
+ */
+export function activeFilterCount(f: CatalogFilterState, priceMax: number): number {
+  let n = 0;
+  if (f.category !== 'All') n += 1;
+  n += f.vendorIds.length;
+  if (f.speed !== 'any') n += 1;
+  if (f.maxPrice < priceMax) n += 1;
+  return n;
+}
 
 export interface CatalogPage<T> {
   items: T[];

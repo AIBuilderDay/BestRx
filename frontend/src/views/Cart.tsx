@@ -4,7 +4,7 @@ import { budgetCapUsd, getBudgetsForHospice, getHospice, getPatient } from '../d
 import { isFamilyMember } from '../lib/auth';
 import { familyCardLabel } from '../lib/family';
 import { addPurchaseRequest } from '../lib/purchaseRequests';
-import { cartLineTiming, cartPpdImpact, totalUnitsInCart } from '../lib/catalog';
+import { cartLineTiming, cartPpdImpact, moneyLabel, totalUnitsInCart } from '../lib/catalog';
 import type { User, UserRole } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CartLineRow } from '../components/catalog/CartLineRow';
@@ -63,12 +63,14 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
           projectedSpent,
           remaining: capUsd - projectedSpent,
           pct: capUsd > 0 ? (projectedSpent / capUsd) * 100 : 0,
-          derived: d ? `Cap derived: ${d.ppdUsd.toFixed(2)} PPD × ${d.assignedPatients} patients × ${d.days} days` : null,
+          derived: d
+            ? `Cap derived: ${(d.pctOfBudget * 100).toFixed(0)}% of ${moneyLabel(hospice?.monthlyBudgetUsd ?? 0)} hospice budget`
+            : null,
         };
       })()
     : null;
 
-  const ppd = cartPpdImpact(totals.monthly, hospice?.activeCensus ?? 0, roleBudget?.derivedFrom?.days ?? 31);
+  const ppd = cartPpdImpact(totals.monthly, hospice?.activeCensus ?? 0, 31);
 
   const atRiskCount = useMemo(() => {
     let n = 0;
