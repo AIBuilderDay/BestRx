@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { User } from '../../types/domain';
-import { CATEGORY_LABELS, paginateItems, RESET_CATALOG_FILTERS_STATE, moneyLabel, type CatalogProductVM } from '../../lib/catalog';
+import {
+  CATEGORY_LABELS,
+  paginateItems,
+  RESET_CATALOG_FILTERS_STATE,
+  moneyLabel,
+  offerPriceFor,
+  type CatalogProductVM,
+  type PriceUnit,
+} from '../../lib/catalog';
 import {
   filterReviewsByStar,
   formatReviewDate,
@@ -15,6 +23,7 @@ import {
 import type { ProductReview } from '../../types/domain';
 import { CatalogPagination } from './CatalogPagination';
 import { ItemStarRating } from './ItemStarRating';
+import { UnitToggle } from './PricingModeToggle';
 
 const REVIEWS_PAGE_SIZE = 5;
 
@@ -53,12 +62,17 @@ export function EquipmentDetailView({
   product,
   user,
   sessionReviews,
+  unit,
+  onUnitChange,
   onAddReview,
   onAddToCart,
 }: {
   product: CatalogProductVM;
   user: User;
   sessionReviews: ProductReview[];
+  /** The arrangement being priced — the page mode, or this item's override. */
+  unit: PriceUnit;
+  onUnitChange: (next: PriceUnit) => void;
   onAddReview: (rating: number, comment: string) => void;
   onAddToCart: () => void;
 }) {
@@ -91,7 +105,9 @@ export function EquipmentDetailView({
   }, [starFilter, product.offer.id]);
 
   const rating = offerRatingSummary(product.offer.id, sessionReviews);
-  const { offer, price, vendor } = product;
+  const { offer, vendor } = product;
+  // Priced against this view's own unit, so an override changes the number on screen.
+  const price = offerPriceFor(offer, unit) ?? product.price;
   const inStockLabel = offer.inStock ? 'In stock' : 'Out of stock — longer lead time';
 
   const submitReview = () => {
@@ -144,9 +160,18 @@ export function EquipmentDetailView({
             <h1 className="text-[22px] font-semibold tracking-tight">{offer.productName}</h1>
             <ItemStarRating rating={rating} size="md" />
           </div>
-          <div className="mt-1 font-mono text-lg tabular-nums">
-            {moneyLabel(price.amount)}
-            {price.unit === '/mo' ? <span className="text-sm text-ink-3">/mo</span> : null}
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <span className="font-mono text-lg tabular-nums">
+              {moneyLabel(price.amount)}
+              {price.unit === '/mo' ? <span className="text-sm text-ink-3">/mo</span> : null}
+            </span>
+            {product.availableUnits.length > 1 ? (
+              <UnitToggle unit={unit} onChange={onUnitChange} />
+            ) : (
+              <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-ink-3">
+                {product.availableUnits[0] === 'purchase' ? 'Purchase only' : 'Rental only'}
+              </span>
+            )}
           </div>
           <button
             type="button"

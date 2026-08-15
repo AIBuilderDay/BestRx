@@ -9,6 +9,8 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     # SQS (enqueue a push) and DynamoDB (the subscriptions table the notification service reads).
     "boto3>=1.35.0",
+    # The MCP surface mounted at /mcp, for the frontend's AI-assisted search bar.
+    "fastmcp>=2.11.0",
 ]
 
 [project.optional-dependencies]

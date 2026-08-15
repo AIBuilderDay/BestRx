@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { CartGroupVM, CartTotals } from '../../lib/catalog';
+import type { CartGroupVM, CartTotals, PriceUnit } from '../../lib/catalog';
 import { moneyLabel } from '../../lib/catalog';
 
 /** Matches the panel's slide-in duration below: contents only start moving once the drawer has landed. */
@@ -21,8 +21,8 @@ export function CartDrawer({
   open: boolean;
   groups: CartGroupVM[];
   totals: CartTotals;
-  onQtyChange: (offerId: string, patientId: string, qty: number) => void;
-  onRemove: (offerId: string, patientId: string) => void;
+  onQtyChange: (offerId: string, patientId: string, unit: PriceUnit, qty: number) => void;
+  onRemove: (offerId: string, patientId: string, unit: PriceUnit) => void;
   onClose: () => void;
   onViewCart: () => void;
   onPlaceOrder: () => void;
@@ -109,7 +109,7 @@ export function CartDrawer({
                             <button
                               type="button"
                               aria-label="Decrease quantity"
-                              onClick={() => onQtyChange(l.offerId, l.patientId, l.qty - 1)}
+                              onClick={() => onQtyChange(l.offerId, l.patientId, l.unit, l.qty - 1)}
                               className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               −
@@ -119,14 +119,14 @@ export function CartDrawer({
                               min={1}
                               max={99}
                               value={l.qty}
-                              onChange={(e) => onQtyChange(l.offerId, l.patientId, Math.max(1, parseInt(e.target.value, 10) || 1))}
+                              onChange={(e) => onQtyChange(l.offerId, l.patientId, l.unit, Math.max(1, parseInt(e.target.value, 10) || 1))}
                               aria-label="Quantity"
                               className="quantity-input w-7 border-0 bg-transparent text-center font-mono text-xs tabular-nums focus:bg-hover focus:outline-none"
                             />
                             <button
                               type="button"
                               aria-label="Increase quantity"
-                              onClick={() => onQtyChange(l.offerId, l.patientId, l.qty + 1)}
+                              onClick={() => onQtyChange(l.offerId, l.patientId, l.unit, l.qty + 1)}
                               className="h-6.5 w-6.5 leading-none transition-colors hover:bg-solid-bg hover:text-solid-ink"
                             >
                               +
@@ -134,7 +134,7 @@ export function CartDrawer({
                           </span>
                           <button
                             type="button"
-                            onClick={() => onRemove(l.offerId, l.patientId)}
+                            onClick={() => onRemove(l.offerId, l.patientId, l.unit)}
                             className="text-[11px] text-ink-3 underline decoration-1 underline-offset-2 transition-colors hover:text-ink"
                           >
                             Remove

@@ -44,6 +44,8 @@ export interface EquipmentItem {
   hcpcs: string;
   name: string;
   qty: number;
+  /** Rented or bought. Absent on orders placed before the choice existed: read the offer's default. */
+  unit?: 'month' | 'purchase';
 }
 
 export interface CatalogEntry {
@@ -287,7 +289,11 @@ export interface VendorOffer {
   productName: string;
   description: string;
   category: EquipmentCategory;
-  priceUsd: number;
+  /** Monthly rental rate. Absent when the item is sold outright only (walker, commode, mask). */
+  rentalPriceUsd?: number;
+  /** One-time purchase price. Absent when the vendor only rents this SKU. */
+  purchasePriceUsd?: number;
+  /** The arrangement this offer defaults to. At least one of the two prices is always present. */
   unit: 'month' | 'purchase';
   inStock: boolean;
   /** Vendor's own promise, not a measurement. Compare against vendor.performance30d. */

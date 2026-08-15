@@ -10,6 +10,8 @@ PATIENT_B = "PT-88502"
 # OFR-001 and OFR-002 are both VND-001; OFR-001 is a purchase, OFR-002 a monthly rental.
 OFFER_V1_PURCHASE = "OFR-001"
 OFFER_V1_RENTAL = "OFR-002"
+OFFER_BOTH = "OFR-003"  # wheelchair Vendor 1 both rents and sells
+OFFER_PURCHASE_ONLY = "OFR-005"  # walker: sold outright, never rented
 
 
 def _offer_from_other_vendor(client: TestClient) -> str:
@@ -53,8 +55,8 @@ def test_totals_keep_rentals_and_purchases_apart(client: TestClient) -> None:
         json={
             "userId": USER,
             "lines": [
-                {"offerId": OFFER_V1_RENTAL, "patientId": PATIENT_A, "qty": 1},
-                {"offerId": OFFER_V1_PURCHASE, "patientId": PATIENT_A, "qty": 1},
+                {"offerId": OFFER_V1_RENTAL, "patientId": PATIENT_A, "unit": "month", "qty": 1},
+                {"offerId": OFFER_V1_PURCHASE, "patientId": PATIENT_A, "unit": "purchase", "qty": 1},
             ],
         },
     ).json()
@@ -62,6 +64,57 @@ def test_totals_keep_rentals_and_purchases_apart(client: TestClient) -> None:
     assert body["totals"]["monthlyUsd"] == 124.5
     assert body["totals"]["oneTimeUsd"] == 1045.0
     assert body["totals"]["firstMonthUsd"] == 1169.5
+
+
+def test_renting_and_buying_one_offer_are_separate_lines(client: TestClient) -> None:
+    """Unit is part of line identity: renting one wheelchair and buying another is two lines."""
+    body = client.post(
+        "/carts",
+        json={
+            "userId": USER,
+            "lines": [
+                {"offerId": OFFER_BOTH, "patientId": PATIENT_A, "unit": "month", "qty": 1},
+                {"offerId": OFFER_BOTH, "patientId": PATIENT_A, "unit": "purchase", "qty": 1},
+            ],
+        },
+    ).json()
+
+    assert len(body["lines"]) == 2
+    assert {line["unit"] for line in body["lines"]} == {"month", "purchase"}
+    assert body["totals"]["monthlyUsd"] == 70.0
+    assert body["totals"]["oneTimeUsd"] == 280.0
+
+
+def test_renting_an_offer_that_is_only_sold_is_rejected(client: TestClient) -> None:
+    """A walker has no rental rate. Asking to rent one is a client error, not a silent $0 line."""
+    response = client.post(
+        "/carts",
+        json={
+            "userId": USER,
+            "lines": [{"offerId": OFFER_PURCHASE_ONLY, "patientId": PATIENT_A, "unit": "month", "qty": 1}],
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_checkout_carries_the_unit_onto_the_order(client: TestClient) -> None:
+    """One order may hold both a rented and a bought line: unit does not split orders."""
+    client.post(
+        "/carts",
+        json={
+            "userId": USER,
+            "lines": [
+                {"offerId": OFFER_BOTH, "patientId": PATIENT_A, "unit": "month", "qty": 1},
+                {"offerId": OFFER_BOTH, "patientId": PATIENT_A, "unit": "purchase", "qty": 1},
+            ],
+        },
+    )
+    orders = client.post(f"/carts/{USER}/checkout", json={"urgency": "routine"}).json()["orders"]
+
+    assert len(orders) == 1
+    equipment = orders[0]["equipment"]
+    assert len(equipment) == 2
+    assert {item["unit"] for item in equipment} == {"month", "purchase"}
 
 
 def test_duplicate_lines_merge_rather_than_double_count(client: TestClient) -> None:

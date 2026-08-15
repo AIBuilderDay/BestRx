@@ -115,8 +115,8 @@ export default function Cart({ user, onSignOut }: { user: User; onSignOut: () =>
                       line={l}
                       delayMs={staggerMs(step++)}
                       patient={getPatient(g.patientId)}
-                      onQtyChange={(q) => setCartLineQty(l.offerId, l.patientId, q)}
-                      onRemove={() => setCartLineQty(l.offerId, l.patientId, 0)}
+                      onQtyChange={(q) => setCartLineQty(l.offerId, l.patientId, l.unit, q)}
+                      onRemove={() => setCartLineQty(l.offerId, l.patientId, l.unit, 0)}
                     />
                   ))}
                 </section>

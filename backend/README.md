@@ -15,6 +15,7 @@ app/
 ├── carts.py        one open cart per user, in memory
 ├── subscriptions.py push subscriptions (the one thing in DynamoDB)
 ├── fixtures.py     read-only access to the JSON tables
+├── mcp_server.py   every endpoint mirrored as MCP tools, mounted at /mcp
 ├── routers/        HTTP endpoints, including /stream
 └── services/       order logic and the SQS publisher
 
@@ -67,6 +68,7 @@ Editing anything under `backend/app/` reloads the running server through the bin
 | `GET` | `/real-vendors/{id}` | one supplier, with its source URL |
 | `GET`/`POST`/`DELETE` | `/push/public-key`, `/push/subscribe` | browser subscriptions |
 | `GET` | `/health` | also reports connected stream clients |
+| `POST` | `/mcp/` | **MCP** — every endpoint above, as tools (see below) |
 
 ### The one endpoint that matters
 
@@ -104,6 +106,42 @@ order uses, so every cart order fans out over SSE and enqueues a push exactly as
 
 Carts live in memory like orders, with the same trade. A cart is short-lived by nature (filled and
 checked out in one session), so losing it on a restart costs far less than losing orders would.
+
+## MCP
+
+`/mcp/` serves the whole API as [MCP](https://modelcontextprotocol.io) tools, so the frontend's
+AI-assisted search bar can query the catalog and act on it. Built with FastMCP and **mounted into
+this same FastAPI app** — one process, one port, one deploy. A tool call and an HTTP request hit the
+same `OrderStore` and the same carts, so an order created through a tool fans out over SSE and
+enqueues a push exactly as one created over HTTP does. There is no second way for an order to come
+into existence.
+
+28 tools, one per endpoint: `list_products`, `list_orders`, `get_order`, `create_order`,
+`update_order_status`, `get_cart`, `checkout_cart`, and the rest. Point any MCP client at
+`http://localhost:8000/mcp/`.
+
+**Written by hand, not generated.** `FastMCP.from_fastapi()` derives tools from the OpenAPI schema,
+and most routers here return a bare `list[dict]` — a generated tool would tell a model nothing about
+what a row contains. Each tool instead carries a docstring the model can route on, and delegates to
+the same `services`/`fixtures` call its HTTP twin uses, so there is no second copy of the logic to
+drift.
+
+Three things worth knowing if you touch this:
+
+- **The lifespan is composed, not replaced.** Mounting an ASGI app does not run its lifespan, and
+  FastMCP starts its session manager there. `main.py` wraps ours around theirs; without it every
+  `/mcp` request fails.
+- **CORS is set on the MCP app itself.** A mounted app never passes through the parent's middleware,
+  and the browser has to *read* `mcp-session-id` to hold a session across calls — a cross-origin
+  response hides every header not named in `expose_headers`.
+- **Errors are `ToolError`, not HTTP codes.** A status code means nothing over MCP, so the message
+  carries the detail. A rejected transition names the statuses that *are* reachable, which is the
+  same information the REST 409 body carries in `allowedNext`.
+
+Tools are annotated for clients that distinguish reads from writes: reads are `readOnlyHint`, and
+`update_order_status`, `checkout_cart`, `create_cart`, `update_cart` and `clear_cart` are not.
+Note that the full surface is mirrored, **including the write paths** — an MCP client with access to
+this endpoint can change an order's status or check out a cart.
 
 ## SSE
 
@@ -162,6 +200,10 @@ empties the cart and opens each order's timeline. Plus the transition rules incl
 SSE client, that a stale cursor does not silence the stream, that a slow client is dropped rather
 than blocking the write path, that hospice filtering works, and that a failed SQS enqueue does not
 fail the order update.
+
+The MCP tests drive a real MCP client over the mounted ASGI app rather than calling the tool
+functions directly, so the mount, the composed lifespan and the session handshake are all covered —
+the three things most likely to break, and the ones a unit test of the functions would miss.
 
 ## Deploying
 

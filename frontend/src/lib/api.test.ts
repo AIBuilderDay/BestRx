@@ -61,7 +61,7 @@ describe('with no backend configured', () => {
  * unconfigured guard, so they hold whether or not a local .env points at a real API.
  */
 describe('cart writes', () => {
-  const line = { offerId: 'OFR-001', patientId: patients()[0].id, qty: 1 };
+  const line = { offerId: 'OFR-001', patientId: patients()[0].id, unit: 'month' as const, qty: 1 };
 
   const stubFetch = (response: Partial<Response>) => {
     const spy = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}), ...response });

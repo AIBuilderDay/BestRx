@@ -6,13 +6,12 @@ import {
   receiptTotalLabel,
   type OrderReceiptVM,
 } from '../../lib/orderReceipt';
-import type { OrderListItemVM } from '../../lib/orders';
-
+/** Any view-model carrying an order id — the orders list and the patient page both qualify. */
 export function OrderReceiptDialog({
   item,
   onClose,
 }: {
-  item: OrderListItemVM | null;
+  item: { orderId: string } | null;
   onClose: () => void;
 }) {
   if (!item) return null;

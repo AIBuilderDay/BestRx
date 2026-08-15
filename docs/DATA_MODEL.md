@@ -107,9 +107,17 @@ arrived 47 minutes *after* the field nurse already triggered the pickup, and one
 That gap is the argument for nurse-initiated pickup with the EMR event as a fallback.
 
 **`vendor_offers`** is the storefront. One self-contained row per vendor SKU (one vendor, one
-product — never multiple vendors on one card): `productName`, `description`, `category`, `priceUsd`,
-`deliveryEtaHours`, `deliveryLeadDays`, `inStock`, and `imagePath`. Foreign keys `vendorId` and
-`hcpcs` must still resolve. `product_reviews.json` holds individual 1–5 star ratings plus a written `comment` from nurses,
+product — never multiple vendors on one card): `productName`, `description`, `category`,
+`rentalPriceUsd`, `purchasePriceUsd`, `unit`, `deliveryEtaHours`, `deliveryLeadDays`, `inStock`, and
+`imagePath`. Foreign keys `vendorId` and `hcpcs` must still resolve.
+
+**Both prices are optional, but never both absent.** An item with `rental: true` in
+`equipment_catalog` carries a monthly rate and a purchase price, because rent-versus-buy is a real
+PPD lever — a short length of stay favors renting, a long one favors buying. The cheap items
+(walker, commode, mask) carry only `purchasePriceUsd`. `unit` is the arrangement an offer defaults
+to, not the only one it sells; the catalog's rent/buy toggle overrides it, and a cart line stores
+which one was chosen. Where the numbers came from is recorded in
+[PRICE_SOURCES.md](PRICE_SOURCES.md). `product_reviews.json` holds individual 1–5 star ratings plus a written `comment` from nurses,
 each linked to one `offerId` (one vendor SKU). The catalog averages these per offer and shows
 that item rating next to the product name. Admissions nurses and case managers see item ratings only.
 
@@ -133,7 +141,7 @@ patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patie
 
 PPD (per patient day) is the number the hospice buyer manages against, so cost views express spend
 that way. The pieces are all in the data: `hospices[].activeCensus` for the denominator,
-`orders[].equipment` joined to `vendor_offers[].priceUsd` for the numerator, and
+`orders[].equipment` joined to the matching `vendor_offers` price for its unit for the numerator, and
 `budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
 [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
 

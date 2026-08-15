@@ -40,6 +40,15 @@ class UnknownPatient(Exception):
         self.patient_id = patient_id
 
 
+class UnsellableUnit(Exception):
+    """The client asked to rent something only sold outright, or vice versa."""
+
+    def __init__(self, offer_id: str, unit: str) -> None:
+        super().__init__(f"Offer {offer_id} is not sold as {unit}")
+        self.offer_id = offer_id
+        self.unit = unit
+
+
 class CartNotFound(Exception):
     def __init__(self, user_id: str) -> None:
         super().__init__(f"No cart for user {user_id}")
@@ -50,6 +59,11 @@ class EmptyCart(Exception):
     def __init__(self, user_id: str) -> None:
         super().__init__(f"Cart for user {user_id} is empty")
         self.user_id = user_id
+
+
+def _price_field(unit: str) -> str:
+    """The vendor_offers column a unit is priced from."""
+    return "rentalPriceUsd" if unit == "month" else "purchasePriceUsd"
 
 
 def _require_user(user_id: str) -> Row:
@@ -65,20 +79,31 @@ def _merge_lines(raw_lines: list[Row]) -> list[Row]:
     Merging server-side means a client that adds the same item twice gets one line of qty 2 rather
     than two lines the totals would double-count.
     """
-    merged: dict[tuple[str, str], Row] = {}
+    merged: dict[tuple[str, str, str], Row] = {}
     for raw in raw_lines:
         offer_id = raw["offerId"]
         patient_id = raw["patientId"]
+        unit = raw.get("unit", "month")
 
-        if find_by("vendor_offers", "id", offer_id) is None:
+        offer = find_by("vendor_offers", "id", offer_id)
+        if offer is None:
             raise UnknownOffer(offer_id)
         if find_by("patients", "id", patient_id) is None:
             raise UnknownPatient(patient_id)
+        if _price_field(unit) not in offer:
+            raise UnsellableUnit(offer_id, unit)
 
-        key = (offer_id, patient_id)
+        # Unit is part of line identity: renting one wheelchair and buying another for the same
+        # patient is two lines, not one of quantity two.
+        key = (offer_id, patient_id, unit)
         existing = merged.get(key)
         qty = raw["qty"] + (existing["qty"] if existing else 0)
-        merged[key] = {"offerId": offer_id, "patientId": patient_id, "qty": min(qty, MAX_LINE_QTY)}
+        merged[key] = {
+            "offerId": offer_id,
+            "patientId": patient_id,
+            "unit": unit,
+            "qty": min(qty, MAX_LINE_QTY),
+        }
 
     return list(merged.values())
 
@@ -86,13 +111,14 @@ def _merge_lines(raw_lines: list[Row]) -> list[Row]:
 def _priced_line(line: Row) -> Row:
     """One stored line plus the catalog facts the client needs to render it."""
     offer = find_by("vendor_offers", "id", line["offerId"]) or {}
-    price = float(offer.get("priceUsd", 0))
+    unit = line.get("unit", offer.get("unit", "month"))
+    price = float(offer.get(_price_field(unit), 0))
     return {
         **line,
         "hcpcs": offer.get("hcpcs"),
         "productName": offer.get("productName"),
         "vendorId": offer.get("vendorId"),
-        "unit": offer.get("unit"),
+        "unit": unit,
         "priceUsd": price,
         "lineTotalUsd": round(price * line["qty"], 2),
     }
@@ -190,7 +216,7 @@ def checkout(
 
     # (patientId, vendorId) -> merged equipment items, keyed by HCPCS so two offers for the same
     # code from one vendor become a single line on the order.
-    grouped: dict[tuple[str, str | None], dict[str, Row]] = {}
+    grouped: dict[tuple[str, str | None], dict[tuple[str, str], Row]] = {}
     for line in lines:
         offer = find_by("vendor_offers", "id", line["offerId"])
         if offer is None:
@@ -198,14 +224,17 @@ def checkout(
 
         key = (line["patientId"], offer.get("vendorId"))
         items = grouped.setdefault(key, {})
-        hcpcs = offer["hcpcs"]
-        if hcpcs in items:
-            items[hcpcs]["qty"] += line["qty"]
+        unit = line.get("unit", offer.get("unit", "month"))
+        # Keyed by code *and* unit: a rented bed and a bought bed are two lines on the order.
+        item_key = (offer["hcpcs"], unit)
+        if item_key in items:
+            items[item_key]["qty"] += line["qty"]
         else:
-            items[hcpcs] = {
-                "hcpcs": hcpcs,
-                "name": offer.get("productName", hcpcs),
+            items[item_key] = {
+                "hcpcs": offer["hcpcs"],
+                "name": offer.get("productName", offer["hcpcs"]),
                 "qty": line["qty"],
+                "unit": unit,
             }
 
     created: list[Row] = []

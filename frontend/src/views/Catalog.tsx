@@ -14,15 +14,20 @@ import {
   searchCatalog,
   patientFullName,
   priceCeiling,
+  rescaleMaxPrice,
   totalUnitsInCart,
   upsertCartLine,
+  UNIT_FOR_MODE,
   type CatalogFilterState,
+  type PriceUnit,
+  type PricingMode,
   type SortKey,
 } from '../lib/catalog';
 import type { User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { CatalogFilters } from '../components/catalog/CatalogFilters';
 import { ProductCard } from '../components/catalog/ProductCard';
+import { PricingModeToggle } from '../components/catalog/PricingModeToggle';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { PatientAssignSheet } from '../components/catalog/PatientAssignSheet';
 import { EquipmentDetailView } from '../components/catalog/EquipmentDetailView';
@@ -45,8 +50,14 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     [user.orgId],
   );
   const [sessionReviews, setSessionReviews] = useState<ProductReview[]>([]);
-  const catalogItems = useMemo(() => buildCatalogItems(sessionReviews), [sessionReviews]);
+  const [mode, setMode] = useState<PricingMode>('rent');
+  /** Per-card overrides of the page mode, keyed by offer id. Cleared whenever the page mode moves. */
+  const [unitOverrides, setUnitOverrides] = useState<Record<string, PriceUnit>>({});
+  const catalogItems = useMemo(() => buildCatalogItems(sessionReviews, mode), [sessionReviews, mode]);
   const priceMax = useMemo(() => priceCeiling(catalogItems), [catalogItems]);
+
+  /** The arrangement a given card is showing: its own override, else the page mode. */
+  const unitFor = (id: string): PriceUnit => unitOverrides[id] ?? UNIT_FOR_MODE[mode];
 
   const [filters, setFilters] = useState<CatalogFilterState>(() => defaultCatalogFilters(priceMax));
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,8 +104,9 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
       return;
     }
 
+    const unit = unitFor(sheetProduct.offer.id);
     setLines((prev) =>
-      selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, qty), prev),
+      selectedPatientIds.reduce((acc, pid) => upsertCartLine(acc, sheetProduct.offer.id, pid, unit, qty), prev),
     );
     const names =
       selectedPatientIds.length === 1
@@ -104,6 +116,21 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
         : `${selectedPatientIds.length} patients()`;
     say(`${sheetProduct.offer.productName} ${qty} added for ${names}`);
     setSheetOfferId(null);
+  };
+
+  /**
+   * Switching the page mode rescales the max-price filter, because rent and buy are different
+   * orders of magnitude and a slider left at "$300" would mean opposite things either side of it.
+   * Per-card overrides clear: one control, one meaning.
+   */
+  const switchMode = (next: PricingMode) => {
+    if (next === mode) return;
+    const nextItems = buildCatalogItems(sessionReviews, next);
+    const nextMax = priceCeiling(nextItems);
+    setFilters((f) => ({ ...f, maxPrice: rescaleMaxPrice(f.maxPrice, priceMax, nextMax) }));
+    setUnitOverrides({});
+    setMode(next);
+    setCurrentPage(1);
   };
 
   const applyFilters = (patch: Partial<CatalogFilterState>) => {
@@ -157,6 +184,10 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                 product={detailProduct}
                 user={user}
                 sessionReviews={sessionReviews}
+                unit={unitFor(detailProduct.offer.id)}
+                onUnitChange={(next) =>
+                  setUnitOverrides((prev) => ({ ...prev, [detailProduct.offer.id]: next }))
+                }
                 onAddReview={addReview}
                 onAddToCart={() => openCartSheet(detailProduct.offer.id)}
               />
@@ -187,7 +218,9 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                     </div>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <PricingModeToggle mode={mode} onChange={switchMode} />
+                  <span className="mx-1 h-5 w-px bg-line" aria-hidden />
                   {SORTS.map((s) => (
                     <button
                       key={s.key}
@@ -215,7 +248,14 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                       className="h-full min-w-0 animate-[cardIn_0.55s_cubic-bezier(0.2,0.7,0.2,1)_both]"
                       style={{ animationDelay: `${i * 0.045}s` }}
                     >
-                      <ProductCard item={item} onOrderNow={() => openCartSheet(item.offer.id)} />
+                      <ProductCard
+                        item={item}
+                        unit={unitFor(item.offer.id)}
+                        onUnitChange={(next) =>
+                          setUnitOverrides((prev) => ({ ...prev, [item.offer.id]: next }))
+                        }
+                        onOrderNow={() => openCartSheet(item.offer.id)}
+                      />
                     </div>
                   ))}
                 </div>

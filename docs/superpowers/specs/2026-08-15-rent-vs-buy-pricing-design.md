@@ -176,7 +176,9 @@ are in the cart", which is the question the card badge asks.
 
 - `OfferOut` in `schemas.py` mirrors the two optional price fields.
 - `CartLineInput` gains `unit`, validated against the offer: rejecting a `month` line for an offer
-  with no `rentalPriceUsd` is a real boundary check, not defensive noise.
+  with no `rentalPriceUsd` is a real boundary check, not defensive noise. The client sends *which
+  arrangement*, never the price — the server still resolves that from the catalog, so the cart
+  cannot quote a number the catalog disputes. `_merge_lines` keys on `(offerId, patientId, unit)`.
 - `checkout` writes the chosen unit onto the order's equipment entry, so the order record remembers
   what was ordered rather than re-deriving it from the offer later.
 - Checkout still splits one order per `(patient, vendor)`. Unit does not split orders — a single

@@ -23,7 +23,7 @@ export function GlobalCartDrawer() {
         groups={cartGroups}
         totals={cartTotals}
         onQtyChange={setCartLineQty}
-        onRemove={(offerId, patientId) => setCartLineQty(offerId, patientId, 0)}
+        onRemove={(offerId, patientId, unit) => setCartLineQty(offerId, patientId, unit, 0)}
         onClose={() => setCartOpen(false)}
         onViewCart={() => {
           setCartOpen(false);

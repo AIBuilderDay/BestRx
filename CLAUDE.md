@@ -105,6 +105,7 @@ Don't memorize these — open the doc when the task touches it.
 | Live Q&A notes: personas, devices, usability bar, what's already integrated | [docs/bounty/BRIEFING_NOTES.md](docs/bounty/BRIEFING_NOTES.md) |
 | Canonical sample orders from the organizers | [docs/bounty/SAMPLE_ORDERS.md](docs/bounty/SAMPLE_ORDERS.md) |
 | Data shapes, table relationships, where the mock DB lives | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) |
+| Where catalog prices came from, and what is scraped vs. derived | [docs/PRICE_SOURCES.md](docs/PRICE_SOURCES.md) |
 | API endpoints, SSE, status lifecycle, running the backend | [backend/README.md](backend/README.md) |
 | Why push is its own service, and what the Lambda does | [notification-service/README.md](notification-service/README.md) |
 | Deploying: Render, Cloudflare Pages, AWS, and the known limits | [infra/README.md](infra/README.md) |
@@ -146,7 +147,7 @@ BestRx/
 │   │   ├── types/         shared TypeScript types
 │   │   └── sw.ts          service worker — renders push notifications
 │   └── public/images/     product/equipment/vendor imagery
-├── backend/               FastAPI: catalog, orders, and the SSE stream (required — see below)
+├── backend/               FastAPI: catalog, orders, the SSE stream, and the MCP surface at /mcp
 │   ├── app/               the API
 │   └── scripts/           deploy to ECR, sync fixtures
 ├── notification-service/  Web Push sender: SQS-triggered Lambda, separate on purpose

@@ -5,7 +5,7 @@
 
 import { getCatalogEntry, getOffersForVendor, getPatient, orders } from '../data/db';
 import { can } from './auth';
-import { CATEGORY_LABELS, moneyLabel, paginateItems, patientFullName } from './catalog';
+import { CATEGORY_LABELS, moneyLabel, offerPriceFor, paginateItems, patientFullName } from './catalog';
 import {
   buildOrderEquipmentVM,
   getCaseloadPatients,
@@ -112,24 +112,25 @@ function orderPrice(order: Order): OrderListItemVM['price'] {
   if (!order.vendorId || order.equipment.length === 0) return null;
 
   const offers = getOffersForVendor(order.vendorId);
-  const lines = order.equipment.map((item) => ({
-    offer: offers.find((o) => o.hcpcs === item.hcpcs),
-    qty: item.qty,
-  }));
-  if (lines.some((l) => !l.offer)) return null;
+  const lines = order.equipment.map((item) => {
+    const offer = offers.find((o) => o.hcpcs === item.hcpcs);
+    // The order remembers how it was bought; older orders fall back to the offer's default.
+    return { price: offer ? offerPriceFor(offer, item.unit ?? offer.unit) : null, qty: item.qty };
+  });
+  if (lines.some((l) => !l.price)) return null;
 
-  const units = new Set(lines.map((l) => l.offer!.unit));
+  const units = new Set(lines.map((l) => l.price!.unit));
   if (units.size !== 1) return null;
 
-  const total = lines.reduce((sum, l) => sum + l.offer!.priceUsd * l.qty, 0);
-  const unit = units.has('month') ? '/mo' : 'one-time';
+  const total = lines.reduce((sum, l) => sum + l.price!.amount * l.qty, 0);
+  const unit = units.has('/mo') ? '/mo' : 'one-time';
   const single = lines.length === 1 ? lines[0]! : null;
 
   return {
     totalLabel: moneyLabel(total),
     // One line shows its arithmetic; a multi-line order just names the line count.
     unitLine: single
-      ? `${moneyLabel(single.offer!.priceUsd)} × ${single.qty}`
+      ? `${moneyLabel(single.price!.amount)} × ${single.qty}`
       : `${lines.length} items`,
     unit,
   };

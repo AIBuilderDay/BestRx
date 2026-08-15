@@ -12,15 +12,20 @@ import {
   paginateOrders,
   type OrderFilterState,
   type OrderListItemVM,
+  type OrderSortKey,
 } from '../lib/orders';
 import type { User } from '../types/domain';
 import { TopNav } from '../components/layout/TopNav';
 import { OrderFilters } from '../components/orders/OrderFilters';
-import { OrderSortMenu } from '../components/orders/OrderSortMenu';
 import { OrderListSection } from '../components/orders/OrderListSection';
 import { OrderReceiptDialog } from '../components/orders/OrderReceiptDialog';
 import { CatalogPagination } from '../components/catalog/CatalogPagination';
 import { useCart } from '../context/CartContext';
+
+const ORDER_SORTS: { key: OrderSortKey; label: string }[] = [
+  { key: 'recent', label: 'Most recent' },
+  { key: 'status', label: 'Status' },
+];
 
 export default function Orders({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
@@ -94,7 +99,22 @@ export default function Orders({ user, onSignOut }: { user: User; onSignOut: () 
               <h1 className="text-3xl font-normal tracking-tight">Orders</h1>
               <p className="mt-1 text-[13px] text-ink-2">{ordersSubtitle(allItems)}</p>
             </div>
-            <OrderSortMenu sort={filters.sort} onChange={(sort) => applyFilters({ sort })} />
+            <div className="flex flex-wrap gap-2">
+              {ORDER_SORTS.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => applyFilters({ sort: s.key })}
+                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
+                    filters.sort === s.key
+                      ? 'border-ink bg-solid-bg text-solid-ink'
+                      : 'border-line bg-surface text-ink-2'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <OrderListSection

@@ -36,7 +36,7 @@ def create_cart(
         )
     except service.UnknownUser as exc:
         raise _not_found(exc) from exc
-    except (service.UnknownOffer, service.UnknownPatient) as exc:
+    except (service.UnknownOffer, service.UnknownPatient, service.UnsellableUnit) as exc:
         raise _unprocessable(exc) from exc
 
 
@@ -60,7 +60,7 @@ def update_cart(
         return service.replace_lines(carts, user_id, [line.model_dump() for line in payload.lines])
     except service.UnknownUser as exc:
         raise _not_found(exc) from exc
-    except (service.UnknownOffer, service.UnknownPatient) as exc:
+    except (service.UnknownOffer, service.UnknownPatient, service.UnsellableUnit) as exc:
         raise _unprocessable(exc) from exc
 
 

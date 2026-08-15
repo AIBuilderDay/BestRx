@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
-import { AddressMapPreview } from '../components/patients/AddressMapPreview';
+import { Link, useParams } from 'react-router-dom';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import { OrderListSection } from '../components/orders/OrderListSection';
+import { OrderReceiptDialog } from '../components/orders/OrderReceiptDialog';
+import { PatientIdentityRail } from '../components/patients/PatientIdentityRail';
+import { PatientTabs, type PatientTab } from '../components/patients/PatientTabs';
 import { TopNav } from '../components/layout/TopNav';
 import { useCart } from '../context/CartContext';
+import { getOrdersForPatient } from '../data/db';
+import { moneyLabel } from '../lib/catalog';
+import { buildOrderListItemVM, type OrderListItemVM } from '../lib/orders';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
-import type { PatientEquipmentVM } from '../lib/patients';
 import type { User } from '../types/domain';
 
 interface SessionNote {
@@ -15,11 +20,12 @@ interface SessionNote {
 
 export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
-  const navigate = useNavigate();
   const { cartCount, setCartOpen } = useCart();
 
   const [draft, setDraft] = useState('');
   const [addedNotes, setAddedNotes] = useState<SessionNote[]>([]);
+  const [tab, setTab] = useState<PatientTab>('Orders');
+  const [invoiceItem, setInvoiceItem] = useState<OrderListItemVM | null>(null);
 
   const inCaseload = patientId ? isInCaseload(patientId, user.id, user.orgId) : false;
   const vm = useMemo(
@@ -27,33 +33,27 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
     [patientId, inCaseload],
   );
 
-  const [imgBroken, setImgBroken] = useState(false);
+  // The same view-model the Orders list renders, so a patient's orders look identical there.
+  const orderItems = useMemo(
+    () => (patientId && inCaseload ? getOrdersForPatient(patientId).map(buildOrderListItemVM) : []),
+    [patientId, inCaseload],
+  );
 
   const handleAddNote = () => {
     const text = draft.trim();
     if (!text) return;
-    setAddedNotes((prev) => [
-      { meta: `Just now · ${user.name}`, text },
-      ...prev,
-    ]);
+    setAddedNotes((prev) => [{ meta: `Just now · ${user.name}`, text }, ...prev]);
     setDraft('');
   };
 
-  const handleCallVendor = (item: PatientEquipmentVM) => {
+  const handleCallVendor = (item: OrderListItemVM) => {
     const digits = item.phone.replace(/\D/g, '');
     if (digits) window.location.href = `tel:${digits}`;
   };
 
-  const handleDirections = () => {
-    if (!vm) return;
-    const query = encodeURIComponent(`${vm.addressLine1}, ${vm.addressLine2}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank', 'noopener,noreferrer');
-  };
-
   const handleCopyAddr = () => {
     if (!vm) return;
-    const text = `${vm.addressLine1}\n${vm.addressLine2}`;
-    void navigator.clipboard?.writeText(text);
+    void navigator.clipboard?.writeText(`${vm.addressLine1}\n${vm.addressLine2}`);
   };
 
   const topNav = (
@@ -62,7 +62,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       cartCount={cartCount}
       activeSection="patients"
       onOpenCart={() => setCartOpen(true)}
-        onSignOut={onSignOut}
+      onSignOut={onSignOut}
     />
   );
 
@@ -80,8 +80,43 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
     );
   }
 
-  const { patient, fullName, addressLine1, addressLine2, equipment, facts } = vm;
-  const imagePath = patient.imagePath;
+  const { patient, fullName, addressLine1, addressLine2, railFacts } = vm;
+
+  const orderCards =
+    orderItems.length === 0 ? (
+      <div className="rounded-card border border-line px-4 py-6 text-[13px] text-ink-3">
+        No equipment orders on file for this patient.
+      </div>
+    ) : (
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold">Products ordered</h2>
+          <span className="text-[13px] text-ink-3">
+            {orderItems.length} {orderItems.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+
+        <OrderListSection
+          items={orderItems}
+          onCallVendor={handleCallVendor}
+          onDownloadReceipt={setInvoiceItem}
+        />
+
+        {vm.costTotalUsd > 0 ? (
+          <div className="flex justify-end pt-1 text-[13px] text-ink-2">
+            <span>
+              {vm.costTotalPriced ? 'Total' : 'Total so far'}{' '}
+              <span className="font-bold text-ink tabular-nums">
+                {moneyLabel(vm.costTotalUsd)}
+                {vm.costTotalUnit === '/mo' ? '/mo' : ''}
+              </span>
+              {vm.costTotalUnit === 'mixed' ? ' (mixed billing)' : ''}
+              {vm.costTotalPriced ? '' : ' — some items unpriced'}
+            </span>
+          </div>
+        ) : null}
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-bg">
@@ -96,111 +131,73 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
           <span>All my patients</span>
         </Link>
 
-        <div className="mb-5 flex flex-wrap items-start gap-4">
-          <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
-            {imagePath && !imgBroken ? (
-              <img
-                src={imagePath}
-                alt={fullName}
-                onError={() => setImgBroken(true)}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div
-                className="h-full w-full"
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
-                }}
-              />
-            )}
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
-          </div>
-        </div>
+        <div className="grid grid-cols-1 items-start overflow-hidden rounded-panel border border-line bg-surface lg:grid-cols-[340px_minmax(0,1fr)]">
+          <PatientIdentityRail
+            mrn={patient.id}
+            firstName={patient.firstName}
+            lastName={patient.lastName}
+            fullName={fullName}
+            imagePath={patient.imagePath}
+            facts={railFacts}
+            addressLine1={addressLine1}
+            addressLine2={addressLine2}
+            onCopyAddress={handleCopyAddr}
+          />
 
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-          <div className="flex min-w-0 flex-col gap-5">
-            <ProductsOrderedSection
-              equipment={equipment}
-              onCallVendor={handleCallVendor}
-              onNewOrder={() => navigate('/catalog')}
-            />
+          <div className="flex min-w-0 flex-col">
+            <PatientTabs active={tab} onSelect={setTab} />
 
-            <section className="overflow-hidden rounded-[10px] border border-line bg-surface">
-              <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
-                <h2 className="text-[13px] font-semibold tracking-tight">Notes</h2>
-              </div>
-              <div className="p-4">
-                <textarea
-                  placeholder="Add a note for this patient — visible to the care team."
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  rows={3}
-                  className="w-full resize-y rounded-lg border border-line bg-bg-subtle px-2.5 py-2.5 text-ink outline-none focus:border-line-strong"
-                />
-                <div className="mt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleAddNote}
-                    className="cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-1.5 text-[13px] font-medium text-solid-ink transition-opacity hover:opacity-85"
-                  >
-                    Add note
-                  </button>
-                </div>
-                <div className="mt-1.5 flex flex-col">
-                  {addedNotes.map((n, i) => (
-                    <div key={`added-${i}`} className="border-t border-line py-3 first:border-t-0">
-                      <div className="text-xs tabular-nums text-ink-3">{n.meta}</div>
-                      <div className="mt-0.5 text-[13px] text-pretty">{n.text}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          </div>
+            <div className="flex flex-col gap-5.5 px-8 pt-6 pb-7.5">
+              {tab === 'Orders' ? orderCards : null}
 
-          <div className="flex min-w-0 flex-col gap-5">
-            <section className="rounded-[10px] border border-line bg-surface p-4">
-              <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
-                {facts.map((f) => (
-                  <div key={f.key} className="contents">
-                    <div className="whitespace-nowrap text-ink-3">{f.key}</div>
-                    <div className="text-right tabular-nums">{f.value}</div>
+              {tab === 'Notes' ? (
+                <div className="flex flex-col gap-3.5">
+                  <textarea
+                    placeholder="Add a note for this patient — visible to the care team."
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    rows={3}
+                    className="w-full resize-y rounded-card border border-line bg-bg-subtle px-3 py-2.5 text-[14.5px] text-ink outline-none focus:border-line-strong"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleAddNote}
+                      className="cursor-pointer rounded-lg border border-solid-bg bg-solid-bg px-4 py-2.5 text-[13.5px] font-semibold text-solid-ink transition-opacity hover:opacity-85"
+                    >
+                      Add note
+                    </button>
                   </div>
-                ))}
-              </div>
-            </section>
+                  {addedNotes.length === 0 ? (
+                    <p className="text-[13px] text-ink-3">No notes added this session.</p>
+                  ) : (
+                    <div className="flex flex-col">
+                      {addedNotes.map((n, i) => (
+                        <div
+                          key={`added-${i}`}
+                          className="flex gap-3.5 border-b border-line py-3.5 text-[14.5px] last:border-b-0"
+                        >
+                          <span className="w-16 flex-none text-[13px] text-ink-3">{n.meta}</span>
+                          <span className="flex-1 text-pretty">{n.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
 
-            <section className="rounded-[10px] border border-line bg-surface p-4">
-              <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
-              <div className="text-[13px] leading-relaxed">
-                {addressLine1}
-                <br />
-                {addressLine2}
-              </div>
-              <AddressMapPreview addressLine1={addressLine1} addressLine2={addressLine2} />
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleDirections}
-                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                >
-                  Directions
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyAddr}
-                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                >
-                  Copy for vendor
-                </button>
-              </div>
-            </section>
+              {tab === 'Documents' ? (
+                <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-line-strong px-4 py-10 text-ink-3">
+                  <UploadFileOutlinedIcon sx={{ fontSize: 26 }} />
+                  <span className="text-sm">No documents on file</span>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
       </main>
+
+      <OrderReceiptDialog item={invoiceItem} onClose={() => setInvoiceItem(null)} />
     </div>
   );
 }

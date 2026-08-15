@@ -239,8 +239,8 @@ def test_products_and_equipment_are_different_tables(client: TestClient) -> None
     offer = client.get("/products").json()[0]
     catalog_entry = client.get("/equipment").json()[0]
 
-    assert "priceUsd" in offer and "vendorId" in offer
-    assert "hcpcs" in catalog_entry and "priceUsd" not in catalog_entry
+    assert ("rentalPriceUsd" in offer or "purchasePriceUsd" in offer) and "vendorId" in offer
+    assert "hcpcs" in catalog_entry and "rentalPriceUsd" not in catalog_entry
 
 
 def test_push_public_key_is_503_when_unconfigured(client: TestClient) -> None:

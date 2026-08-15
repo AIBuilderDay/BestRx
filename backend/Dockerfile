@@ -25,7 +25,7 @@ WORKDIR /app
 # Manifest first so the dependency layer caches across source edits.
 COPY backend/pyproject.toml ./
 RUN uv pip install --system \
-    fastapi pydantic "uvicorn[standard]" boto3
+    fastapi pydantic "uvicorn[standard]" boto3 fastmcp
 
 
 # ── Development ─────────────────────────────────────────────────────────────────

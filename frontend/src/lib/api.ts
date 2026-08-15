@@ -213,7 +213,8 @@ export interface CartLineDto {
   hcpcs: string | null;
   productName: string | null;
   vendorId: string | null;
-  unit: string | null;
+  /** The arrangement this line was stored under, echoed back by the server. */
+  unit: 'month' | 'purchase';
   priceUsd: number;
   lineTotalUsd: number;
 }
@@ -235,10 +236,14 @@ export interface CartDto {
   updatedAt: string;
 }
 
-/** What the client sends: an offer, a patient, and a quantity. Never a price. */
+/**
+ * What the client sends: an offer, a patient, the arrangement, and a quantity. Never a price — the
+ * server resolves that from the catalog, so the cart cannot show a total the catalog disputes.
+ */
 export interface CartLineInput {
   offerId: string;
   patientId: string;
+  unit: 'month' | 'purchase';
   qty: number;
 }
 

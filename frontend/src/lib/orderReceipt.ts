@@ -47,6 +47,7 @@ function findOfferPrice(
   const offer = vendorOffers().find((o) => o.vendorId === vendorId && o.hcpcs === hcpcs);
   if (!offer) return null;
   const price = offerPrice(offer);
+  if (!price) return null;
   return { amount: price.amount, unit: price.unit };
 }
 

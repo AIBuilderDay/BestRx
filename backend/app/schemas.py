@@ -23,6 +23,8 @@ class EquipmentItemIn(BaseModel):
     hcpcs: str = Field(min_length=1)
     name: str = Field(min_length=1)
     qty: int = Field(ge=1)
+    # Absent on orders placed before rent-vs-buy existed: readers fall back to the offer's default.
+    unit: Literal["month", "purchase"] | None = None
 
 
 class CreateOrderRequest(BaseModel):
@@ -49,6 +51,8 @@ class CartLineIn(BaseModel):
 
     offerId: str = Field(min_length=1)
     patientId: str = Field(min_length=1)
+    # Which arrangement the client picked. Validated against the offer, which must sell it.
+    unit: Literal["month", "purchase"] = "month"
     qty: int = Field(ge=1, le=MAX_LINE_QTY)
 
 

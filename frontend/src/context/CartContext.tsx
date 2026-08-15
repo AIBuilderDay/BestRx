@@ -32,6 +32,7 @@ import {
   setCartLineQty,
   totalUnitsInCart,
   type CartLine,
+  type PriceUnit,
 } from '../lib/catalog';
 import { checkoutCart, fetchCart, updateCart, type CartLineInput } from '../lib/api';
 
@@ -41,7 +42,7 @@ interface CartContextValue {
   cartOpen: boolean;
   setCartOpen: (open: boolean) => void;
   setLines: React.Dispatch<React.SetStateAction<CartLine[]>>;
-  setCartLineQty: (offerId: string, patientId: string, qty: number) => void;
+  setCartLineQty: (offerId: string, patientId: string, unit: PriceUnit, qty: number) => void;
   clearCart: () => void;
   cartGroups: ReturnType<typeof buildCartGroups>;
   cartTotals: ReturnType<typeof cartTotals>;
@@ -59,9 +60,9 @@ interface CartContextValue {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-/** Narrow either a local line or a server line down to the three fields the API accepts. */
+/** Narrow either a local line or a server line down to the four fields the API accepts. */
 const toInput = (lines: readonly CartLineInput[]): CartLineInput[] =>
-  lines.map(({ offerId, patientId, qty }) => ({ offerId, patientId, qty }));
+  lines.map(({ offerId, patientId, unit, qty }) => ({ offerId, patientId, unit, qty }));
 
 export function CartProvider({ userId, children }: { userId: string | null; children: ReactNode }) {
   const [lines, setLinesState] = useState<CartLine[]>([]);
@@ -136,8 +137,8 @@ export function CartProvider({ userId, children }: { userId: string | null; chil
   );
 
   const setLineQty = useCallback(
-    (offerId: string, patientId: string, qty: number) => {
-      setLines((prev) => setCartLineQty(prev, offerId, patientId, qty));
+    (offerId: string, patientId: string, unit: PriceUnit, qty: number) => {
+      setLines((prev) => setCartLineQty(prev, offerId, patientId, unit, qty));
     },
     [setLines],
   );
