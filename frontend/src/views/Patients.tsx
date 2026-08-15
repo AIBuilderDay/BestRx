@@ -33,36 +33,38 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
         onSignOut={onSignOut}
       />
 
-      <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
-        <div className="mb-5">
-          <h1 className="text-3xl font-normal tracking-tight">My patients</h1>
-          <div className="mt-1 text-[13px] text-ink-2">
-            {caseloadSubtitle(caseload, attentionTotal)}
-          </div>
-        </div>
+      <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
+        <div aria-hidden className="border-r border-line" />
 
-        {filtered.length === 0 ? (
-          <div className="py-5 text-[13px] text-ink-3">
-            {searchQuery ? (
-              <>No patients on your caseload match &ldquo;{searchQuery}&rdquo;.</>
-            ) : (
-              'No patients on your caseload match that.'
-            )}
+        <main className="min-w-0 px-10 pb-20 pt-8.5">
+          <div className="mb-7.5">
+            <h1 className="text-3xl font-normal tracking-tight">Patients</h1>
+            <p className="mt-1 text-[13px] text-ink-2">{caseloadSubtitle(caseload, attentionTotal)}</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
-            {filtered.map((patient, i) => (
-              <div
-                key={patient.id}
-                className="h-full min-w-0 animate-card-in motion-reduce:animate-none"
-                style={{ animationDelay: `${i * 0.045}s` }}
-              >
-                <PatientCard patient={patient} />
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
+
+          {filtered.length === 0 ? (
+            <div className="py-5 text-[13px] text-ink-3">
+              {searchQuery ? (
+                <>No patients on your caseload match &ldquo;{searchQuery}&rdquo;.</>
+              ) : (
+                'No patients on your caseload match that.'
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
+              {filtered.map((patient, i) => (
+                <div
+                  key={patient.id}
+                  className="h-full min-w-0 animate-card-in motion-reduce:animate-none"
+                  style={{ animationDelay: `${i * 0.045}s` }}
+                >
+                  <PatientCard patient={patient} />
+                </div>
+              ))}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
