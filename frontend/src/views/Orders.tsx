@@ -111,27 +111,27 @@ export default function Orders({ user, onSignOut }: { user: User; onSignOut: () 
             onOpenFilters={() => setFilterSheetOpen(true)}
           />
 
-          <div className="mb-7.5 hidden flex-wrap items-end justify-between gap-5 lg:flex">
-            <div>
+          <div className="mb-7.5 hidden lg:block">
+            <div className="flex flex-wrap items-center justify-between gap-5">
               <h1 className="text-3xl font-normal tracking-tight">Orders</h1>
-              <p className="mt-1 text-[13px] text-ink-2">{ordersSubtitle(allItems)}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {ORDER_SORTS.map((s) => (
+                  <button
+                    key={s.key}
+                    type="button"
+                    onClick={() => applyFilters({ sort: s.key })}
+                    className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
+                      filters.sort === s.key
+                        ? 'border-ink bg-solid-bg text-solid-ink'
+                        : 'border-line bg-surface text-ink-2'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {ORDER_SORTS.map((s) => (
-                <button
-                  key={s.key}
-                  type="button"
-                  onClick={() => applyFilters({ sort: s.key })}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
-                    filters.sort === s.key
-                      ? 'border-ink bg-solid-bg text-solid-ink'
-                      : 'border-line bg-surface text-ink-2'
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            <p className="mt-1 text-[13px] text-ink-2">{ordersSubtitle(allItems)}</p>
           </div>
 
           <OrderListSection

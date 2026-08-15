@@ -256,8 +256,9 @@ that zip, and events whose timestamps agree with its status.
 login page to see a full HSP-001 caseload with orders. This is the nurse/case-manager assignment key
 until a dedicated `assignedNurseId` exists.
 
-**`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
+**`imagePath` (optional):** portrait for patient cards and the detail rail. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
+Patients with an `imagePath` sort to the top of the caseload grid.
 
 ## Family members & purchase requests (runtime stores, not frozen tables)
 

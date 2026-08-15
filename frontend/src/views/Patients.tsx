@@ -8,6 +8,7 @@ import {
   caseloadSubtitle,
   filterCaseload,
   getCaseloadPatients,
+  sortCaseload,
 } from '../lib/patients';
 import type { User } from '../types/domain';
 
@@ -21,7 +22,10 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
     [user.id, user.orgId],
   );
   const attentionTotal = useMemo(() => caseloadAttentionTotal(caseload), [caseload]);
-  const filtered = useMemo(() => filterCaseload(caseload, searchQuery), [caseload, searchQuery]);
+  const filtered = useMemo(
+    () => sortCaseload(filterCaseload(caseload, searchQuery)),
+    [caseload, searchQuery],
+  );
 
   return (
     <div className="min-h-screen bg-bg">

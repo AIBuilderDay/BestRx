@@ -79,6 +79,15 @@ export function getCaseloadPatients(userId: string, hospiceId: string): Patient[
   );
 }
 
+/** Patients with an `imagePath` on file first; the rest follow alphabetically. */
+export function sortCaseload(caseload: Patient[]): Patient[] {
+  return [...caseload].sort((a, b) => {
+    const byPhoto = Number(Boolean(b.imagePath)) - Number(Boolean(a.imagePath));
+    if (byPhoto !== 0) return byPhoto;
+    return patientFullName(a).localeCompare(patientFullName(b));
+  });
+}
+
 export function isInCaseload(patientId: string, userId: string, hospiceId: string): boolean {
   return getCaseloadPatients(userId, hospiceId).some((p) => p.id === patientId);
 }
