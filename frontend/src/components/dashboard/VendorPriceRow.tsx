@@ -5,14 +5,6 @@ import { Sparkline } from '../ui/Sparkline';
 const CELL = 'px-4 py-2.5 text-right tabular-nums';
 const TREND_CELL = 'px-4 py-2.5 text-center';
 
-const cumulativeSpend = (values: number[]): number[] => {
-  let running = 0;
-  return [0, ...values.map((value) => {
-    running += value;
-    return running;
-  })];
-};
-
 /** One HCPCS code: what the hospice actually paid this period. */
 export function VendorPriceRow({
   line,
@@ -46,7 +38,7 @@ export function VendorPriceRow({
       <td className={`${CELL} group-hover:bg-hover`}>{line.units}</td>
       <td className={`${CELL} group-hover:bg-hover`}>{moneyLabel(line.actualUsd)}</td>
       <td className={`${TREND_CELL} group-hover:bg-hover`}>
-        <Sparkline values={cumulativeSpend(line.weeklyActualUsd)} label={`${line.hcpcs} cumulative spend trend`} />
+        <Sparkline values={line.weeklyActualUsd} label={`${line.hcpcs} weekly spend trend`} />
       </td>
     </tr>
   );
