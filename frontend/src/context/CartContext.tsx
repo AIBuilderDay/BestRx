@@ -8,6 +8,7 @@ import {
   totalUnitsInCart,
   type CartLine,
 } from '../lib/catalog';
+import type { AgentOrderAction } from '../types/ai';
 
 interface CartContextValue {
   lines: CartLine[];
@@ -19,6 +20,9 @@ interface CartContextValue {
   clearCart: () => void;
   cartGroups: ReturnType<typeof buildCartGroups>;
   cartTotals: ReturnType<typeof cartTotals>;
+  /** The line the AI agent just added, so the drawer can spotlight it. */
+  agentAdded: AgentOrderAction | null;
+  setAgentAdded: (action: AgentOrderAction | null) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -28,6 +32,7 @@ const catalogItems = buildCatalogItems();
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [agentAdded, setAgentAdded] = useState<AgentOrderAction | null>(null);
 
   const setLineQty = useCallback((offerId: string, patientId: string, qty: number) => {
     setLines((prev) => setCartLineQty(prev, offerId, patientId, qty));
@@ -46,8 +51,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       clearCart,
       cartGroups: buildCartGroups(lines, catalogItems, patients),
       cartTotals: cartTotals(lines, catalogItems),
+      agentAdded,
+      setAgentAdded,
     }),
-    [lines, cartOpen, setLineQty, clearCart],
+    [lines, cartOpen, setLineQty, clearCart, agentAdded],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

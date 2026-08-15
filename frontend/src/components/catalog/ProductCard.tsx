@@ -7,9 +7,12 @@ import { ItemStarRating } from './ItemStarRating';
 export function ProductCard({
   item,
   onOrderNow,
+  aiReason,
 }: {
   item: CatalogProductVM;
   onOrderNow: () => void;
+  /** One short model-written line on why this ranked here (AI search only). */
+  aiReason?: string;
 }) {
   const [imgBroken, setImgBroken] = useState(false);
   const { offer, price, vendor, rating } = item;
@@ -61,7 +64,7 @@ export function ProductCard({
 
         {/* Fixed row heights keep every card the same total height regardless of how
             long the product name or vendor name is. */}
-        <div className="product-card-meta">
+        <div className={`product-card-meta${aiReason ? ' has-ai' : ''}`}>
           <div className="flex items-start justify-between gap-3">
             <Link
               to={`/catalog/${offer.id}`}
@@ -84,6 +87,15 @@ export function ProductCard({
           </div>
 
           <div className="truncate text-xs text-ink-2">{vendor.displayName}</div>
+
+          {aiReason && (
+            <div className="flex min-w-0 items-center gap-1 text-[11px] text-ai-ink" data-testid="ai-reason">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="shrink-0">
+                <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+              </svg>
+              <span className="min-w-0 truncate">{aiReason}</span>
+            </div>
+          )}
         </div>
       </div>
     </article>

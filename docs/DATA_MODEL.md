@@ -33,8 +33,8 @@ usable.
 | `order_events.json` | 188 | `id` (EVT-) | `orderId`, `actorId` |
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
-| `vendor_offers.json` | 16 | `id` (OFR-) | `vendorId`, `hcpcs` |
-| `product_reviews.json` | 405 | `id` (REV-) | `offerId`, `reviewerId` |
+| `vendor_offers.json` | 17 | `id` (OFR-) | `vendorId`, `hcpcs` |
+| `product_reviews.json` | 408 | `id` (REV-) | `offerId`, `reviewerId` |
 | `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 
@@ -123,3 +123,18 @@ until a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
+
+## AI token ledger (localStorage, not a JSON table)
+
+Every Anthropic call made by the enhanced search (`src/lib/ai/`) appends a record to
+localStorage key `bestrx.ai_usage.v1`:
+
+```ts
+{ id, at, feature: 'rerank' | 'agent_order', model, inputTokens, outputTokens,
+  costUsd, latencyMs, ok }
+```
+
+`summarizeUsage()` in `src/lib/ai/usage.ts` returns per-feature totals plus a grand total —
+this is the data source for the cost dashboard's "AI spend" figures. Any new AI surface must
+record into the same ledger with a new `feature` value (extend `AiFeature` in
+`src/types/ai.ts`). Spec: [specs/enhanced-search.md](specs/enhanced-search.md).
