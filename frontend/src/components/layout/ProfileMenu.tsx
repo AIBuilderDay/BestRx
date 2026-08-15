@@ -4,6 +4,7 @@ import { isFamilyMember, ROLE_LABELS } from '../../lib/auth';
 import { familyCardLabel } from '../../lib/family';
 import type { User } from '../../types/domain';
 import { Tooltip } from '../ui/Tooltip';
+import { PushAlertsToggle } from './PushAlertsToggle';
 
 /** "Jordan Reyes" → "JR". Falls back to "?" so a blank name can't render an empty circle. */
 function initialsOf(name: string): string {
@@ -104,6 +105,9 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
               />
             </span>
           </button>
+
+          {/* Staff only: the alerts are hospice-wide order status, not a family's own requests. */}
+          {isFamilyMember(user) ? null : <PushAlertsToggle user={user} />}
 
           <button
             type="button"
