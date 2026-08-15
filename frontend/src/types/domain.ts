@@ -83,6 +83,11 @@ export interface Vendor {
   /** Short label shown in the catalog and cart (e.g. "Vendor 1"). */
   displayName: string;
   market: string;
+  /**
+   * The hospice's incumbent vendor — the one whose prices the cost ledger treats as the baseline
+   * every other vendor is compared against. Exactly one vendor per market carries this.
+   */
+  contracted: boolean;
   serviceAreaZips: string[];
   hours: string;
   contact: { dispatchPhone: string; dispatchEmail: string; repName: string };

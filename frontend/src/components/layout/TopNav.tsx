@@ -8,7 +8,9 @@ import { Tooltip } from "../ui/Tooltip";
 import { NavSearch } from "./NavSearch";
 import { ProfileMenu } from "./ProfileMenu";
 
-export type NavSection = "catalog" | "orders" | "patients" | "assignments";
+// "dashboard" isn't one of this bar's own links — it's reached from the profile menu — but views
+// still pass it as activeSection so linkClass() has a real, never-matching value instead of a lie.
+export type NavSection = "catalog" | "orders" | "patients" | "assignments" | "dashboard";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
@@ -24,7 +26,7 @@ const canViewOrders = (user: User): boolean =>
  * sections keep a plain search-in-place form that filters as you type.
  */
 const CONTEXTUAL_SEARCH: Record<
-  Exclude<NavSection, "catalog">,
+  Exclude<NavSection, "catalog" | "dashboard">,
   { path: string; placeholder: string; label: string }
 > = {
   orders: {
@@ -44,7 +46,7 @@ const CONTEXTUAL_SEARCH: Record<
   },
 };
 
-function ContextualSearch({ section }: { section: Exclude<NavSection, "catalog"> }) {
+function ContextualSearch({ section }: { section: Exclude<NavSection, "catalog" | "dashboard"> }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlQuery = searchParams.get("q") ?? "";
@@ -255,8 +257,8 @@ export function TopNav({
       <div className="min-w-0 [grid-area:search]">
         {activeSection === "catalog" ? (
           <NavSearch user={user} />
-        ) : isFamilyMember(user) ? (
-          // The family home has no searchable list — leave the search slot empty.
+        ) : isFamilyMember(user) || activeSection === "dashboard" ? (
+          // The family home and the cost dashboard have no searchable list — leave the slot empty.
           <div aria-hidden />
         ) : (
           <ContextualSearch section={activeSection} />

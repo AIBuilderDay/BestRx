@@ -15,6 +15,7 @@
     --warn: #b45309; --warn-bg: #fffbeb;
     --risk: #b42318; --risk-bg: #fef3f2;
     --s1: #0a0a0a; --s2: #525252; --s3: #969696; --s4: #cfcfcf;
+    --chart-1: #d93e5c; --chart-2: #c2811a; --chart-3: #1e9e6e; --chart-4: #3e6fde;
     --ai-navy: #0a2540; --ai-indigo: #1e3a8a; --ai-royal: #1d4ed8;
     --ai-sky: #0ea5e9; --ai-bright: #38bdf8; --ai-crest: #7dd3fc;
     --ai-ink: #1d4ed8; --ai-glow-opacity: 0.45;
@@ -31,7 +32,7 @@
       --warn: #fbbf24; --warn-bg: #241a06;
       --risk: #f97066; --risk-bg: #2a1210;
       --s1: #fafafa; --s2: #a8a8a8; --s3: #6b6b6b; --s4: #3d3d3d;
-    --ai-ink: #7cc0ff; --ai-glow-opacity: 0.72;
+      --chart-1: #d4677e; --chart-2: #b08228; --chart-3: #339e82; --chart-4: #6f85d4;
       --ai-ink: #7cc0ff; --ai-glow-opacity: 0.72;
     }
   }
@@ -45,6 +46,7 @@
     --warn: #fbbf24; --warn-bg: #241a06;
     --risk: #f97066; --risk-bg: #2a1210;
     --s1: #fafafa; --s2: #a8a8a8; --s3: #6b6b6b; --s4: #3d3d3d;
+    --chart-1: #d4677e; --chart-2: #b08228; --chart-3: #339e82; --chart-4: #6f85d4;
   }
 
   * { box-sizing: border-box; }
@@ -270,9 +272,9 @@
 
 <h2>Chart series</h2>
 <p>
-  A four-step grayscale ramp, checked for colour-vision deficiency. Categorical series use these in
-  order. <code>good</code> and <code>warn</code> stay reserved for their meanings above. If a chart
-  needs more than four series, it needs a different chart.
+  A four-step grayscale ramp, checked for colour-vision deficiency. The default for a single-hue
+  trend or a price ladder — <code>good</code> and <code>warn</code> stay reserved for their meanings
+  above. If a chart needs more than four series, it needs a different chart.
 </p>
 <div class="demo">
   <div class="series">
@@ -280,6 +282,26 @@
     <div style="background:var(--s2);color:var(--bg)">--s2</div>
     <div style="background:var(--s3);color:var(--bg)">--s3</div>
     <div style="background:var(--s4);color:var(--ink)">--s4</div>
+  </div>
+</div>
+
+<h3>Categorical ramp — rainbow</h3>
+<p>
+  For charts distinguishing several unrelated things at once, where a single-hue ramp reads as
+  "more/less" rather than "different" — e.g. the cost dashboard's spend-by-product /
+  spend-by-nurse donut. One hue per slot, at a deliberately different intensity per theme rather
+  than a mechanical light/dark flip: full saturation in light mode, a desaturated pastel version
+  of the same four hues in dark mode, where a saturated fill next to true black reads harsher.
+  Every consumer must attach a direct text label to each slice regardless of theme. Run the
+  dataviz skill's <code>validate_palette.js</code> against both surfaces separately before adding
+  a fifth slot or changing a hue.
+</p>
+<div class="demo">
+  <div class="series">
+    <div style="background:var(--chart-1);color:var(--bg)">--chart-1</div>
+    <div style="background:var(--chart-2);color:var(--bg)">--chart-2</div>
+    <div style="background:var(--chart-3);color:var(--bg)">--chart-3</div>
+    <div style="background:var(--chart-4);color:var(--bg)">--chart-4</div>
   </div>
 </div>
 

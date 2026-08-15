@@ -38,8 +38,8 @@ usable.
 | `order_events.json` | 188 | `id` (EVT-) | `orderId`, `actorId` |
 | `inventory.json` | 11 | `serial` | `vendorId`, `hcpcs`, `orderId` |
 | `emr_events.json` | 5 | `id` (EMR-) | `patientId`, `hospiceId` |
-| `vendor_offers.json` | 17 | `id` (OFR-) | `vendorId`, `hcpcs` |
-| `product_reviews.json` | 408 | `id` (REV-) | `offerId`, `reviewerId` |
+| `vendor_offers.json` | 31 | `id` (OFR-) | `vendorId`, `hcpcs` |
+| `product_reviews.json` | 644 | `id` (REV-) | `offerId`, `reviewerId` |
 | `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
 | `family_members.json` | 2 | `id` (FAM-) | `patientId`. A relative who signs in to a read-only family view; also the audience for delivery notifications. See below |
@@ -133,6 +133,17 @@ stored for director of nursing and hospice owner views. They are not shown on th
 **`vendors[].displayName`** is the short label shown in the catalog and cart (e.g. "Vendor 1").
 Use it in the UI rather than trimming `name`.
 
+**`vendors[].contracted`** marks the hospice's incumbent vendor — the baseline the cost ledger
+compares every other vendor against. Exactly one vendor carries it (VND-002). It runs 81% on-time,
+deliberately below the 85% service floor, because "your contracted vendor is underperforming" is the
+situation the ledger exists to surface.
+
+Every code HSP-001 orders is priced by **all three** vendors, so the ledger's price matrix has no
+blank cells. When adding an offer, keep the market's shape — VND-001 highest, VND-002 mid,
+VND-003 lowest, each within roughly 15% of the Medicare-allowed rate in `equipment_catalog` — and
+set `unit` from `equipment_catalog.rental` (`month` for rentals, `purchase` otherwise). The cheapest
+vendor is deliberately the worst performer; that tension is the point of the screen.
+
 **`budgets`** carries both kinds from the whiteboard: a monthly cap per role, and a cap per one-time
 patient purchase. `scopeRef` is a `UserRole` when `scope` is `role`, and a patient id when `scope` is
 `patient_purchase`. Role caps are **derived, not guessed** — `derivedFrom` holds the
@@ -147,6 +158,26 @@ that way. The pieces are all in the data: `hospices[].activeCensus` for the deno
 `orders[].equipment` joined to the matching `vendor_offers` price for its unit for the numerator, and
 `budgets[].derivedFrom.ppdUsd` for the allowance a cap was built from. See
 [PROJECT_DESCRIPTION.md](PROJECT_DESCRIPTION.md) §6.
+
+## Known inconsistencies
+
+Real gaps in the sample data. Handle them explicitly rather than papering over them — the cost
+dashboard labels each one on screen.
+
+- **`budgets[].derivedFrom.assignedPatients` disagrees with the caseload.** The role rows claim
+  48 / 24 / 70 assigned patients; counting `patients[].caseManagerId` gives 12 / 13 / 0. Use the
+  budget row for `ppdUsd` only and count the caseload yourself — that is the figure a director of
+  nursing can verify. `lib/budgetLedger.ts` does this.
+- **Two different patient denominators.** PPD uses `hospices[].activeCensus` (142 for HSP-001);
+  budget caps use the 25 patients actually assigned to a case manager. Both are correct for their
+  purpose, so name which one a figure uses wherever it is shown.
+- **No `hospice_admin` budget row.** The owner has no role cap, so no cap can be derived for that
+  account. Render it as "no cap set", never as `$0`.
+- **Orders span Aug 1–22, 2026 only.** There is no history for a multi-month trend. `lib/costPeriod.ts`
+  exposes one period and buckets it weekly; adding history is a data change, not a code change.
+- **Service areas are narrow.** VND-001 covers 4 of HSP-001's 10 patient ZIPs, VND-002 covers 1,
+  VND-003 covers none. A vendor's price is not an available price if it cannot reach the patient, so
+  surface `serviceAreaZips` coverage wherever vendor prices are compared.
 
 ## Where the data actually lives
 

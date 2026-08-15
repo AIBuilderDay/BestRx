@@ -160,4 +160,33 @@ describe('mock database integrity', () => {
       expect(vendor.performance30d.onTimeDeliveryPct).toBeGreaterThan(0);
     }
   });
+
+  it('names exactly one contracted vendor, the cost ledger baseline', () => {
+    expect(vendors().filter((v) => v.contracted).map((v) => v.id)).toEqual(['VND-002']);
+  });
+
+  it('prices every code a hospice ordered against every vendor, so the ledger has no blank cells', () => {
+    const orderedCodes = new Set(
+      orders().filter((o) => o.hospiceId === 'HSP-001').flatMap((o) => o.equipment.map((e) => e.hcpcs)),
+    );
+    for (const hcpcs of orderedCodes) {
+      const pricedBy = new Set(getOffersForItem(hcpcs).map((o) => o.vendorId));
+      expect([...pricedBy].sort(), hcpcs).toEqual(vendors().map((v) => v.id).sort());
+    }
+  });
+
+  it('bills every code the same way across every vendor that sells it', () => {
+    // A code's Medicare-allowed reference basis (equipment_catalog.rental) and how a given vendor
+    // actually bills it are independent facts; what the ledger needs is that vendors selling the
+    // same code agree with each other, so cost derivations can pick one billing model per code.
+    const byCode = new Map<string, Set<string>>();
+    for (const offer of vendorOffers()) {
+      const units = byCode.get(offer.hcpcs) ?? new Set<string>();
+      units.add(offer.unit);
+      byCode.set(offer.hcpcs, units);
+    }
+    for (const [hcpcs, units] of byCode) {
+      expect([...units], hcpcs).toHaveLength(1);
+    }
+  });
 });

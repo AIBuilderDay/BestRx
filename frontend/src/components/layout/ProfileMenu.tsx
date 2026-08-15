@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { can, isFamilyMember, ROLE_LABELS } from '../../lib/auth';
 import { familyCardLabel } from '../../lib/family';
@@ -82,7 +83,17 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
             </div>
           ) : null}
 
-          {can(user, 'reporting') || can(user, 'vendors:manage') ? (
+          {can(user, 'reporting') ? (
+            <Link
+              to="/dashboard"
+              role="menuitem"
+              data-testid="dashboard-item"
+              onClick={() => setOpen(false)}
+              className="mt-1.5 flex items-center justify-between rounded-control px-3 py-2 text-[13px] text-ink transition-colors hover:bg-hover"
+            >
+              Dashboard
+            </Link>
+          ) : can(user, 'vendors:manage') ? (
             <div
               role="menuitem"
               aria-disabled="true"

@@ -1,7 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser } from '../data/db';
-import { DEMO_ACCOUNT_IDS, DEMO_PASSWORD, findUserByEmail, isFamilyMember, ROLE_LABELS } from '../lib/auth';
+import {
+  DEMO_ACCOUNT_IDS,
+  DEMO_PASSWORD,
+  findUserByEmail,
+  isFamilyMember,
+  landingPathFor,
+  ROLE_LABELS,
+} from '../lib/auth';
 import { familyMemberToUser, getFamilyMembersSnapshot } from '../lib/familyMembers';
 import type { User } from '../types/domain';
 import { Logo } from '../components/ui/Logo';
@@ -42,7 +49,7 @@ export default function Login({ onSignIn }: { onSignIn: (user: User) => void }) 
       return;
     }
     onSignIn(user);
-    navigate(isFamilyMember(user) ? '/family' : '/catalog');
+    navigate(landingPathFor(user));
   };
 
   const fillAccount = (user: User) => {

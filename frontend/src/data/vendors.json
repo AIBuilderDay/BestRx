@@ -4,6 +4,7 @@
     "name": "Sample Vendor 1",
     "displayName": "Vendor 1",
     "market": "Salt Lake City, UT",
+    "contracted": false,
     "serviceAreaZips": [
       "84101",
       "84102",
@@ -35,13 +36,14 @@
     },
     "logoPath": "/images/vendors/vendor-1.svg",
     "overallRating": 4.6,
-    "overallRatingCount": 173
+    "overallRatingCount": 252
   },
   {
     "id": "VND-002",
     "name": "Sample Vendor 2",
     "displayName": "Vendor 2",
     "market": "Salt Lake City / Provo, UT",
+    "contracted": true,
     "serviceAreaZips": [
       "84601",
       "84604",
@@ -74,13 +76,14 @@
     },
     "logoPath": "/images/vendors/vendor-2.svg",
     "overallRating": 3.9,
-    "overallRatingCount": 172
+    "overallRatingCount": 249
   },
   {
     "id": "VND-003",
     "name": "Sample Vendor 3",
     "displayName": "Vendor 3",
     "market": "Ogden, UT",
+    "contracted": false,
     "serviceAreaZips": [
       "84401",
       "84403",
@@ -110,7 +113,7 @@
       "podCapturePct": 85
     },
     "logoPath": "/images/vendors/vendor-3.svg",
-    "overallRating": 3,
-    "overallRatingCount": 63
+    "overallRating": 3.1,
+    "overallRatingCount": 143
   }
 ]

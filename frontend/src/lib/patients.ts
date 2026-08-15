@@ -23,7 +23,7 @@ export type OrderDisplayIcon =
   | 'awaiting_pickup'
   | 'picked_up';
 
-export type PillTone = 'warn' | 'done' | 'plain' | 'muted';
+export type PillTone = 'warn' | 'done' | 'plain' | 'muted' | 'good' | 'alert';
 
 export interface PatientEquipmentVM {
   orderId: string;
@@ -359,6 +359,10 @@ export function pillClasses(tone: PillTone): string {
       return 'border-solid-bg bg-solid-bg text-solid-ink';
     case 'muted':
       return 'border-line bg-bg-subtle text-ink-3';
+    case 'good':
+      return 'border-good bg-good-bg text-good';
+    case 'alert':
+      return 'border-warn bg-warn-bg text-warn';
     case 'done':
     case 'plain':
     default:

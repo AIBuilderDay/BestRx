@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { equipmentCatalog, patients, vendors } from '../data/db';
+import { equipmentCatalog, patients, vendorOffers, vendors } from '../data/db';
 import { resetSnapshot } from '../data/store';
 import { seedFixtures } from '../data/testSnapshot';
 import {
@@ -24,7 +24,6 @@ import {
   upsertCartLine,
   type CartLine,
 } from './catalog';
-import { vendorOffers } from '../data/db';
 
 describe('itemPrice', () => {
   it('uses the monthly allowed rate for rentals', () => {
@@ -42,8 +41,8 @@ describe('buildCatalogItems', () => {
   const items = buildCatalogItems();
 
   it('creates one storefront card per vendor offer row', () => {
-    expect(items).toHaveLength(17);
-    expect(new Set(items.map((it) => it.offer.id)).size).toBe(17);
+    expect(items).toHaveLength(vendorOffers().length);
+    expect(new Set(items.map((it) => it.offer.id)).size).toBe(vendorOffers().length);
   });
 
   it('lists three separate hospital beds from three vendors', () => {
