@@ -7,14 +7,14 @@ dependencies = [
     "fastapi>=0.115.0",
     "pydantic>=2.9.0",
     "uvicorn[standard]>=0.32.0",
-    "mangum>=0.19.0",
+    # SQS (enqueue a push) and DynamoDB (the subscriptions table the notification service reads).
     "boto3>=1.35.0",
 ]
 
 [project.optional-dependencies]
-push = ["pywebpush>=2.0.0", "py-vapid>=1.9.0"]
 dev = [
     "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
     "httpx>=0.28.0",
     "moto[dynamodb,sqs]>=5.0.0",
     "ruff>=0.8.0",
@@ -30,6 +30,7 @@ packages = ["app"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100

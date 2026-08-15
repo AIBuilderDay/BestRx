@@ -68,3 +68,43 @@ def list_equipment(category: str | None = Query(default=None)) -> list[dict[str,
 @router.get("/vendors")
 def list_vendors() -> list[dict[str, Any]]:
     return fixtures.vendors()
+
+
+@router.get("/real-vendors")
+def list_real_vendors(
+    state: str | None = Query(default=None, description="Two-letter state, e.g. UT"),
+    scope: str | None = Query(default=None, description="national | regional"),
+    hcpcs: str | None = Query(default=None, description="HCPCS code, e.g. E0250"),
+    hospiceFocused: bool | None = Query(default=None),
+) -> list[dict[str, Any]]:
+    """Real DME suppliers scraped from public sources.
+
+    Separate from /vendors, which is the simulated storefront. Rows here carry no invented
+    operational metrics — unpublished fields are null and every row records its sourceUrl.
+    """
+    rows = fixtures.real_vendors()
+    if state:
+        wanted = state.upper()
+        rows = [
+            row
+            for row in rows
+            if wanted in (row.get("statesServed") or [])
+            or (row.get("headquarters") or {}).get("state") == wanted
+            or any(loc.get("state") == wanted for loc in row.get("locations") or [])
+        ]
+    if scope:
+        rows = [row for row in rows if row.get("scope") == scope]
+    if hcpcs:
+        code = hcpcs.upper()
+        rows = [row for row in rows if code in (row.get("hcpcsCarried") or [])]
+    if hospiceFocused is not None:
+        rows = [row for row in rows if row.get("hospiceFocused") is hospiceFocused]
+    return rows
+
+
+@router.get("/real-vendors/{vendor_id}")
+def get_real_vendor(vendor_id: str) -> dict[str, Any]:
+    vendor = fixtures.find_by("real_vendors", "id", vendor_id)
+    if vendor is None:
+        raise HTTPException(status_code=404, detail=f"Real vendor {vendor_id} not found")
+    return vendor

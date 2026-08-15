@@ -51,6 +51,11 @@ def vendors() -> list[Row]:
     return load_table("vendors")
 
 
+def real_vendors() -> list[Row]:
+    """Real, publicly-listed DME suppliers. Distinct from vendors() — see docs/DATA_MODEL.md."""
+    return load_table("real_vendors")
+
+
 def vendor_offers() -> list[Row]:
     return load_table("vendor_offers")
 

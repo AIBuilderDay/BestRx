@@ -16,16 +16,19 @@ services:
       # the frontend against its JSON fixtures alone — it works either way.
       # Read by the browser, so it is localhost from the host's perspective, not the service name.
       - VITE_API_BASE_URL=${VITE_API_BASE_URL-http://localhost:8000}
+      # SSE is served by the same container, so it is the API URL plus /stream.
+      - VITE_SSE_URL=${VITE_SSE_URL-http://localhost:8000/stream}
     depends_on:
       backend:
         condition: service_healthy
     command: node_modules/.bin/vite --host 0.0.0.0 --port 5173
 
   # ── Backend ─────────────────────────────────────────────────────────────────
-  # FastAPI on :8000. Deploys to Lambda via ./infra, but runs here as a plain container.
+  # FastAPI on :8000, serving both the REST API and the SSE stream at /stream. The same image runs
+  # on EC2 in AWS — see ./infra.
   #
-  # No AWS account or credentials needed: with no table names configured the API serves the same
-  # JSON fixtures the frontend reads and keeps writes in memory.
+  # No AWS account or credentials needed: orders live in memory, seeded from the JSON fixtures, and
+  # SSE fans out in-process.
   backend:
     build:
       # The repo root, not ./backend — the fixtures live in frontend/src/data and Docker cannot
@@ -39,20 +42,18 @@ services:
     volumes:
       # Bind-mount the source so --reload picks up edits.
       - ./backend/app:/app/app
-      - ./backend/lambdas:/app/lambdas
       - ./backend/tests:/app/tests
       # The frontend's data directory is the one copy of the fixtures under version control.
       - ./frontend/src/data:/app/data:ro
     environment:
       - PYTHONUNBUFFERED=1
-      # Uncomment to point the container at real AWS resources instead of the in-memory store.
-      # Requires credentials mounted or passed in.
-      # - ORDERS_TABLE=bestrx-orders
-      # - ORDER_EVENTS_TABLE=bestrx-order-events
-      # - PUSH_SUBSCRIPTIONS_TABLE=bestrx-push-subscriptions
-      # - PUSH_QUEUE_URL=
-      # - AWS_REGION=us-east-2
       - CORS_ORIGINS=http://localhost:5173
+      # Uncomment to send real push notifications from a local container. Needs AWS credentials
+      # mounted in, and the notification service deployed.
+      # - PUSH_QUEUE_URL=
+      # - PUSH_SUBSCRIPTIONS_TABLE=bestrx-push-subscriptions
+      # - VAPID_PUBLIC_KEY=
+      # - AWS_REGION=us-east-2
     healthcheck:
       test:
         - CMD

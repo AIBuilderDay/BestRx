@@ -36,9 +36,9 @@ variable "lambda_timeout" {
 }
 
 variable "reserved_concurrency" {
-  description = "Cap on concurrent push Lambdas. -1 disables the cap."
+  description = "Cap on concurrent push Lambdas. -1 disables the cap (required on accounts whose total concurrency limit is 10)."
   type        = number
-  default     = 5
+  default     = -1
 }
 
 variable "log_retention_days" {

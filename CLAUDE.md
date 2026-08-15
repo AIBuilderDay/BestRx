@@ -105,8 +105,9 @@ Don't memorize these — open the doc when the task touches it.
 | Live Q&A notes: personas, devices, usability bar, what's already integrated | [docs/bounty/BRIEFING_NOTES.md](docs/bounty/BRIEFING_NOTES.md) |
 | Canonical sample orders from the organizers | [docs/bounty/SAMPLE_ORDERS.md](docs/bounty/SAMPLE_ORDERS.md) |
 | Data shapes, table relationships, where the mock DB lives | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) |
-| API endpoints, status lifecycle, running the backend locally | [backend/README.md](backend/README.md) |
-| Deploying to AWS, notification architecture, known limits | [infra/README.md](infra/README.md) |
+| API endpoints, SSE, status lifecycle, running the backend | [backend/README.md](backend/README.md) |
+| Why push is its own service, and what the Lambda does | [notification-service/README.md](notification-service/README.md) |
+| Deploying to AWS, the two compute models, known limits | [infra/README.md](infra/README.md) |
 | How we work: description → mockup → spec → tickets | [docs/WORKFLOW.md](docs/WORKFLOW.md) |
 | A feature's agreed scope before building it | [docs/specs/](docs/specs/) |
 | The specific unit of work you were handed | [docs/tickets/](docs/tickets/) |
@@ -145,11 +146,11 @@ BestRx/
 │   │   ├── types/         shared TypeScript types
 │   │   └── sw.ts          service worker — renders push notifications
 │   └── public/images/     product/equipment/vendor imagery
-├── backend/               FastAPI + the two notification Lambdas (optional — see below)
+├── backend/               FastAPI: catalog, orders, and the SSE stream (optional — see below)
 │   ├── app/               the API
-│   ├── lambdas/           push sender (Python), SSE streamer (TypeScript)
-│   └── scripts/           build, seed, VAPID generation
-└── infra/                 Terraform: Lambda, API Gateway, DynamoDB, SQS
+│   └── scripts/           deploy to ECR, sync fixtures
+├── notification-service/  Web Push sender: SQS-triggered Lambda, separate on purpose
+└── infra/                 Terraform: EC2 + ECR for the API, SQS + Lambda for notifications
 ```
 
 **The backend is optional.** With no `VITE_API_BASE_URL` set, `lib/api.ts` falls back to the JSON

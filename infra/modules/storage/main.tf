@@ -1,73 +1,12 @@
 /**
- * DynamoDB tables.
+ * The one table.
  *
- * Only what the API actually writes lives here. The read-only reference tables (patients, vendors,
- * offers, catalog) ship inside the Lambda bundle as JSON — copying them into DynamoDB would add
- * seeding work and buy nothing.
+ * Push subscriptions are the only state shared across a process boundary: the API container writes
+ * them, and the push Lambda in AWS reads and prunes them. Orders and their timeline live in the
+ * container's memory, seeded from the JSON fixtures — nothing else needs a database.
  *
- * On-demand billing throughout: no capacity planning, no idle cost.
+ * On-demand billing: no capacity planning, no idle cost.
  */
-
-resource "aws_dynamodb_table" "orders" {
-  name         = "${var.prefix}-orders"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "id"
-
-  attribute {
-    name = "id"
-    type = "S"
-  }
-
-  point_in_time_recovery {
-    enabled = var.enable_pitr
-  }
-
-  tags = { Name = "${var.prefix}-orders" }
-}
-
-resource "aws_dynamodb_table" "order_events" {
-  name         = "${var.prefix}-order-events"
-  billing_mode = "PAY_PER_REQUEST"
-
-  # Partitioned by order so a detail view reads one order's timeline in a single query.
-  hash_key  = "orderId"
-  range_key = "at"
-
-  attribute {
-    name = "orderId"
-    type = "S"
-  }
-
-  attribute {
-    name = "at"
-    type = "S"
-  }
-
-  attribute {
-    name = "stream"
-    type = "S"
-  }
-
-  attribute {
-    name = "seq"
-    type = "N"
-  }
-
-  # The SSE Lambda pages forward on a monotonic seq. Without this index it would have to scan the
-  # whole table every two seconds.
-  global_secondary_index {
-    name            = "by-seq"
-    hash_key        = "stream"
-    range_key       = "seq"
-    projection_type = "ALL"
-  }
-
-  point_in_time_recovery {
-    enabled = var.enable_pitr
-  }
-
-  tags = { Name = "${var.prefix}-order-events" }
-}
 
 resource "aws_dynamodb_table" "push_subscriptions" {
   name         = "${var.prefix}-push-subscriptions"

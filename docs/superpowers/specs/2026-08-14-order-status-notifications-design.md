@@ -1,7 +1,25 @@
 # Order status notifications — design
 
 **Date:** 2026-08-14
-**Status:** approved for planning
+**Status:** implemented, with amendments
+
+> **Amended 2026-08-15.** The API moved from Lambda to a container on EC2, which let SSE move
+> in-process and removed DynamoDB for orders. §4-§6 below describe the original Lambda design; see
+> [infra/README.md](../../../infra/README.md) for what is actually built. The reasoning in §3 (why
+> the frontend cannot send push) and the two-channel argument in §1 are unchanged and still the
+> point of the whole design.
+>
+> What changed and why:
+> - **SSE is served by FastAPI, not its own Lambda.** A Lambda holds one invocation per open
+>   connection and caps at 15 minutes; a container holds thousands of idle sockets on almost no CPU.
+>   The crossover is around 25-30 concurrent viewers, so Lambda was the worse scaler for exactly this
+>   workload. In-process fan-out also removed the ~2s poll latency.
+> - **The API is a container on EC2.** Forced by the above: API Gateway caps responses at 30s and
+>   does not stream, so SSE cannot live behind it.
+> - **DynamoDB is down to one table.** A long-running process holds orders in memory, so only push
+>   subscriptions — the state shared with the Lambda — still need storage.
+> - **Push moved to `notification-service/`.** It was nested inside `backend/`, which contradicted
+>   the separation the design argues for.
 
 A serverless backend and notification path so that when an order's status changes, the nurse's
 open tab updates live and their phone raises an OS notification even while asleep.

@@ -1,7 +1,8 @@
 version: '3'
 
 # BestRx - every command runs through Docker Compose so the app behaves the same for everyone.
-# The frontend is the only service today; the backend slot is commented out in docker-compose.yml.
+# Two services: the Vite frontend and the FastAPI backend. The notification service is serverless
+# and lives in AWS; it has no local container.
 
 vars:
   FRONTEND_DIR: ./frontend
@@ -9,6 +10,7 @@ vars:
   FRONTEND_URL: http://localhost:5173
   BACKEND_DIR: ./backend
   BACKEND_SERVICE: backend
+  NOTIFICATION_DIR: ./notification-service
   BACKEND_URL: http://localhost:8000
   INFRA_DIR: ./infra
   AWS_REGION: us-east-2
@@ -89,6 +91,7 @@ tasks:
     cmds:
       - task: test:frontend
       - task: test:backend
+      - task: test:notifications
 
   test:frontend:
     desc: "Typecheck and run frontend unit tests"
@@ -106,7 +109,13 @@ tasks:
     desc: "Run backend unit tests on the host (needs task backend:install first)"
     dir: "{{.BACKEND_DIR}}"
     cmds:
-      - uv run --extra dev --extra push pytest -q
+      - uv run --extra dev pytest -q
+
+  test:notifications:
+    desc: "Run notification service unit tests"
+    dir: "{{.NOTIFICATION_DIR}}"
+    cmds:
+      - uv run --extra dev pytest -q
 
   # ── Backend and infrastructure ───────────────────────────────────────────────
 
@@ -126,7 +135,7 @@ tasks:
     dir: "{{.BACKEND_DIR}}"
     cmds:
       - uv venv --python 3.12
-      - uv pip install -e ".[dev,push]"
+      - uv pip install -e ".[dev]"
 
   backend:dev:
     desc: "Run the API on the host without Docker (task start already runs it in a container)"
@@ -135,8 +144,8 @@ tasks:
       - uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   infra:build:
-    desc: "Build the three Lambda deployment packages"
-    dir: "{{.BACKEND_DIR}}"
+    desc: "Build the push Lambda deployment package"
+    dir: "{{.NOTIFICATION_DIR}}"
     cmds:
       - ./scripts/build.sh
 
@@ -154,15 +163,18 @@ tasks:
       - terraform -chdir={{.INFRA_DIR}} init -input=false
       - terraform -chdir={{.INFRA_DIR}} apply
 
-  infra:seed:
-    desc: "Load the JSON fixtures into DynamoDB (idempotent — rerun to reset a demo)"
+  infra:deploy:
+    desc: "Build the API image, push to ECR, and restart the container on EC2"
     dir: "{{.BACKEND_DIR}}"
+    env:
+      AWS_REGION: "{{.AWS_REGION}}"
+      AWS_PROFILE: "{{.AWS_PROFILE}}"
     cmds:
-      - uv run python scripts/seed.py --prefix {{.PREFIX}} --region {{.AWS_REGION}} --profile {{.AWS_PROFILE}}
+      - ./scripts/deploy.sh
 
   infra:vapid:
     desc: "Generate the VAPID keypair into Secrets Manager (run once, after the first apply)"
-    dir: "{{.BACKEND_DIR}}"
+    dir: "{{.NOTIFICATION_DIR}}"
     cmds:
       - uv run python scripts/generate_vapid.py --secret-id {{.PREFIX}}/vapid --region {{.AWS_REGION}} --profile {{.AWS_PROFILE}}
 
@@ -192,7 +204,7 @@ tasks:
       - rm -rf {{.FRONTEND_DIR}}/node_modules {{.FRONTEND_DIR}}/dist {{.FRONTEND_DIR}}/.vite node_modules
       - find {{.BACKEND_DIR}} -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
       - rm -rf {{.BACKEND_DIR}}/.venv {{.BACKEND_DIR}}/.pytest_cache {{.BACKEND_DIR}}/.ruff_cache
-      - rm -rf {{.BACKEND_DIR}}/build {{.BACKEND_DIR}}/data {{.BACKEND_DIR}}/lambdas/sse/node_modules {{.BACKEND_DIR}}/lambdas/sse/dist
+      - rm -rf {{.BACKEND_DIR}}/data {{.NOTIFICATION_DIR}}/build {{.NOTIFICATION_DIR}}/.venv
       - echo "Cleaned node_modules and build artifacts."
 
   clean:all:

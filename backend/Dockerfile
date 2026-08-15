@@ -1,18 +1,19 @@
 # syntax=docker/dockerfile:1
 
-# FastAPI, mirroring the frontend's dev/prod split.
+# The BestRx API.
+#
+# This image is the deployment artifact: the prod stage is what runs on EC2, and the dev stage is
+# what docker-compose runs locally. Not a Lambda package — the process holds SSE connections open.
 #
 # The build context is the repo root, not ./backend, because the JSON fixtures live in
 # frontend/src/data and Docker cannot copy from outside its context. See docker-compose.yml.
 
 # ── Base ────────────────────────────────────────────────────────────────────────
-# Matches the Lambda runtime (python3.12) so a dependency that works here works deployed.
 FROM python:3.12-slim AS base
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Bytecode compiled at build time rather than on each cold start; no .pyc written back into a
-# read-only layer at runtime.
+# Bytecode compiled at build time rather than on every start; nothing written back at runtime.
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     UV_COMPILE_BYTECODE=1 \
@@ -24,17 +25,16 @@ WORKDIR /app
 # Manifest first so the dependency layer caches across source edits.
 COPY backend/pyproject.toml ./
 RUN uv pip install --system \
-    fastapi pydantic "uvicorn[standard]" mangum boto3
+    fastapi pydantic "uvicorn[standard]" boto3
 
 
 # ── Development ─────────────────────────────────────────────────────────────────
 FROM base AS dev
 
-# pytest and the push dependencies, so `docker compose exec backend pytest` works.
-RUN uv pip install --system pytest httpx "moto[dynamodb,sqs]" ruff pywebpush
+# pytest here so `task test:backend` runs inside the container.
+RUN uv pip install --system pytest pytest-asyncio httpx "moto[dynamodb,sqs]" ruff
 
 COPY backend/app ./app
-COPY backend/lambdas ./lambdas
 COPY backend/tests ./tests
 COPY backend/scripts ./scripts
 
@@ -49,14 +49,12 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload
 
 
 # ── Production ──────────────────────────────────────────────────────────────────
-# Not how this deploys — AWS runs the Lambda package built by scripts/build.sh. This image exists so
-# the container runs the same way anywhere, and to catch packaging problems locally.
 FROM base AS prod
 
 COPY backend/app ./app
 COPY frontend/src/data/*.json ./data/
 
-# Non-root: nothing here needs to write to the filesystem.
+# Non-root: nothing here writes to the filesystem.
 RUN useradd --create-home --uid 1000 bestrx \
     && chown -R bestrx:bestrx /app
 USER bestrx
@@ -66,4 +64,7 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)"
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# One worker on purpose. SSE subscribers are held in this process's memory, so a second worker would
+# serve a client that never receives events written by the first. Scaling past one instance needs a
+# shared broker (Redis pub/sub) rather than more workers.
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

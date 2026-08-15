@@ -14,6 +14,7 @@ coverage/
 
 # Future backend
 __pycache__/
+*.egg-info/
 *.py[cod]
 .venv/
 .pytest_cache/
@@ -34,7 +35,7 @@ terraform.tfvars
 # Zipped Lambda packages, produced by archive_file.
 infra/modules/*/.build/
 
-# Lambda deployment packages, produced by backend/scripts/build.sh.
-backend/build/
+# Lambda deployment package, produced by notification-service/scripts/build.sh.
+notification-service/build/
 # Fixtures copied from frontend/src/data at build time. The frontend's copy is the original.
 backend/data/

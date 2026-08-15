@@ -115,19 +115,24 @@ The JSON files are still the source of truth. What changes is who reads them.
 
 | | No backend configured | Backend deployed |
 |---|---|---|
-| Reference tables (patients, vendors, offers, catalog, reviews) | `db.ts` reads the JSON | the API reads the same JSON, bundled into the Lambda |
-| `orders`, `order_events` | `db.ts` reads the JSON | DynamoDB, seeded from the JSON |
-| Writes (create order, change status) | rejected — no backend to write to | DynamoDB, plus an SQS message for push |
+| Reference tables (patients, vendors, offers, catalog, reviews) | `db.ts` reads the JSON | the API reads the same JSON, bundled into its image |
+| `orders`, `order_events` | `db.ts` reads the JSON | the API's memory, seeded from the JSON at startup |
+| Writes (create order, change status) | rejected — no backend to write to | the API's memory, plus an SQS message for push |
+| Push subscriptions | n/a | DynamoDB — the one table |
 
-Only the two written tables move to DynamoDB. Everything else is read-only, so copying it into a
-database would add seeding work and buy nothing.
+**Nothing about orders is persisted.** The API is a long-running container, so it holds them in
+memory; a restart reloads the fixtures and discards every write. Deliberate for a demo, and stated
+in [backend/README.md](../backend/README.md) rather than hidden.
 
-`backend/scripts/build.sh` copies `frontend/src/data/*.json` into `backend/data/` at build time, and
-`backend/data/` is gitignored — there is only ever one copy of a table under version control.
+Push subscriptions are the exception: the API container writes them and the push Lambda in AWS reads
+them, so they need storage both processes can reach.
 
-Two fields exist in DynamoDB that are not in the JSON: `order_events` rows carry a monotonic `seq`
-and a constant `stream` partition, which is what lets the SSE Lambda page forward and a reconnecting
-browser resume exactly where it left off. `backend/scripts/seed.py` assigns them in timeline order.
+The Dockerfile copies `frontend/src/data/*.json` into the image at build time, and `backend/data/`
+is gitignored — there is only ever one copy of a table under version control.
+
+One field exists at runtime that is not in the JSON: each event carries a monotonic `seq`, assigned
+in timeline order at startup. SSE pages forward on it, so a reconnecting browser resumes exactly
+where it left off.
 
 See [infra/README.md](../infra/README.md) for the deployment, and
 [docs/superpowers/specs/2026-08-14-order-status-notifications-design.md](superpowers/specs/2026-08-14-order-status-notifications-design.md)

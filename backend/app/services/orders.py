@@ -1,7 +1,7 @@
 """Order creation and status transitions.
 
-`change_status` is the spine of the whole design: it validates, writes the order, appends the event
-that feeds SSE, and enqueues the message that feeds push. Keeping it in one place means the two
+`change_status` is the spine of the design: it validates, writes the order, appends the event that
+feeds SSE, and enqueues the message that feeds push. Keeping it in one place means the two
 notification channels can never disagree about what happened.
 """
 
@@ -19,13 +19,13 @@ from ..lifecycle import (
     describe,
     is_known_status,
 )
-from ..repository import Repository
+from ..store import OrderStore
 from . import notifications
 
 Row = dict[str, Any]
 
-# The dataset is Mountain time (see docs/DATA_MODEL.md) and timestamps are compared as strings in
-# places, so new rows must use the same offset as the fixtures.
+# The dataset is Mountain time (see docs/DATA_MODEL.md), so new rows must use the same offset as the
+# fixtures they sit alongside.
 MOUNTAIN = timezone(timedelta(hours=-6))
 
 
@@ -54,30 +54,18 @@ def now_iso() -> str:
     return datetime.now(MOUNTAIN).isoformat(timespec="seconds")
 
 
-def _next_order_id(repository: Repository) -> str:
-    """Continue the DME-##### series the fixtures use."""
-    highest = 0
-    for order in repository.list_orders():
-        raw = str(order.get("id", ""))
-        if raw.startswith("DME-"):
-            suffix = raw[4:]
-            if suffix.isdigit():
-                highest = max(highest, int(suffix))
-    return f"DME-{max(highest, 10000) + 1}"
-
-
-def _next_event_id(repository: Repository, order_id: str) -> str:
-    existing = len(repository.events_for_order(order_id))
+def _next_event_id(store: OrderStore, order_id: str) -> str:
+    existing = len(store.events_for_order(order_id))
     return f"EVT-{order_id[4:]}-{existing + 1:03d}"
 
 
 def list_orders(
-    repository: Repository,
+    store: OrderStore,
     hospice_id: str | None = None,
     patient_id: str | None = None,
     status: str | None = None,
 ) -> list[Row]:
-    orders = repository.list_orders()
+    orders = store.list_orders()
     if hospice_id:
         orders = [o for o in orders if o.get("hospiceId") == hospice_id]
     if patient_id:
@@ -87,21 +75,21 @@ def list_orders(
     return sorted(orders, key=lambda order: str(order.get("orderedAt") or ""), reverse=True)
 
 
-def get_order_with_timeline(repository: Repository, order_id: str) -> tuple[Row, list[Row]]:
-    order = repository.get_order(order_id)
+def get_order_with_timeline(store: OrderStore, order_id: str) -> tuple[Row, list[Row]]:
+    order = store.get_order(order_id)
     if order is None:
         raise OrderNotFound(order_id)
-    return order, repository.events_for_order(order_id)
+    return order, store.events_for_order(order_id)
 
 
-def create_order(repository: Repository, settings: Settings, payload: Row) -> Row:
+def create_order(store: OrderStore, settings: Settings, payload: Row) -> Row:
     """Create an order in `ordered` state and open its timeline."""
     patient_id = payload["patientId"]
     if find_by("patients", "id", patient_id) is None:
         raise UnknownPatient(patient_id)
 
     timestamp = now_iso()
-    order_id = _next_order_id(repository)
+    order_id = store.next_order_id()
 
     order: Row = {
         "id": order_id,
@@ -121,24 +109,24 @@ def create_order(repository: Repository, settings: Settings, payload: Row) -> Ro
         "eta": None,
         "notes": payload.get("notes", ""),
     }
-    repository.put_order(order)
+    store.put_order(order)
 
     event = {
-        "id": _next_event_id(repository, order_id),
+        "id": _next_event_id(store, order_id),
         "orderId": order_id,
         "at": timestamp,
         "event": "ordered",
         "actorId": payload.get("orderedById"),
         "detail": describe("ordered", order_id),
     }
-    stored_event = repository.append_event(event)
+    stored_event = store.append_event(event)
 
     notifications.publish_status_change(settings, order, stored_event)
     return order
 
 
 def change_status(
-    repository: Repository,
+    store: OrderStore,
     settings: Settings,
     order_id: str,
     target: str,
@@ -147,9 +135,10 @@ def change_status(
 ) -> tuple[Row, Row]:
     """Move an order to `target`, append its event, and enqueue a push.
 
-    Returns the updated order and the event that was written.
+    Appending the event fans it out to every connected SSE client; the enqueue hands it to the
+    notification service. Returns the updated order and the event that was written.
     """
-    order = repository.get_order(order_id)
+    order = store.get_order(order_id)
     if order is None:
         raise OrderNotFound(order_id)
 
@@ -169,17 +158,17 @@ def change_status(
         order["eta"] = timestamp
         order["riskState"] = None
 
-    repository.put_order(order)
+    store.put_order(order)
 
     event = {
-        "id": _next_event_id(repository, order_id),
+        "id": _next_event_id(store, order_id),
         "orderId": order_id,
         "at": timestamp,
         "event": target,
         "actorId": actor_id,
         "detail": detail or describe(target, order_id),
     }
-    stored_event = repository.append_event(event)
+    stored_event = store.append_event(event)
 
     notifications.publish_status_change(settings, order, stored_event)
     return order, stored_event

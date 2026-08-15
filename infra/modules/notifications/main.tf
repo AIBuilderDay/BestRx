@@ -160,8 +160,9 @@ resource "aws_lambda_function" "push" {
   memory_size = 512
   timeout     = var.lambda_timeout
 
-  # Bounds how fast the queue drains. Without a cap, a burst of status changes could consume the
-  # account's entire Lambda concurrency and starve the API.
+  # Bounds how fast the queue drains, so a burst of status changes cannot consume the account's
+  # entire Lambda concurrency and starve the API. Off (-1) by default — Lambda rejects any
+  # reservation on an account whose total concurrency limit is 10.
   reserved_concurrent_executions = var.reserved_concurrency
 
   environment {

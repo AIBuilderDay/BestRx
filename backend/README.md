@@ -1,45 +1,39 @@
 # backend
 
-FastAPI service plus the two notification Lambdas. Deployed by [`infra/`](../infra/).
+The BestRx API: catalog, orders, and the live order-status stream. A FastAPI container — locally
+under docker-compose, on EC2 in AWS.
+
+Push notifications are a separate service: [../notification-service/](../notification-service/).
 
 ```
 Dockerfile          dev and prod stages; built from the repo root (see below)
-app/                the API
-├── main.py         FastAPI app + Mangum handler
+app/
+├── main.py         the FastAPI app
 ├── config.py       environment-driven settings
 ├── lifecycle.py    the order status state machine
-├── repository.py   DynamoDB, with an in-memory fallback
+├── store.py        orders, events, and the SSE fan-out
+├── subscriptions.py push subscriptions (the one thing in DynamoDB)
 ├── fixtures.py     read-only access to the JSON tables
-├── routers/        HTTP endpoints
+├── routers/        HTTP endpoints, including /stream
 └── services/       order logic and the SQS publisher
 
-lambdas/
-├── push/           SQS-triggered Web Push sender (Python)
-└── sse/            Function URL streamer (TypeScript — see below)
-
-scripts/            build, seed, VAPID generation
-tests/              pytest
+scripts/
+├── deploy.sh       build, push to ECR, restart the container on EC2
+└── sync-data.sh    copy fixtures for running on the host
+tests/
 ```
 
 The Dockerfile builds from the **repo root**, not `./backend` — the JSON fixtures live in
-`frontend/src/data/` and Docker cannot copy from outside its build context. `docker-compose.yml`
-sets `context: .` accordingly.
-
-Its `prod` stage is not how this deploys: AWS runs the Lambda package from `scripts/build.sh`. The
-stage exists so the container runs the same way anywhere and so packaging problems surface locally.
+`frontend/src/data/` and Docker cannot copy from outside its build context.
 
 ## Running locally
 
 ```bash
-task start              # frontend on :5173, API on :8000, docs at :8000/docs
+task start              # frontend :5173, API :8000, docs at :8000/docs
 ```
 
-Both run in Docker. The frontend waits for the API's healthcheck before starting, so it never comes
-up pointing at a backend that is not ready.
-
-With no environment configured the API serves the JSON fixtures from `frontend/src/data/` (mounted
-read-only) and keeps writes in memory. No AWS account, no credentials, no DynamoDB. Writes vanish on
-restart, which is fine for local work.
+No AWS account and no credentials. Orders live in memory, seeded from the fixtures at startup, and
+SSE fans out in-process.
 
 ```bash
 task backend:logs       # tail just the API
@@ -49,19 +43,6 @@ task test:backend       # pytest inside the container
 
 Editing anything under `backend/app/` reloads the running server through the bind mount.
 
-**Without Docker**, if you want the API on the host:
-
-```bash
-task backend:install    # creates .venv, also what editor tooling reads
-task backend:dev
-```
-
-`GET /health` reports which mode it is in:
-
-```json
-{ "status": "ok", "storage": "memory", "pushEnabled": false }
-```
-
 ## Endpoints
 
 | Method | Path | |
@@ -70,12 +51,13 @@ task backend:dev
 | `GET` | `/orders/{id}` | order plus its event timeline |
 | `POST` | `/orders` | create |
 | `PATCH` | `/orders/{id}/status` | **drives both notification channels** |
+| `GET` | `/stream` | **SSE** — live order status |
 | `GET` | `/patients` | filter by `hospiceId`, `caseManagerId` |
 | `GET` | `/products` | vendor offers — per-vendor pricing |
 | `GET` | `/equipment` | the HCPCS catalog |
 | `GET` | `/vendors` | |
 | `GET`/`POST`/`DELETE` | `/push/public-key`, `/push/subscribe` | browser subscriptions |
-| `GET` | `/health` | |
+| `GET` | `/health` | also reports connected stream clients |
 
 ### The one endpoint that matters
 
@@ -83,17 +65,30 @@ task backend:dev
 
 1. Validates the transition
 2. Writes the new status
-3. Appends an event row — **this feeds SSE**
-4. Enqueues one SQS message — **this feeds Web Push**
+3. Appends an event — **fanned out immediately to every connected SSE client**
+4. Enqueues one SQS message — **the notification service takes it from there**
 
-It never calls a push service itself. That is the whole point of the queue: a slow or failing FCM
-cannot make an order update slow or fail.
+It never calls a push service itself. That is the point of the queue: a slow or failing FCM cannot
+make an order update slow or fail.
 
 Invalid transitions return `409` with what *is* possible:
 
 ```json
 { "detail": { "message": "...", "currentStatus": "ordered", "allowedNext": ["dispatched"] } }
 ```
+
+## SSE
+
+`GET /stream` holds a connection open and pushes events as they happen. No polling: a status change
+hands the event straight to each subscriber's queue, so latency is the network rather than an
+interval.
+
+- **`Last-Event-ID`** is honoured, so a browser reconnect resumes without a gap. `?since=N` is the
+  manual equivalent.
+- **`?hospiceId=`** filters, so a nurse is not woken by another network's orders.
+- **A comment frame every 15s** keeps proxies from dropping an idle connection.
+- **A slow client is dropped, not waited on.** Its queue is bounded; a client that falls too far
+  behind resyncs on reconnect rather than stalling the write path.
 
 ## Status lifecycle
 
@@ -102,22 +97,30 @@ delivery:  ordered → dispatched → in_transit → delivered
 pickup:    pickup_triggered → picked_up
 ```
 
-Forward only, no skipping, no crossing between tracks. `delivered` and `picked_up` are terminal.
-Mirrors `OrderStatus` in `frontend/src/types/domain.ts`.
+Forward only, no skipping, no crossing tracks. `delivered` and `picked_up` are terminal. Mirrors
+`OrderStatus` in `frontend/src/types/domain.ts`.
 
-## Data
+## Where state lives
 
-Read-only tables (patients, vendors, offers, catalog) are served straight from the JSON fixtures and
-ship inside the Lambda bundle. Only `orders`, `order_events`, and `push_subscriptions` are in
-DynamoDB, because only those are written.
+**Orders and events: in this process's memory**, seeded from the JSON fixtures at startup. A
+long-running container can hold them, so it does — no database to provision, no seeding step, and a
+restart returns the dataset to a known-good state.
 
-`scripts/build.sh` copies `frontend/src/data/*.json` into `backend/data/` at build time —
-`backend/data/` is gitignored so there is only ever one copy under version control.
+The cost, stated plainly: **writes do not survive a restart.** Fine for a demo; not a production
+design.
 
-## Why the SSE Lambda is TypeScript
+**Push subscriptions: DynamoDB.** The one piece of state that crosses a process boundary — this
+container writes them, the push Lambda in AWS reads them. In memory they would be lost on every
+restart, silently unsubscribing every nurse.
 
-Lambda response streaming is only implemented for the Node runtime. Python cannot hold an SSE
-connection on Lambda at all. Everything else here is Python.
+## Scaling
+
+One uvicorn worker on purpose. SSE subscribers live in this process's memory, so a second worker
+would serve clients that never receive events written by the first.
+
+A single process handles thousands of mostly-idle SSE connections comfortably. Going beyond one
+instance needs a shared broker (Redis pub/sub) so every instance sees every event — a real change,
+not a config flag.
 
 ## Tests
 
@@ -125,6 +128,16 @@ connection on Lambda at all. Everything else here is Python.
 task test:backend
 ```
 
-Covers the transition rules including every rejected edge, that a status change enqueues exactly one
-message, that a failed enqueue does not fail the order update, and that a dead push subscription is
-deleted rather than retried forever.
+Covers the transition rules including every rejected edge, that a status change reaches a connected
+SSE client, that a stale cursor does not silence the stream, that a slow client is dropped rather
+than blocking the write path, that hospice filtering works, and that a failed SQS enqueue does not
+fail the order update.
+
+## Deploying
+
+```bash
+task infra:apply     # provisions EC2, ECR, SQS, the subscriptions table
+task infra:deploy    # builds the image, pushes to ECR, restarts the container
+```
+
+See [../infra/README.md](../infra/README.md).

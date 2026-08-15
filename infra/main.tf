@@ -5,18 +5,20 @@
  * Those are two different mechanisms and both are needed: an SSE connection dies when the tab
  * closes, and Web Push is the only thing that survives a sleeping device.
  *
- *   PATCH /orders/{id}/status
- *     -> DynamoDB order + event        -> SSE Lambda streams it to open tabs
- *     -> SQS push queue                -> push Lambda signs with VAPID -> browser push service
+ *   PATCH /orders/{id}/status   (FastAPI on EC2)
+ *     -> in-process fan-out  -> SSE to every connected tab
+ *     -> SQS push queue      -> push Lambda -> VAPID -> browser push service
+ *
+ * The API is a container, not a Lambda, because it holds SSE connections open. The notification
+ * service is serverless because it is bursty and idle most of the time — each side gets the compute
+ * model that fits it.
  *
  * Apply order matters on a first run — see README.md.
  */
 
 locals {
-  # Built by `task infra:build`. Terraform zips these; it does not build them.
-  api_build_dir  = "${path.module}/../backend/build/api"
-  push_build_dir = "${path.module}/../backend/build/push"
-  sse_build_dir  = "${path.module}/../backend/build/sse"
+  # Built by `task infra:build`. Terraform zips this; it does not build it.
+  push_build_dir = "${path.module}/../notification-service/build"
 }
 
 module "storage" {
@@ -25,7 +27,7 @@ module "storage" {
   prefix = var.prefix
 }
 
-# Created before the API, which needs the queue URL to enqueue into.
+# Created before compute, which needs the queue URL to enqueue into.
 module "notifications" {
   source = "./modules/notifications"
 
@@ -42,38 +44,21 @@ module "notifications" {
   log_retention_days   = var.log_retention_days
 }
 
-module "api" {
-  source = "./modules/api"
+module "compute" {
+  source = "./modules/compute"
 
-  prefix    = var.prefix
-  build_dir = local.api_build_dir
+  prefix     = var.prefix
+  aws_region = var.aws_region
 
-  orders_table_name             = module.storage.orders_table_name
-  orders_table_arn              = module.storage.orders_table_arn
-  order_events_table_name       = module.storage.order_events_table_name
-  order_events_table_arn        = module.storage.order_events_table_arn
-  order_events_index_arn        = module.storage.order_events_index_arn
-  push_subscriptions_table_name = module.storage.push_subscriptions_table_name
-  push_subscriptions_table_arn  = module.storage.push_subscriptions_table_arn
+  instance_type = var.instance_type
+  allowed_cidrs = var.api_allowed_cidrs
 
   push_queue_url = module.notifications.push_queue_url
   push_queue_arn = module.notifications.push_queue_arn
 
-  vapid_public_key   = var.vapid_public_key
-  cors_origins       = var.cors_origins
-  log_retention_days = var.log_retention_days
-}
+  push_subscriptions_table_name = module.storage.push_subscriptions_table_name
+  push_subscriptions_table_arn  = module.storage.push_subscriptions_table_arn
 
-module "sse" {
-  source = "./modules/sse"
-
-  prefix    = var.prefix
-  build_dir = local.sse_build_dir
-
-  order_events_table_name = module.storage.order_events_table_name
-  order_events_table_arn  = module.storage.order_events_table_arn
-  order_events_index_arn  = module.storage.order_events_index_arn
-
-  cors_origins       = var.cors_origins
-  log_retention_days = var.log_retention_days
+  vapid_public_key = var.vapid_public_key
+  cors_origins     = var.cors_origins
 }

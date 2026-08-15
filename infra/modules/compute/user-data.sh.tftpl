@@ -1,0 +1,56 @@
+#!/bin/bash
+# Boot the BestRx API container.
+#
+# Runs on first boot, and again whenever this file changes (user_data_replace_on_change).
+# Logs land in /var/log/cloud-init-output.log.
+set -euxo pipefail
+
+dnf update -y
+dnf install -y docker
+systemctl enable --now docker
+
+# The instance role grants ECR read access, so no credentials are stored on disk.
+aws ecr get-login-password --region ${aws_region} \
+  | docker login --username AWS --password-stdin ${ecr_repository_url}
+
+cat >/etc/bestrx.env <<'ENVFILE'
+AWS_REGION=${aws_region}
+PUSH_QUEUE_URL=${push_queue_url}
+PUSH_SUBSCRIPTIONS_TABLE=${push_subscriptions_table}
+VAPID_PUBLIC_KEY=${vapid_public_key}
+CORS_ORIGINS=${cors_origins}
+ENVFILE
+chmod 600 /etc/bestrx.env
+
+# systemd rather than `docker run -d`: this restarts the container after a crash or a reboot.
+cat >/etc/systemd/system/bestrx-api.service <<'UNIT'
+[Unit]
+Description=BestRx API
+After=docker.service
+Requires=docker.service
+
+[Service]
+Restart=always
+RestartSec=5
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker rm -f bestrx-api
+ExecStartPre=/usr/bin/docker pull ECR_URL:latest
+ExecStart=/usr/bin/docker run --rm --name bestrx-api \
+  -p 8000:8000 \
+  --env-file /etc/bestrx.env \
+  ECR_URL:latest
+ExecStop=/usr/bin/docker stop bestrx-api
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+
+# The unit is written with a heredoc quoted against shell expansion, so the URL is substituted here.
+sed -i "s|ECR_URL|${ecr_repository_url}|g" /etc/systemd/system/bestrx-api.service
+
+systemctl daemon-reload
+systemctl enable bestrx-api
+
+# On a first apply the repository is empty — the image is pushed by scripts/deploy.sh afterwards.
+# Starting anyway is harmless: Restart=always means the service comes up as soon as an image exists.
+systemctl start bestrx-api || true

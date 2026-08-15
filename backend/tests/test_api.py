@@ -11,8 +11,9 @@ def test_health_reports_wiring(client: TestClient) -> None:
 
     body = response.json()
     assert body["status"] == "ok"
-    assert body["storage"] == "memory"
     assert body["pushEnabled"] is False
+    assert body["subscriptionsPersisted"] is False
+    assert body["streamClients"] == 0
 
 
 def test_list_orders(client: TestClient) -> None:

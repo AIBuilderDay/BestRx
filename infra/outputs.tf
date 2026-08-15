@@ -1,19 +1,34 @@
 output "api_url" {
-  description = "Base URL of the API. Set this as VITE_API_BASE_URL in frontend/.env."
-  value       = module.api.api_url
+  description = "Base URL of the API. Set as VITE_API_BASE_URL in frontend/.env."
+  value       = module.compute.api_url
 }
 
 output "sse_url" {
-  description = "SSE stream URL. Set this as VITE_SSE_URL in frontend/.env."
-  value       = module.sse.sse_url
+  description = "SSE endpoint. Served by the same container as the API."
+  value       = "${module.compute.api_url}/stream"
 }
 
 output "frontend_env" {
   description = "Paste this straight into frontend/.env."
   value       = <<-EOT
-    VITE_API_BASE_URL=${module.api.api_url}
-    VITE_SSE_URL=${module.sse.sse_url}
+    VITE_API_BASE_URL=${module.compute.api_url}
+    VITE_SSE_URL=${module.compute.api_url}/stream
   EOT
+}
+
+output "ecr_repository_url" {
+  description = "Where the API image is pushed. scripts/deploy.sh uses this."
+  value       = module.compute.ecr_repository_url
+}
+
+output "instance_id" {
+  description = "EC2 instance running the API."
+  value       = module.compute.instance_id
+}
+
+output "public_ip" {
+  description = "Elastic IP of the API host. Stable across instance replacement."
+  value       = module.compute.public_ip
 }
 
 output "vapid_secret_id" {
@@ -31,20 +46,17 @@ output "push_dlq_url" {
   value       = module.notifications.push_dlq_url
 }
 
-output "tables" {
-  description = "DynamoDB table names, for seeding and debugging."
-  value = {
-    orders             = module.storage.orders_table_name
-    order_events       = module.storage.order_events_table_name
-    push_subscriptions = module.storage.push_subscriptions_table_name
-  }
+output "push_subscriptions_table" {
+  description = "The only DynamoDB table: state shared between the API and the push Lambda."
+  value       = module.storage.push_subscriptions_table_name
 }
 
-output "log_commands" {
-  description = "Ready-made commands for tailing each Lambda."
+output "commands" {
+  description = "Ready-made commands for operating the stack."
   value = {
-    api  = "aws logs tail /aws/lambda/${module.api.function_name} --follow --region ${var.aws_region} --profile ${var.aws_profile}"
-    push = "aws logs tail /aws/lambda/${module.notifications.function_name} --follow --region ${var.aws_region} --profile ${var.aws_profile}"
-    sse  = "aws logs tail /aws/lambda/${module.sse.function_name} --follow --region ${var.aws_region} --profile ${var.aws_profile}"
+    ssh       = "aws ssm start-session --target ${module.compute.instance_id} --region ${var.aws_region} --profile ${var.aws_profile}"
+    api_logs  = "aws ssm start-session --target ${module.compute.instance_id} --region ${var.aws_region} --profile ${var.aws_profile} --document-name AWS-StartInteractiveCommand --parameters command='docker logs -f bestrx-api'"
+    push_logs = "aws logs tail /aws/lambda/${module.notifications.function_name} --follow --region ${var.aws_region} --profile ${var.aws_profile}"
+    health    = "curl -s ${module.compute.api_url}/health"
   }
 }

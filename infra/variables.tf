@@ -47,6 +47,24 @@ variable "cors_origins" {
   default     = ["http://localhost:5173"]
 }
 
+variable "instance_type" {
+  description = <<-EOT
+    EC2 instance for the API container. Graviton by default: cheaper than the x86 equivalent and the
+    image is already built for arm64. t4g.small is roughly $12/month.
+  EOT
+  type        = string
+  default     = "t4g.small"
+}
+
+variable "api_allowed_cidrs" {
+  description = <<-EOT
+    Who may reach the API on port 8000. Open by default because the stack has no authentication —
+    narrow this to your own address if the instance will be up for longer than a demo.
+  EOT
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
 variable "app_url" {
   description = "Base URL of the frontend. Used to build the click-through link in a notification."
   type        = string
@@ -72,7 +90,11 @@ variable "push_lambda_reserved_concurrency" {
   description = <<-EOT
     Cap on concurrent push Lambdas. Bounds how fast the queue drains so a burst of status changes
     cannot exhaust the account's Lambda pool. -1 disables the cap.
+
+    Defaults to -1: a fresh AWS account has a total concurrency limit of 10, and Lambda refuses any
+    reservation that would drop unreserved concurrency below 10. Set a positive cap once the
+    account's concurrency quota has been raised.
   EOT
   type        = number
-  default     = 5
+  default     = -1
 }

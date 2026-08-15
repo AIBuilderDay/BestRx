@@ -74,6 +74,9 @@ class OrderWithTimeline(BaseModel):
 
 class HealthResponse(BaseModel):
     status: Literal["ok"]
-    storage: Literal["dynamodb", "memory"]
     pushEnabled: bool
+    """False locally: subscriptions are in memory and do not survive a restart."""
+    subscriptionsPersisted: bool
+    """How many browsers currently hold an SSE connection."""
+    streamClients: int
     knownStatuses: list[str] = Field(default_factory=lambda: list(ALL_STATUSES))
