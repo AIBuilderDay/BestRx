@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { readSession, writeSession } from './lib/auth';
+import { can, readSession, writeSession } from './lib/auth';
 import type { User } from './types/domain';
 import Cart from './views/Cart';
 import Catalog from './views/Catalog';
 import Login from './views/Login';
+import NurseAssignment from './views/NurseAssignment';
 import Orders from './views/Orders';
 import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
@@ -45,6 +46,18 @@ export default function App() {
             <Route
               path="/patients/:patientId"
               element={user ? <PatientDetail user={user} onSignOut={signOut} /> : toLogin}
+            />
+            <Route
+              path="/assignments"
+              element={
+                user && can(user, 'nurse-assignment') ? (
+                  <NurseAssignment user={user} onSignOut={signOut} />
+                ) : user ? (
+                  <Navigate to="/catalog" replace />
+                ) : (
+                  toLogin
+                )
+              }
             />
             <Route path="*" element={<Navigate to="/catalog" replace />} />
           </Routes>

@@ -6,12 +6,10 @@ import type { User } from "../../types/domain";
 import { Logo } from "../ui/Logo";
 import { ProfileMenu } from "./ProfileMenu";
 
-export type NavSection = "catalog" | "orders" | "patients";
+export type NavSection = "catalog" | "orders" | "patients" | "assignments";
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permissions: Permission[] }[] = [
-  { label: "Pickups", permissions: ["pickup:trigger"] },
-  { label: "Costs", permissions: ["reporting"] },
   { label: "Vendors", permissions: ["vendors:manage"] },
 ];
 
@@ -34,6 +32,11 @@ const SEARCH_BY_SECTION: Record<
   },
   patients: {
     path: "/patients",
+    placeholder: "Search patients or MRN…",
+    label: "Search patients",
+  },
+  assignments: {
+    path: "/assignments",
     placeholder: "Search patients or MRN…",
     label: "Search patients",
   },
@@ -63,11 +66,17 @@ export function TopNav({
     setQuery(urlQuery);
   }, [urlQuery]);
 
+  // Push the query into the URL so the active view filters. `replace` on live typing keeps the
+  // back button clean; Enter pushes a real history entry.
+  const runSearch = (raw: string, replace: boolean) => {
+    const q = raw.trim();
+    const { path } = SEARCH_BY_SECTION[activeSection];
+    navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path, { replace });
+  };
+
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const q = query.trim();
-    const { path } = SEARCH_BY_SECTION[activeSection];
-    navigate(q ? `${path}?q=${encodeURIComponent(q)}` : path);
+    runSearch(query, false);
   };
 
   const searchMeta = SEARCH_BY_SECTION[activeSection];
@@ -111,6 +120,15 @@ export function TopNav({
               Patients
             </Link>
           ) : null}
+          {can(user, "nurse-assignment") ? (
+            <Link
+              to="/assignments"
+              aria-current={activeSection === "assignments" ? "page" : undefined}
+              className={linkClass("assignments")}
+            >
+              Assignments
+            </Link>
+          ) : null}
           {GATED_SECTIONS.filter((s) =>
             s.permissions.some((p) => can(user, p)),
           ).map((s) => (
@@ -145,7 +163,10 @@ export function TopNav({
         <input
           type="search"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            runSearch(e.target.value, true);
+          }}
           placeholder={searchMeta.placeholder}
           aria-label={searchMeta.label}
           className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
