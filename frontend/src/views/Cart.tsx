@@ -18,7 +18,7 @@ const ROLE_BUDGET_LABEL: Partial<Record<UserRole, string>> = {
 
 const MONTH_FMT = new Intl.DateTimeFormat('en-US', { month: 'long' });
 
-export default function Cart({ user }: { user: User }) {
+export default function Cart({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const hospice = getHospice(user.orgId);
   const { lines, cartGroups, cartTotals: totals, setCartLineQty, clearCart, cartOpen, setCartOpen } = useCart();
   const navigate = useNavigate();
@@ -86,7 +86,7 @@ export default function Cart({ user }: { user: User }) {
 
   return (
     <div className="min-h-screen bg-bg">
-      <TopNav user={user} cartCount={unitCount} activeSection="catalog" onOpenCart={() => setCartOpen(true)} />
+      <TopNav user={user} cartCount={unitCount} activeSection="catalog" onOpenCart={() => setCartOpen(true)} onSignOut={onSignOut} />
 
       <div className="mx-auto max-w-[1120px] px-6 pb-24 pt-8 sm:px-8">
         <div className="text-xs text-ink-3">{hospice?.name ?? 'Hospice'} / Catalog / Cart</div>

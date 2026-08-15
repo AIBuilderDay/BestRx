@@ -10,7 +10,7 @@ import {
 } from '../lib/patients';
 import type { User } from '../types/domain';
 
-export default function Patients({ user }: { user: User }) {
+export default function Patients({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { cartCount, setCartOpen } = useCart();
   const [query, setQuery] = useState('');
 
@@ -28,6 +28,7 @@ export default function Patients({ user }: { user: User }) {
         cartCount={cartCount}
         activeSection="patients"
         onOpenCart={() => setCartOpen(true)}
+        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
@@ -38,13 +39,31 @@ export default function Patients({ user }: { user: User }) {
               {caseloadSubtitle(caseload, attentionTotal)}
             </div>
           </div>
-          <input
-            type="text"
-            placeholder="Search patients or MRN"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-[250px] rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-ink"
-          />
+          <div className="relative w-[250px]">
+            <svg
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3"
+            >
+              <circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <line
+                x1="13.2"
+                y1="13.2"
+                x2="17"
+                y2="17"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search patients or MRN"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full rounded-lg border border-line-strong bg-surface py-2 pl-9 pr-3 text-sm text-ink outline-none focus:border-ink"
+            />
+          </div>
         </div>
 
         {filtered.length === 0 ? (

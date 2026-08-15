@@ -37,16 +37,17 @@ export function CatalogPagination({
         {firstItem}–{lastItem} of {totalItems} items
       </div>
       <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          aria-label="Previous page"
-          title="Previous page"
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-          className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          ←
-        </button>
+        {page > 1 ? (
+          <button
+            type="button"
+            aria-label="Previous page"
+            title="Previous page"
+            onClick={() => onPageChange(page - 1)}
+            className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
+          >
+            ←
+          </button>
+        ) : null}
         {pages.map((pageNumber) => (
           <button
             key={pageNumber}
@@ -63,16 +64,17 @@ export function CatalogPagination({
             {pageNumber}
           </button>
         ))}
-        <button
-          type="button"
-          aria-label="Next page"
-          title="Next page"
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
-          className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          →
-        </button>
+        {page < totalPages ? (
+          <button
+            type="button"
+            aria-label="Next page"
+            title="Next page"
+            onClick={() => onPageChange(page + 1)}
+            className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
+          >
+            →
+          </button>
+        ) : null}
       </div>
     </nav>
   );

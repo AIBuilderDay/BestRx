@@ -10,7 +10,6 @@ import Dashboard from './views/Dashboard';
 import Login from './views/Login';
 import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
-import Settings from './views/Settings';
 
 /**
  * Routed app with /login as a real route, so signing in pushes a history entry and the browser
@@ -44,21 +43,24 @@ export default function App() {
               path="/dashboard"
               element={
                 user ? (
-                  can(user, 'reporting') ? <Dashboard user={user} /> : <Navigate to="/catalog" replace />
+                  can(user, 'reporting') ? (
+                    <Dashboard user={user} onSignOut={signOut} />
+                  ) : (
+                    <Navigate to="/catalog" replace />
+                  )
                 ) : (
                   toLogin
                 )
               }
             />
-            <Route path="/catalog/:offerId" element={user ? <Catalog user={user} /> : toLogin} />
-            <Route path="/catalog" element={user ? <Catalog user={user} /> : toLogin} />
-            <Route path="/cart" element={user ? <Cart user={user} /> : toLogin} />
-            <Route path="/patients" element={user ? <Patients user={user} /> : toLogin} />
+            <Route path="/catalog/:offerId" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/catalog" element={user ? <Catalog user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/cart" element={user ? <Cart user={user} onSignOut={signOut} /> : toLogin} />
+            <Route path="/patients" element={user ? <Patients user={user} onSignOut={signOut} /> : toLogin} />
             <Route
               path="/patients/:patientId"
-              element={user ? <PatientDetail user={user} /> : toLogin}
+              element={user ? <PatientDetail user={user} onSignOut={signOut} /> : toLogin}
             />
-            <Route path="/settings" element={user ? <Settings user={user} onSignOut={signOut} /> : toLogin} />
             <Route path="*" element={<Navigate to="/catalog" replace />} />
           </Routes>
         </CartProvider>

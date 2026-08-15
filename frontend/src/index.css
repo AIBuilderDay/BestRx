@@ -15,7 +15,8 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-/* Keep quantity controls custom and consistent across browsers. */
+/* Keep quantity controls custom and consistent across browsers. Recent Chrome ignores
+   appearance:textfield on number inputs, so the spin buttons are hidden explicitly too. */
 .quantity-input {
   appearance: textfield;
   -moz-appearance: textfield;
@@ -23,8 +24,44 @@ button:not(:disabled) {
 
 .quantity-input::-webkit-inner-spin-button,
 .quantity-input::-webkit-outer-spin-button {
+  display: none;
   margin: 0;
   appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Product card meta block.
+
+   Every card must be the same height no matter how long the product or vendor name runs,
+   so each row gets a fixed height rather than sizing to its content. Tailwind has no
+   utility for "two lines of this exact leading", hence the explicit calc(). */
+.product-card-meta {
+  display: grid;
+  grid-auto-rows: min-content;
+  row-gap: 0.625rem; /* identical spacing name -> delivery -> vendor */
+  padding-top: 0.875rem;
+}
+
+/* Every row uses the same line-height so the three rows sit on an even rhythm. Without
+   this, the delivery row's larger bold day count grows its line box past the smaller text
+   around it, adding space below that row only and making the gaps look unequal. */
+.product-card-meta > * {
+  line-height: 1.25rem;
+}
+
+.product-card-meta > * > * {
+  line-height: inherit;
+}
+
+/* Reserve two lines on the product name itself (not the row) so a one-line name still
+   fills the same box. Padding the row instead would widen the gap below it and break the
+   even rhythm between the three rows. */
+.product-card-meta .product-card-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: calc(1.25rem * 2);
 }
 
 /* A disqualified vendor's price bar. Striped so a cheap-but-failing vendor never reads as "good"
