@@ -79,6 +79,17 @@ export function getCaseloadPatients(userId: string, hospiceId: string): Patient[
   );
 }
 
+/**
+ * Portraits ship as a 400px WebP plus an `@2x` 800px variant (see `scripts/optimize-portraits.ts`).
+ * Returns the `srcSet` for those two, or undefined for the placeholder SVGs, which have no variants
+ * and need none.
+ */
+export function portraitSrcSet(imagePath: string | undefined): string | undefined {
+  if (!imagePath?.endsWith('.webp')) return undefined;
+  const base = imagePath.slice(0, -'.webp'.length);
+  return `${imagePath} 400w, ${base}@2x.webp 800w`;
+}
+
 /** Patients with an `imagePath` on file first; the rest follow alphabetically. */
 export function sortCaseload(caseload: Patient[]): Patient[] {
   return [...caseload].sort((a, b) => {

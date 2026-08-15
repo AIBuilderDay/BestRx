@@ -291,7 +291,7 @@
     },
     "caseManagerId": "USR-001",
     "dischargeAt": "2026-08-15T20:00:00-06:00",
-    "imagePath": "/images/patients/pt-88605.png"
+    "imagePath": "/images/patients/pt-88605.webp"
   },
   {
     "id": "PT-88606",
@@ -314,7 +314,7 @@
       "zip": "84111"
     },
     "caseManagerId": "USR-001",
-    "imagePath": "/images/patients/pt-88606.png"
+    "imagePath": "/images/patients/pt-88606.webp"
   },
   {
     "id": "PT-88607",
@@ -337,7 +337,7 @@
       "zip": "84115"
     },
     "caseManagerId": "USR-001",
-    "imagePath": "/images/patients/pt-88607.png"
+    "imagePath": "/images/patients/pt-88607.webp"
   },
   {
     "id": "PT-88608",
@@ -360,7 +360,7 @@
       "zip": "84117"
     },
     "caseManagerId": "USR-001",
-    "imagePath": "/images/patients/pt-88608.png"
+    "imagePath": "/images/patients/pt-88608.webp"
   },
   {
     "id": "PT-88609",
@@ -383,7 +383,7 @@
       "zip": "84121"
     },
     "caseManagerId": "USR-001",
-    "imagePath": "/images/patients/pt-88609.png"
+    "imagePath": "/images/patients/pt-88609.webp"
   },
   {
     "id": "PT-88610",
@@ -406,7 +406,7 @@
       "zip": "84124"
     },
     "caseManagerId": "USR-001",
-    "imagePath": "/images/patients/pt-88610.png"
+    "imagePath": "/images/patients/pt-88610.webp"
   },
   {
     "id": "PT-88611",
@@ -430,7 +430,7 @@
     },
     "caseManagerId": "USR-010",
     "dischargeAt": "2026-08-16T02:00:00-06:00",
-    "imagePath": "/images/patients/pt-88611.png"
+    "imagePath": "/images/patients/pt-88611.webp"
   },
   {
     "id": "PT-88612",
@@ -453,7 +453,7 @@
       "zip": "84103"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88612.png"
+    "imagePath": "/images/patients/pt-88612.webp"
   },
   {
     "id": "PT-88613",
@@ -476,7 +476,7 @@
       "zip": "84105"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88613.png"
+    "imagePath": "/images/patients/pt-88613.webp"
   },
   {
     "id": "PT-88614",
@@ -499,7 +499,7 @@
       "zip": "84106"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88614.png"
+    "imagePath": "/images/patients/pt-88614.webp"
   },
   {
     "id": "PT-88615",
@@ -522,7 +522,7 @@
       "zip": "84107"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88615.png"
+    "imagePath": "/images/patients/pt-88615.webp"
   },
   {
     "id": "PT-88616",
@@ -545,7 +545,7 @@
       "zip": "84111"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88616.png"
+    "imagePath": "/images/patients/pt-88616.webp"
   },
   {
     "id": "PT-88617",
@@ -569,7 +569,7 @@
     },
     "caseManagerId": "USR-010",
     "dischargeAt": "2026-08-16T08:00:00-06:00",
-    "imagePath": "/images/patients/pt-88617.png"
+    "imagePath": "/images/patients/pt-88617.webp"
   },
   {
     "id": "PT-88618",
@@ -592,7 +592,7 @@
       "zip": "84117"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88618.png"
+    "imagePath": "/images/patients/pt-88618.webp"
   },
   {
     "id": "PT-88619",
@@ -615,7 +615,7 @@
       "zip": "84121"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88619.png"
+    "imagePath": "/images/patients/pt-88619.webp"
   },
   {
     "id": "PT-88620",
@@ -638,7 +638,7 @@
       "zip": "84124"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88620.png"
+    "imagePath": "/images/patients/pt-88620.webp"
   },
   {
     "id": "PT-88621",
@@ -661,7 +661,7 @@
       "zip": "84102"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88621.png"
+    "imagePath": "/images/patients/pt-88621.webp"
   },
   {
     "id": "PT-88622",
@@ -684,6 +684,6 @@
       "zip": "84103"
     },
     "caseManagerId": "USR-010",
-    "imagePath": "/images/patients/pt-88622.png"
+    "imagePath": "/images/patients/pt-88622.webp"
   }
 ]

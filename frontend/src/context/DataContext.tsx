@@ -10,8 +10,10 @@
  */
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { setSnapshot } from '../data/store';
+import { applyOrderStatus, setSnapshot } from '../data/store';
 import { fetchSnapshot } from '../lib/api';
+import { useOrderStream } from '../hooks/useOrderStream';
+import type { OrderStatus } from '../types/domain';
 import { LoadingIndicator } from '../components/ui/LoadingIndicator';
 import { ErrorState } from '../components/ui/DataStates';
 
@@ -20,15 +22,21 @@ type Status = 'loading' | 'ready' | 'error';
 interface DataContextValue {
   /** Re-fetch every table. Used by the error retry and after a write that changes many rows. */
   reload: () => void;
+  /**
+   * Bumped whenever a live event mutates the snapshot. The tables live outside React, so a view
+   * that derives from them puts this in its `useMemo` deps to recompute when they change.
+   */
+  version: number;
 }
 
-const DataContext = createContext<DataContextValue>({ reload: () => {} });
+const DataContext = createContext<DataContextValue>({ reload: () => {}, version: 0 });
 
 export const useData = (): DataContextValue => useContext(DataContext);
 
 export function DataProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>('loading');
   const [error, setError] = useState<string>();
+  const [version, setVersion] = useState(0);
 
   const load = useCallback(() => {
     let cancelled = false;
@@ -54,11 +62,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(load, [load]);
 
+  // Live status changes, over SSE. Enabled only once the tables are in place — an event that
+  // arrives before them has no order to patch and would be dropped.
+  const handleUpdate = useCallback((update: { orderId: string; status: OrderStatus; at: string }) => {
+    if (applyOrderStatus(update.orderId, update.status, update.at)) {
+      setVersion((current) => current + 1);
+    }
+  }, []);
+
+  useOrderStream({ enabled: status === 'ready', onUpdate: handleUpdate });
+
   if (status === 'loading') return <LoadingIndicator label="Loading BestRx…" />;
 
   if (status === 'error') {
     return <ErrorState title="Could not load BestRx" message={error} onRetry={load} />;
   }
 
-  return <DataContext.Provider value={{ reload: load }}>{children}</DataContext.Provider>;
+  return (
+    <DataContext.Provider value={{ reload: load, version }}>{children}</DataContext.Provider>
+  );
 }

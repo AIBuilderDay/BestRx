@@ -257,8 +257,13 @@ login page to see a full HSP-001 caseload with orders. This is the nurse/case-ma
 until a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** portrait for patient cards and the detail rail. Lives under
-`public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
-Patients with an `imagePath` sort to the top of the caseload grid.
+`frontend/public/images/patients/`. When absent, the card shows a striped fallback with the patient
+id. Patients with an `imagePath` sort to the top of the caseload grid.
+
+Portraits ship as a 400px WebP plus an `@2x` 800px variant; `imagePath` points at the 400px file and
+the components build the `srcSet` from it via `portraitSrcSet()` in `lib/patients.ts`. Both are
+generated from full-resolution sources in `frontend/assets/patients/` (gitignored — 40MB of PNGs) by
+`pnpm images:portraits`. Re-run it after adding a portrait; commit only the generated `.webp` files.
 
 ## Family members & purchase requests (runtime stores, not frozen tables)
 

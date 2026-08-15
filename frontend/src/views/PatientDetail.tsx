@@ -11,6 +11,7 @@ import { FamilyRequestsSection } from '../components/patients/FamilyRequestsSect
 import { TopNav } from '../components/layout/TopNav';
 import { DetailReveal } from '../components/ui/DetailReveal';
 import { useCart } from '../context/CartContext';
+import { useData } from '../context/DataContext';
 import { getOrdersForPatient } from '../data/db';
 import { moneyLabel } from '../lib/catalog';
 import { buildOrderListItemVM, type OrderListItemVM } from '../lib/orders';
@@ -20,6 +21,7 @@ import type { User } from '../types/domain';
 export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const { cartCount, setCartOpen } = useCart();
+  const { version } = useData(); // bumps when a live status change lands
 
   const [tab, setTab] = useState<PatientTab>('Orders');
   const [invoiceItem, setInvoiceItem] = useState<OrderListItemVM | null>(null);
@@ -33,7 +35,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
   // The same view-model the Orders list renders, so a patient's orders look identical there.
   const orderItems = useMemo(
     () => (patientId && inCaseload ? getOrdersForPatient(patientId).map(buildOrderListItemVM) : []),
-    [patientId, inCaseload],
+    [patientId, inCaseload, version],
   );
 
   const handleCallVendor = (item: OrderListItemVM) => {

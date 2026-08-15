@@ -41,3 +41,6 @@ notification-service/build/
 backend/data/
 # Browser-automation scratch output. Never part of the repo.
 .playwright-mcp/
+# Full-resolution portrait sources. Converted to WebP by frontend/scripts/optimize-portraits.ts;
+# only the generated files in public/images/patients/ ship. 40MB of PNGs stays out of git.
+frontend/assets/

@@ -21,6 +21,7 @@ import type {
   InventoryUnit,
   Order,
   OrderEvent,
+  OrderStatus,
   Patient,
   PatientNote,
   ProductReview,
@@ -90,6 +91,39 @@ export const upsertOrder = (order: Order): void => {
       ? [order, ...snapshot.orders]
       : snapshot.orders.map((existing, i) => (i === index ? order : existing));
   snapshot = { ...snapshot, orders };
+};
+
+/**
+ * Apply a live status change from the SSE stream to the orders table.
+ *
+ * Only the fields the status itself determines are touched — everything else on the order stays as
+ * the snapshot had it. An event for an order this session has never seen is ignored rather than
+ * fabricating a row: the stream carries the status, not the order.
+ *
+ * Returns whether anything changed, so the caller can skip a re-render on a no-op.
+ */
+export const applyOrderStatus = (
+  orderId: string,
+  status: OrderStatus,
+  at: string,
+): boolean => {
+  const index = snapshot.orders.findIndex((o) => o.id === orderId);
+  if (index === -1) return false;
+
+  const current = snapshot.orders[index];
+  if (current.status === status) return false;
+
+  const patch: Partial<Order> = { status };
+  // The two terminal states carry a timestamp the views read directly.
+  if (status === 'delivered') patch.deliveredAt = at;
+  if (status === 'pickup_triggered') patch.pickupTriggeredAt = at;
+  if (status === 'picked_up') patch.pickedUpAt = at;
+
+  const orders = snapshot.orders.map((existing, i) =>
+    i === index ? { ...existing, ...patch } : existing,
+  );
+  snapshot = { ...snapshot, orders };
+  return true;
 };
 
 export const appendOrderEvent = (event: OrderEvent): void => {

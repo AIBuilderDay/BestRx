@@ -8,7 +8,7 @@ import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
 import WcOutlinedIcon from '@mui/icons-material/WcOutlined';
 import type { SvgIconComponent } from '@mui/icons-material';
-import type { PatientRailFact } from '../../lib/patients';
+import { portraitSrcSet, type PatientRailFact } from '../../lib/patients';
 import { AddressMapPreview } from './AddressMapPreview';
 
 const FACT_ICONS: Record<PatientRailFact['icon'], SvgIconComponent> = {
@@ -94,7 +94,13 @@ export function PatientIdentityRail({
         {imagePath && !imgBroken ? (
           <img
             src={imagePath}
+            srcSet={portraitSrcSet(imagePath)}
+            // Full width on a phone, then the fixed identity column beside the tab content.
+            sizes="(min-width: 1024px) 340px, 100vw"
             alt={fullName}
+            // The portrait is this page's largest element — fetch it with the document, not after.
+            fetchPriority="high"
+            decoding="async"
             onError={() => setImgBroken(true)}
             className="h-full w-full object-cover"
           />

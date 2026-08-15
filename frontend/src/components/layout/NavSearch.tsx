@@ -1,30 +1,53 @@
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { looksLikeOrderCommand } from '../../lib/ai/agentOrder';
 import { runAgentOrder } from '../../lib/ai/client';
+import { flattenCommands, searchCommands } from '../../lib/commandSearch';
+import type { CommandResult } from '../../lib/commandSearch';
 import { burstAtCart, flyCometToCart } from '../../lib/fx/agentComet';
 import type { User } from '../../types/domain';
 import { useCart } from '../../context/CartContext';
+import { CommandResults, FILTER_ROW_ID } from './CommandResults';
+import type { FilterRow } from './CommandResults';
+import type { NavSection } from './TopNav';
 
 type Mode = 'search' | 'ai';
 
 const PLACEHOLDERS: Record<Mode, string> = {
-  search: 'Search equipment…',
+  search: 'Search patients, orders, equipment, or pages…',
   ai: 'Ask, or command — "order a hospital bed for Harold"',
 };
 
 /**
- * The top-nav search bar with the Search / ✦ AI switch (mockups/enhanced-search.html).
- * Plain mode is exactly the old keyword search. AI mode routes deterministically:
- * order-shaped commands go to the agent (fills the cart, human confirms checkout);
- * everything else becomes an AI-ranked search on the catalog. Any AI failure lands
- * on plain search results — this bar never dead-ends.
+ * Routes that own a searchable list. On these, typing keeps filtering the page in place through
+ * `?q=` — the behavior the old per-section bar had — *and* opens the jump dropdown, whose first row
+ * just names the filtering that already happened.
+ *
+ * Keyed by pathname rather than by section on purpose: a patient's detail page reports the
+ * "patients" section so its nav link stays lit, but it has no list, and filtering there would
+ * navigate the user off the record they are reading.
+ */
+const FILTERABLE: Record<string, { noun: string }> = {
+  '/orders': { noun: 'Orders' },
+  '/patients': { noun: 'Patients' },
+  '/assignments': { noun: 'Assignments' },
+};
+
+/**
+ * The app-wide command bar: search, jump, and the AI ordering agent in one input.
+ *
+ * Search mode is deterministic and instant — every row comes from the in-memory snapshot through
+ * `searchCommands`, which does the permission scoping so this component never decides who may see
+ * what. AI mode is unchanged: order-shaped commands run the agent, everything else becomes an
+ * AI-ranked catalog search. The dropdown is suppressed in AI mode, where Enter submits rather than
+ * picks, so the two interaction models never overlap.
  *
  * The agent runs on the API and writes the cart there through its MCP tools, so what comes back is
  * the cart the server already holds — this component renders it rather than building one.
  */
-export function NavSearch({ user }: { user: User }) {
+export function NavSearch({ user, activeSection }: { user: User; activeSection: NavSection }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const urlQuery = searchParams.get('q') ?? '';
   const [query, setQuery] = useState(urlQuery);
@@ -32,10 +55,15 @@ export function NavSearch({ user }: { user: User }) {
   const [thinking, setThinking] = useState(false);
   const [focused, setFocused] = useState(false);
   const [notice, setNotice] = useState('');
+  const [open, setOpen] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const aliveRef = useRef(true);
   const { adoptServerCart, setCartOpen, setAgentAdded } = useCart();
+
+  const filterable = FILTERABLE[pathname] ?? null;
 
   // Keep the input in step when the URL's q changes underneath us (back button, cleared search).
   useEffect(() => {
@@ -56,9 +84,55 @@ export function NavSearch({ user }: { user: User }) {
     return () => clearTimeout(timer);
   }, [notice]);
 
+  const groups = useMemo(
+    () => (mode === 'search' && query.trim() ? searchCommands(user, query) : []),
+    [user, query, mode],
+  );
+
+  const filterRow: FilterRow | null =
+    filterable && mode === 'search' && query.trim()
+      ? {
+          label: `Filter ${filterable.noun} for “${query.trim()}”`,
+          meta: 'Showing matches on this page',
+        }
+      : null;
+
+  // The arrow keys walk the filter row first, then every group in render order.
+  const walkable = useMemo(
+    () => [
+      ...(filterRow ? [FILTER_ROW_ID] : []),
+      ...flattenCommands(groups).map((r) => r.id),
+    ],
+    [filterRow, groups],
+  );
+
+  const resultsById = useMemo(() => {
+    const map = new Map<string, CommandResult>();
+    for (const result of flattenCommands(groups)) map.set(result.id, result);
+    return map;
+  }, [groups]);
+
+  const showDropdown = open && mode === 'search' && (filterRow !== null || groups.length > 0);
+
+  const closeDropdown = () => {
+    setOpen(false);
+    setActiveId(null);
+  };
+
+  // A click outside dismisses the dropdown without disturbing the query or any live filtering.
+  useEffect(() => {
+    if (!showDropdown) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) closeDropdown();
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [showDropdown]);
+
   const switchMode = (next: Mode) => {
     setMode(next);
     setNotice('');
+    closeDropdown();
     inputRef.current?.focus();
   };
 
@@ -74,12 +148,33 @@ export function NavSearch({ user }: { user: User }) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  // Tab inside the bar flips Search ↔ AI instead of leaving it. Shift+Tab still tabs out
-  // backwards, so the bar is never a keyboard trap.
+  const pick = (result: CommandResult) => {
+    closeDropdown();
+    inputRef.current?.blur();
+    navigate(result.to);
+  };
+
   const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'Tab' || e.shiftKey) return;
-    e.preventDefault();
-    switchMode(mode === 'search' ? 'ai' : 'search');
+    // Tab inside the bar flips Search ↔ AI instead of leaving it. Shift+Tab still tabs out
+    // backwards, so the bar is never a keyboard trap.
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      switchMode(mode === 'search' ? 'ai' : 'search');
+      return;
+    }
+    if (e.key === 'Escape' && showDropdown) {
+      e.preventDefault();
+      closeDropdown();
+      return;
+    }
+    if (!showDropdown || walkable.length === 0) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const step = e.key === 'ArrowDown' ? 1 : -1;
+      const current = activeId ? walkable.indexOf(activeId) : -1;
+      const next = (current + step + walkable.length) % walkable.length;
+      setActiveId(walkable[next] ?? null);
+    }
   };
 
   const placeAgentOrder = async (command: string) => {
@@ -122,10 +217,28 @@ export function NavSearch({ user }: { user: User }) {
     e.preventDefault();
     const q = query.trim();
     if (thinking) return;
+
     if (mode === 'search') {
-      navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
+      // Enter on a highlighted row jumps to it. The filter row needs no action — its filtering is
+      // already live — so it just closes.
+      if (showDropdown && activeId) {
+        if (activeId === FILTER_ROW_ID) {
+          closeDropdown();
+          return;
+        }
+        const result = resultsById.get(activeId);
+        if (result) {
+          pick(result);
+          return;
+        }
+      }
+      closeDropdown();
+      // Nothing highlighted: a section with its own list has already filtered it, so Enter is done.
+      // Everywhere else Enter means the catalog search it has always meant.
+      if (!filterable) navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog');
       return;
     }
+
     if (!q) {
       navigate('/catalog');
       return;
@@ -137,8 +250,24 @@ export function NavSearch({ user }: { user: User }) {
     navigate(`/catalog?q=${encodeURIComponent(q)}&ai=1`);
   };
 
+  const onChange = (value: string) => {
+    setQuery(value);
+    // AI mode waits for Enter — each submit is a model call, so we never fire one per keystroke.
+    if (mode !== 'search') return;
+    setOpen(true);
+    setActiveId(null);
+    const q = value.trim();
+    // A section with its own list filters in place; the catalog drives its storefront search the
+    // way it always has. On a section with no list (dashboard) typing only opens the dropdown.
+    if (filterable) {
+      navigate(q ? `${pathname}?q=${encodeURIComponent(q)}` : pathname, { replace: true });
+    } else if (activeSection === 'catalog') {
+      navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog', { replace: true });
+    }
+  };
+
   return (
-    <div className="relative w-full min-w-0">
+    <div ref={rootRef} className="relative w-full min-w-0">
       <div ref={shellRef} className={`ai-shell ${mode === 'ai' ? 'ai-on' : ''} ${thinking ? 'ai-thinking' : ''}`}>
         <form
           onSubmit={submit}
@@ -183,22 +312,23 @@ export function NavSearch({ user }: { user: User }) {
             ref={inputRef}
             type="search"
             value={query}
-            onChange={(e) => {
-              const value = e.target.value;
-              setQuery(value);
-              // Plain search filters live as you type. AI mode waits for Enter — each submit is a
-              // model call, so we never fire one per keystroke.
-              if (mode === 'search') {
-                const q = value.trim();
-                navigate(q ? `/catalog?q=${encodeURIComponent(q)}` : '/catalog', { replace: true });
-              }
-            }}
+            onChange={(e) => onChange(e.target.value)}
             onKeyDown={onInputKeyDown}
-            onFocus={() => setFocused(true)}
+            onFocus={() => {
+              setFocused(true);
+              if (query.trim()) setOpen(true);
+            }}
             onBlur={() => setFocused(false)}
             placeholder={PLACEHOLDERS[mode]}
-            aria-label={mode === 'ai' ? 'Ask AI or give an order command' : 'Search equipment'}
-            aria-keyshortcuts="Meta+K Control+K"
+            aria-label={
+              mode === 'ai'
+                ? 'Ask AI or give an order command'
+                : 'Search patients, orders, equipment, or pages'
+            }
+            aria-keyshortcuts="Meta+K Control+K Tab"
+            aria-describedby="nav-search-tab-hint"
+            aria-expanded={showDropdown}
+            aria-controls={showDropdown ? 'command-results' : undefined}
             data-testid="nav-search-input"
             className="w-full min-w-0 bg-transparent text-[12.5px] text-ink outline-none placeholder:text-ink-3"
           />
@@ -215,19 +345,45 @@ export function NavSearch({ user }: { user: User }) {
               <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="3" opacity="0.25" />
               <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
+          ) : focused ? (
+            // Focused, the useful hint is the mode switch — nobody discovers Tab on their own.
+            <span
+              aria-hidden="true"
+              className="hidden shrink-0 items-center gap-1 whitespace-nowrap text-[10px] font-medium text-ink-3 sm:flex"
+              data-testid="nav-search-tab-hint"
+            >
+              <kbd className="rounded border border-line px-1.5 py-0.5">Tab</kbd>
+              for {mode === 'search' ? 'AI' : 'Search'}
+            </span>
           ) : (
-            // The hint is a discovery aid — once the bar has focus the shortcut has done its job.
-            !focused && (
-              <kbd
-                aria-hidden="true"
-                className="hidden shrink-0 rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-3 sm:block"
-              >
-                ⌘K
-              </kbd>
-            )
+            // The shortcut hint is a discovery aid — once the bar has focus it has done its job.
+            <kbd
+              aria-hidden="true"
+              className="hidden shrink-0 rounded border border-line px-1.5 py-0.5 text-[10px] font-medium text-ink-3 sm:block"
+            >
+              ⌘K
+            </kbd>
           )}
         </form>
       </div>
+
+      {showDropdown ? (
+        <div id="command-results">
+          <CommandResults
+            groups={groups}
+            filterRow={filterRow}
+            activeId={activeId}
+            onPick={pick}
+            onPickFilter={closeDropdown}
+            onHoverItem={setActiveId}
+          />
+        </div>
+      ) : null}
+
+      {/* Always present so aria-describedby resolves; the visible hint above is decorative. */}
+      <span id="nav-search-tab-hint" className="sr-only">
+        Press Tab to switch between Search and AI mode.
+      </span>
       {/* Status toast under the bar: the agent's progress, then any fallback notice. */}
       {(thinking || notice) && (
         <div className="absolute left-0 mt-1.5 flex w-full justify-center" role="status" aria-live="polite">
