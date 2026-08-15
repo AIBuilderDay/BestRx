@@ -1,34 +1,31 @@
-output "api_url" {
-  description = "Base URL of the API. Set as VITE_API_BASE_URL in frontend/.env."
-  value       = module.compute.api_url
-}
+output "render_env" {
+  description = <<-EOT
+    Environment variables for the Render service. Contains a secret, so read it deliberately:
 
-output "sse_url" {
-  description = "SSE endpoint. Served by the same container as the API."
-  value       = "${module.compute.api_url}/stream"
-}
+      terraform output -raw render_env
 
-output "frontend_env" {
-  description = "Paste this straight into frontend/.env."
+    Paste into Render → your service → Environment. Never commit the result.
+  EOT
+  sensitive   = true
   value       = <<-EOT
-    VITE_API_BASE_URL=${module.compute.api_url}
-    VITE_SSE_URL=${module.compute.api_url}/stream
+    AWS_REGION=${var.aws_region}
+    AWS_ACCESS_KEY_ID=${module.render_access.access_key_id}
+    AWS_SECRET_ACCESS_KEY=${module.render_access.secret_access_key}
+    PUSH_QUEUE_URL=${module.notifications.push_queue_url}
+    PUSH_SUBSCRIPTIONS_TABLE=${module.storage.push_subscriptions_table_name}
+    VAPID_PUBLIC_KEY=${var.vapid_public_key}
+    CORS_ORIGINS=${join(",", var.cors_origins)}
   EOT
 }
 
-output "ecr_repository_url" {
-  description = "Where the API image is pushed. scripts/deploy.sh uses this."
-  value       = module.compute.ecr_repository_url
+output "render_access_key_id" {
+  description = "Access key id for the Render service. The secret is inside render_env."
+  value       = module.render_access.access_key_id
 }
 
-output "instance_id" {
-  description = "EC2 instance running the API."
-  value       = module.compute.instance_id
-}
-
-output "public_ip" {
-  description = "Elastic IP of the API host. Stable across instance replacement."
-  value       = module.compute.public_ip
+output "render_iam_user" {
+  description = "IAM user backing that key, for auditing exactly what it can do."
+  value       = module.render_access.user_name
 }
 
 output "vapid_secret_id" {
@@ -54,9 +51,8 @@ output "push_subscriptions_table" {
 output "commands" {
   description = "Ready-made commands for operating the stack."
   value = {
-    ssh       = "aws ssm start-session --target ${module.compute.instance_id} --region ${var.aws_region} --profile ${var.aws_profile}"
-    api_logs  = "aws ssm start-session --target ${module.compute.instance_id} --region ${var.aws_region} --profile ${var.aws_profile} --document-name AWS-StartInteractiveCommand --parameters command='docker logs -f bestrx-api'"
-    push_logs = "aws logs tail /aws/lambda/${module.notifications.function_name} --follow --region ${var.aws_region} --profile ${var.aws_profile}"
-    health    = "curl -s ${module.compute.api_url}/health"
+    push_logs  = "aws logs tail /aws/lambda/${module.notifications.function_name} --follow --region ${var.aws_region} --profile ${var.aws_profile}"
+    dlq_depth  = "aws sqs get-queue-attributes --queue-url ${module.notifications.push_dlq_url} --attribute-names ApproximateNumberOfMessages --region ${var.aws_region} --profile ${var.aws_profile}"
+    render_env = "terraform -chdir=infra output -raw render_env"
   }
 }

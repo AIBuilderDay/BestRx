@@ -42,27 +42,13 @@ variable "vapid_subject" {
 }
 
 variable "cors_origins" {
-  description = "Origins allowed to call the API and open the SSE stream."
+  description = <<-EOT
+    Origins allowed to call the API and open the SSE stream. The frontend is on Cloudflare Pages and
+    the API is on Render, so these are different origins and CORS is load-bearing — add the Pages
+    URL here before deploying.
+  EOT
   type        = list(string)
   default     = ["http://localhost:5173"]
-}
-
-variable "instance_type" {
-  description = <<-EOT
-    EC2 instance for the API container. Graviton by default: cheaper than the x86 equivalent and the
-    image is already built for arm64. t4g.small is roughly $12/month.
-  EOT
-  type        = string
-  default     = "t4g.small"
-}
-
-variable "api_allowed_cidrs" {
-  description = <<-EOT
-    Who may reach the API on port 8000. Open by default because the stack has no authentication —
-    narrow this to your own address if the instance will be up for longer than a demo.
-  EOT
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
 }
 
 variable "app_url" {

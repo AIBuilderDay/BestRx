@@ -5,13 +5,14 @@
  * Those are two different mechanisms and both are needed: an SSE connection dies when the tab
  * closes, and Web Push is the only thing that survives a sleeping device.
  *
- *   PATCH /orders/{id}/status   (FastAPI on EC2)
+ *   PATCH /orders/{id}/status   (FastAPI on Render)
  *     -> in-process fan-out  -> SSE to every connected tab
  *     -> SQS push queue      -> push Lambda -> VAPID -> browser push service
  *
- * The API is a container, not a Lambda, because it holds SSE connections open. The notification
- * service is serverless because it is bursty and idle most of the time — each side gets the compute
- * model that fits it.
+ * Only the notification service lives in AWS. The API runs on Render and the frontend on Cloudflare
+ * Pages — both free, both with real HTTPS, which browsers require before they will deliver Web Push
+ * at all. This stack is the queue, the Lambda, the one table they share, and a tightly scoped key
+ * for Render to reach them.
  *
  * Apply order matters on a first run — see README.md.
  */
@@ -27,7 +28,6 @@ module "storage" {
   prefix = var.prefix
 }
 
-# Created before compute, which needs the queue URL to enqueue into.
 module "notifications" {
   source = "./modules/notifications"
 
@@ -44,21 +44,13 @@ module "notifications" {
   log_retention_days   = var.log_retention_days
 }
 
-module "compute" {
-  source = "./modules/compute"
+# Least-privilege credentials for the API on Render: send to the queue, manage subscription rows,
+# nothing else.
+module "render_access" {
+  source = "./modules/render-access"
 
-  prefix     = var.prefix
-  aws_region = var.aws_region
+  prefix = var.prefix
 
-  instance_type = var.instance_type
-  allowed_cidrs = var.api_allowed_cidrs
-
-  push_queue_url = module.notifications.push_queue_url
-  push_queue_arn = module.notifications.push_queue_arn
-
-  push_subscriptions_table_name = module.storage.push_subscriptions_table_name
-  push_subscriptions_table_arn  = module.storage.push_subscriptions_table_arn
-
-  vapid_public_key = var.vapid_public_key
-  cors_origins     = var.cors_origins
+  push_queue_arn               = module.notifications.push_queue_arn
+  push_subscriptions_table_arn = module.storage.push_subscriptions_table_arn
 }

@@ -6,11 +6,11 @@ import { OrderStatusIcon } from './OrderStatusIcon';
 export function ProductsOrderedSection({
   equipment,
   onCallVendor,
-  onNewOrder,
 }: {
   equipment: PatientEquipmentVM[];
   onCallVendor: (item: PatientEquipmentVM) => void;
-  onNewOrder: () => void;
+  // Accepted but not rendered yet — the header has no "New order" action on it so far.
+  onNewOrder?: () => void;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
 

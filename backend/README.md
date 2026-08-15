@@ -1,7 +1,7 @@
 # backend
 
 The BestRx API: catalog, orders, and the live order-status stream. A FastAPI container — locally
-under docker-compose, on EC2 in AWS.
+under docker-compose, on Render in production.
 
 Push notifications are a separate service: [../notification-service/](../notification-service/).
 
@@ -18,7 +18,6 @@ app/
 └── services/       order logic and the SQS publisher
 
 scripts/
-├── deploy.sh       build, push to ECR, restart the container on EC2
 └── sync-data.sh    copy fixtures for running on the host
 tests/
 ```
@@ -55,7 +54,9 @@ Editing anything under `backend/app/` reloads the running server through the bin
 | `GET` | `/patients` | filter by `hospiceId`, `caseManagerId` |
 | `GET` | `/products` | vendor offers — per-vendor pricing |
 | `GET` | `/equipment` | the HCPCS catalog |
-| `GET` | `/vendors` | |
+| `GET` | `/vendors` | the simulated storefront vendors |
+| `GET` | `/real-vendors` | real scraped DME suppliers; filter by `state`, `scope`, `hcpcs`, `hospiceFocused` |
+| `GET` | `/real-vendors/{id}` | one supplier, with its source URL |
 | `GET`/`POST`/`DELETE` | `/push/public-key`, `/push/subscribe` | browser subscriptions |
 | `GET` | `/health` | also reports connected stream clients |
 
@@ -107,7 +108,8 @@ long-running container can hold them, so it does — no database to provision, n
 restart returns the dataset to a known-good state.
 
 The cost, stated plainly: **writes do not survive a restart.** Fine for a demo; not a production
-design.
+design. On Render's free tier a restart happens automatically after 15 idle minutes, not only on
+deploy.
 
 **Push subscriptions: DynamoDB.** The one piece of state that crosses a process boundary — this
 container writes them, the push Lambda in AWS reads them. In memory they would be lost on every
@@ -135,9 +137,15 @@ fail the order update.
 
 ## Deploying
 
+Render builds from `render.yaml` at the repo root and redeploys on push. Its environment comes from
+Terraform:
+
 ```bash
-task infra:apply     # provisions EC2, ECR, SQS, the subscriptions table
-task infra:deploy    # builds the image, pushes to ECR, restarts the container
+task infra:render-env    # prints the values, including a secret — do not commit
 ```
+
+**Free-tier behaviour worth knowing:** the service spins down after 15 minutes of inactivity and
+takes 30-60s to wake. Because orders are in memory, a spin-down also resets them to the seeded
+fixtures. Hit `/health` shortly before a demo.
 
 See [../infra/README.md](../infra/README.md).

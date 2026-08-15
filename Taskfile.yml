@@ -157,20 +157,16 @@ tasks:
       - terraform plan
 
   infra:apply:
-    desc: "Build the Lambdas and apply the Terraform stack"
+    desc: "Build the push Lambda and apply the Terraform stack"
     cmds:
       - task: infra:build
       - terraform -chdir={{.INFRA_DIR}} init -input=false
       - terraform -chdir={{.INFRA_DIR}} apply
 
-  infra:deploy:
-    desc: "Build the API image, push to ECR, and restart the container on EC2"
-    dir: "{{.BACKEND_DIR}}"
-    env:
-      AWS_REGION: "{{.AWS_REGION}}"
-      AWS_PROFILE: "{{.AWS_PROFILE}}"
+  infra:render-env:
+    desc: "Print the environment variables for Render (contains a secret — do not commit)"
     cmds:
-      - ./scripts/deploy.sh
+      - terraform -chdir={{.INFRA_DIR}} output -raw render_env
 
   infra:vapid:
     desc: "Generate the VAPID keypair into Secrets Manager (run once, after the first apply)"
@@ -178,14 +174,8 @@ tasks:
     cmds:
       - uv run python scripts/generate_vapid.py --secret-id {{.PREFIX}}/vapid --region {{.AWS_REGION}} --profile {{.AWS_PROFILE}}
 
-  infra:env:
-    desc: "Write frontend/.env pointing at the deployed stack"
-    cmds:
-      - terraform -chdir={{.INFRA_DIR}} output -raw frontend_env > {{.FRONTEND_DIR}}/.env
-      - echo "Wrote {{.FRONTEND_DIR}}/.env"
-
   infra:destroy:
-    desc: "Tear down the whole stack, including the tables and their data"
+    desc: "Tear down the AWS stack (Render and Pages are deleted in their own dashboards)"
     dir: "{{.INFRA_DIR}}"
     cmds:
       - terraform destroy

@@ -1,0 +1,5 @@
+# Client-side routing. React Router owns the paths, so every unmatched request serves index.html
+# and lets the app resolve it. Without this a deep link or a refresh on /patients returns 404.
+#
+# 200 rather than 302: the URL must stay as the user typed it, or routing sees the wrong path.
+/*  /index.html  200

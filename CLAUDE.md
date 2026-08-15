@@ -107,7 +107,7 @@ Don't memorize these — open the doc when the task touches it.
 | Data shapes, table relationships, where the mock DB lives | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) |
 | API endpoints, SSE, status lifecycle, running the backend | [backend/README.md](backend/README.md) |
 | Why push is its own service, and what the Lambda does | [notification-service/README.md](notification-service/README.md) |
-| Deploying to AWS, the two compute models, known limits | [infra/README.md](infra/README.md) |
+| Deploying: Render, Cloudflare Pages, AWS, and the known limits | [infra/README.md](infra/README.md) |
 | How we work: description → mockup → spec → tickets | [docs/WORKFLOW.md](docs/WORKFLOW.md) |
 | A feature's agreed scope before building it | [docs/specs/](docs/specs/) |
 | The specific unit of work you were handed | [docs/tickets/](docs/tickets/) |
@@ -150,7 +150,8 @@ BestRx/
 │   ├── app/               the API
 │   └── scripts/           deploy to ECR, sync fixtures
 ├── notification-service/  Web Push sender: SQS-triggered Lambda, separate on purpose
-└── infra/                 Terraform: EC2 + ECR for the API, SQS + Lambda for notifications
+├── infra/                 Terraform: SQS + Lambda + the one table, and a scoped key for Render
+└── render.yaml            the API's deployment; the frontend goes to Cloudflare Pages
 ```
 
 **The backend is optional.** With no `VITE_API_BASE_URL` set, `lib/api.ts` falls back to the JSON
