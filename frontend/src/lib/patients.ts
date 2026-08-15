@@ -230,10 +230,10 @@ export function pillClasses(tone: PillTone): string {
     case 'warn':
       return 'border-solid-bg bg-solid-bg text-solid-ink';
     case 'muted':
-      return 'border-[var(--color-line)] bg-[var(--color-bg-subtle)] text-[var(--color-ink-3)]';
+      return 'border-line bg-bg-subtle text-ink-3';
     case 'done':
     case 'plain':
     default:
-      return 'border-[var(--color-line-strong)] bg-surface text-[var(--color-ink-2)]';
+      return 'border-line-strong bg-surface text-ink-2';
   }
 }

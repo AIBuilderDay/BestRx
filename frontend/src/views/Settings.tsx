@@ -19,11 +19,11 @@ export default function Settings({ user, onSignOut }: { user: User; onSignOut: (
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
         <h1 className="text-[22px] font-semibold tracking-tight">Settings</h1>
 
-        <section className="mt-8 max-w-lg rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <section className="mt-8 max-w-lg rounded-card border border-line bg-surface p-5">
           <div className="flex items-center justify-between gap-6">
             <div>
               <h2 className="text-[15px] font-medium">Color mode</h2>
-              <p className="mt-1 text-[13px] text-[var(--color-ink-2)]">
+              <p className="mt-1 text-[13px] text-ink-2">
                 Switch between light and dark appearance.
               </p>
             </div>
@@ -37,8 +37,8 @@ export default function Settings({ user, onSignOut }: { user: User; onSignOut: (
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className={`relative h-7 w-12 shrink-0 rounded-full border transition-colors ${
                 theme === 'dark'
-                  ? 'border-[var(--color-ink)] bg-solid-bg'
-                  : 'border-[var(--color-line-strong)] bg-track'
+                  ? 'border-ink bg-solid-bg'
+                  : 'border-line-strong bg-track'
               }`}
             >
               <span
@@ -49,16 +49,16 @@ export default function Settings({ user, onSignOut }: { user: User; onSignOut: (
             </button>
           </div>
 
-          <p className="mt-4 text-xs text-[var(--color-ink-3)]">
-            Currently using <span className="font-medium text-[var(--color-ink-2)]">{theme} mode</span>.
+          <p className="mt-4 text-xs text-ink-3">
+            Currently using <span className="font-medium text-ink-2">{theme} mode</span>.
           </p>
         </section>
 
-        <section className="mt-6 max-w-lg rounded-[var(--radius-card)] border border-line bg-surface p-5">
+        <section className="mt-6 max-w-lg rounded-card border border-line bg-surface p-5">
           <div className="flex items-center justify-between gap-6">
             <div>
               <h2 className="text-[15px] font-medium">Account</h2>
-              <p className="mt-1 text-[13px] text-[var(--color-ink-2)]">
+              <p className="mt-1 text-[13px] text-ink-2">
                 Signed in as {user.name}.
               </p>
             </div>
@@ -67,7 +67,7 @@ export default function Settings({ user, onSignOut }: { user: User; onSignOut: (
               type="button"
               data-testid="log-out"
               onClick={onSignOut}
-              className="shrink-0 rounded-[var(--radius-control)] border border-line-strong bg-surface px-3.5 py-2 text-xs font-medium transition-colors hover:bg-hover"
+              className="shrink-0 rounded-control border border-line-strong bg-surface px-3.5 py-2 text-xs font-medium transition-colors hover:bg-hover"
             >
               Log out
             </button>

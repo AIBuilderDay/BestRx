@@ -25,7 +25,7 @@ export function ProductCard({
   return (
     <article className="h-full min-w-0">
       <div className="group relative flex h-full flex-col">
-        <div className="relative aspect-[3/4] overflow-hidden border border-[var(--color-line)] bg-bg-subtle transition-colors group-hover:border-[var(--color-line-strong)]">
+        <div className="relative aspect-[3/4] overflow-hidden border border-line bg-bg-subtle transition-colors group-hover:border-line-strong">
           {!imgBroken && (
             <img
               src={entry.imagePath}
@@ -43,13 +43,13 @@ export function ProductCard({
                     'repeating-linear-gradient(135deg, var(--track) 0 8px, var(--bg-subtle) 8px 16px)',
                 }}
               />
-              <div className="pointer-events-none absolute inset-x-2.5 top-2.5 grid gap-1 font-mono text-[11px] leading-tight text-[var(--color-ink-3)]">
+              <div className="pointer-events-none absolute inset-x-2.5 top-2.5 grid gap-1 font-mono text-[11px] leading-tight text-ink-3">
                 <span>{entry.hcpcs}</span>
                 <span className="max-w-[80%]">{entry.description}</span>
               </div>
             </>
           )}
-          <div className="absolute bottom-2.5 left-2.5 flex items-center overflow-hidden border border-[var(--color-line-strong)] bg-surface/94 backdrop-blur-sm transition-colors group-hover:border-[var(--color-ink)]">
+          <div className="absolute bottom-2.5 left-2.5 flex items-center overflow-hidden border border-line-strong bg-surface/94 backdrop-blur-sm transition-colors group-hover:border-ink">
             <button
               type="button"
               aria-label="Decrease quantity"
@@ -83,16 +83,16 @@ export function ProductCard({
             <div className="line-clamp-2 text-[13.5px] font-medium leading-5 tracking-tight">{entry.name}</div>
             <div className="shrink-0 font-mono text-[13.5px] tabular-nums">
               {moneyLabel(price.amount)}
-              {price.unit === '/mo' && <span className="text-[var(--color-ink-3)]">/mo</span>}
+              {price.unit === '/mo' && <span className="text-ink-3">/mo</span>}
             </div>
           </div>
-          <div className="truncate text-xs text-[var(--color-ink-2)]">
+          <div className="truncate text-xs text-ink-2">
             {vendors.length > 0 ? vendors.map((v) => v.name.replace('Sample ', '')).join(', ') : 'Vendor assigned at dispatch'}
           </div>
-          <div className="flex items-baseline gap-1 text-xs text-[var(--color-ink-3)]">
+          <div className="flex items-baseline gap-1 text-xs text-ink-3">
             {leadDays !== null ? (
               <>
-                <span className="font-mono font-medium tabular-nums text-[var(--color-ink)]">{leadDays}</span>
+                <span className="font-mono font-medium tabular-nums text-ink">{leadDays}</span>
                 <span>{leadDays === 1 ? 'day to deliver' : 'days to deliver'}</span>
               </>
             ) : (
@@ -113,7 +113,7 @@ export function ProductCard({
             type="button"
             onClick={onBuyNow}
             title="Order now"
-            className="border border-[var(--color-line-strong)] bg-surface px-3 py-2.5 text-[11px] uppercase tracking-[0.09em] text-[var(--color-ink-2)] transition-colors hover:border-[var(--color-ink)] hover:bg-solid-bg hover:text-solid-ink"
+            className="border border-line-strong bg-surface px-3 py-2.5 text-[11px] uppercase tracking-[0.09em] text-ink-2 transition-colors hover:border-ink hover:bg-solid-bg hover:text-solid-ink"
           >
             Order now
           </button>

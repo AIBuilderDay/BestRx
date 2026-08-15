@@ -23,10 +23,10 @@ export function OrderStatusIcon({ icon, className }: { icon: OrderDisplayIcon; c
   }
 
   const muted = icon === 'picked_up';
-  const stroke = muted ? 'var(--color-ink-3)' : 'var(--color-ink)';
+  const stroke = 'currentColor';
 
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" className={`flex-none ${className ?? ''}`} {...strokeProps} stroke={stroke}>
+    <svg width="20" height="20" viewBox="0 0 24 24" className={`flex-none ${muted ? 'text-ink-3' : 'text-ink'} ${className ?? ''}`} {...strokeProps} stroke={stroke}>
       {icon === 'ordered' && (
         <>
           <rect x="5" y="4" width="14" height="17" rx="2" />

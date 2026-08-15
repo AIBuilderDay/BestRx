@@ -11,7 +11,7 @@ export function PatientCard({ patient }: { patient: Patient }) {
   return (
     <Link to={`/patients/${patient.id}`} className="group block h-full min-w-0">
       <article className="h-full min-w-0">
-        <div className="relative aspect-[3/4] overflow-hidden border border-[var(--color-line)] bg-bg-subtle transition-colors group-hover:border-[var(--color-line-strong)]">
+        <div className="relative aspect-[3/4] overflow-hidden border border-line bg-bg-subtle transition-colors group-hover:border-line-strong">
           {imagePath && !imgBroken ? (
             <img
               src={imagePath}
@@ -27,7 +27,7 @@ export function PatientCard({ patient }: { patient: Patient }) {
                   backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 8px, var(--bg-subtle) 8px 16px)',
                 }}
               />
-              <div className="pointer-events-none absolute inset-x-2.5 top-2.5 font-mono text-[11px] leading-tight text-[var(--color-ink-3)]">
+              <div className="pointer-events-none absolute inset-x-2.5 top-2.5 font-mono text-[11px] leading-tight text-ink-3">
                 <span>{patient.id}</span>
               </div>
             </>

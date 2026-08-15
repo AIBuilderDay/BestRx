@@ -30,15 +30,15 @@ export function CartDrawer({
         }`}
       />
       <section
-        className={`fixed inset-y-0 right-0 z-50 flex w-98 max-w-[92vw] flex-col border-l border-[var(--color-line)] bg-surface shadow-2xl transition-transform duration-500 ${
+        className={`fixed inset-y-0 right-0 z-50 flex w-98 max-w-[92vw] flex-col border-l border-line bg-surface shadow-2xl transition-transform duration-500 ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--color-line)] px-5.5 pb-4 pt-5.5">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5.5 pb-4 pt-5.5">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.1em] text-[var(--color-ink-3)]">Cart</div>
+            <div className="text-[11px] uppercase tracking-[0.1em] text-ink-3">Cart</div>
             <div className="mt-1.5 text-lg tracking-tight">{unitCount ? `${unitCount} item${unitCount > 1 ? 's' : ''}` : 'Empty'}</div>
-            <div className="mt-1 text-xs text-[var(--color-ink-2)]">
+            <div className="mt-1 text-xs text-ink-2">
               {groups.length
                 ? `${groups.length} patient${groups.length > 1 ? 's' : ''} in this order`
                 : 'Equipment is assigned per patient as you add it.'}
@@ -48,7 +48,7 @@ export function CartDrawer({
             type="button"
             onClick={onClose}
             aria-label="Close cart"
-            className="p-1 text-[15px] leading-none text-[var(--color-ink-3)] transition-transform hover:rotate-90 hover:text-[var(--color-ink)]"
+            className="p-1 text-[15px] leading-none text-ink-3 transition-transform hover:rotate-90 hover:text-ink"
           >
             ✕
           </button>
@@ -58,9 +58,9 @@ export function CartDrawer({
           <div className="grid gap-5.5">
             {groups.map((g) => (
               <div key={g.patientId} className="animate-[chipIn_0.35s_cubic-bezier(0.2,0.7,0.2,1)_both]">
-                <div className="flex items-baseline justify-between gap-2.5 border-b border-[var(--color-ink)] pb-1.5">
+                <div className="flex items-baseline justify-between gap-2.5 border-b border-ink pb-1.5">
                   <span className="font-mono text-[12.5px] tabular-nums">{g.patientName}</span>
-                  <span className="text-[11px] text-[var(--color-ink-3)]">{g.patientMetaLine}</span>
+                  <span className="text-[11px] text-ink-3">{g.patientMetaLine}</span>
                 </div>
                 <div className="mt-3 grid gap-3">
                   {g.lines.map((l) => (
@@ -68,16 +68,16 @@ export function CartDrawer({
                       <img
                         src={l.imagePath}
                         alt=""
-                        className="aspect-[3/4] w-full border border-[var(--color-line)] bg-bg-subtle object-cover"
+                        className="aspect-[3/4] w-full border border-line bg-bg-subtle object-cover"
                       />
                       <div className="min-w-0">
                         <div className="text-[12.5px]">{l.name}</div>
-                        <div className="text-[11px] text-[var(--color-ink-3)]">{l.metaLine}</div>
+                        <div className="text-[11px] text-ink-3">{l.metaLine}</div>
                         {l.dupe && (
-                          <div className="mt-0.5 text-[11px] text-[var(--color-ink)]">{g.patientName} already has this item</div>
+                          <div className="mt-0.5 text-[11px] text-ink">{g.patientName} already has this item</div>
                         )}
                         <div className="mt-2 flex items-center gap-2.5">
-                          <span className="flex items-center overflow-hidden border border-[var(--color-line-strong)] transition-colors hover:border-[var(--color-ink)]">
+                          <span className="flex items-center overflow-hidden border border-line-strong transition-colors hover:border-ink">
                             <button
                               type="button"
                               aria-label="Decrease quantity"
@@ -107,7 +107,7 @@ export function CartDrawer({
                           <button
                             type="button"
                             onClick={() => onRemove(l.hcpcs, l.patientId)}
-                            className="text-[11px] text-[var(--color-ink-3)] underline decoration-1 underline-offset-2 transition-colors hover:text-[var(--color-ink)]"
+                            className="text-[11px] text-ink-3 underline decoration-1 underline-offset-2 transition-colors hover:text-ink"
                           >
                             Remove
                           </button>
@@ -124,26 +124,26 @@ export function CartDrawer({
             ))}
           </div>
           {empty && (
-            <div className="py-10 text-center text-[13px] text-[var(--color-ink-3)]">
+            <div className="py-10 text-center text-[13px] text-ink-3">
               Cart is empty. Add to cart, then choose the patients it is for.
             </div>
           )}
         </div>
 
-        <div className="grid gap-2.5 border-t border-[var(--color-line)] px-5.5 pb-5.5 pt-4">
+        <div className="grid gap-2.5 border-t border-line px-5.5 pb-5.5 pt-4">
           {totals.monthly > 0 && (
             <div className="flex items-baseline justify-between text-[13px]">
-              <span className="text-[var(--color-ink-2)]">Monthly (rentals)</span>
+              <span className="text-ink-2">Monthly (rentals)</span>
               <span className="font-mono tabular-nums">{moneyLabel(totals.monthly)}/mo</span>
             </div>
           )}
           {totals.oneTime > 0 && (
             <div className="flex items-baseline justify-between text-[13px]">
-              <span className="text-[var(--color-ink-2)]">One-time (purchases)</span>
+              <span className="text-ink-2">One-time (purchases)</span>
               <span className="font-mono tabular-nums">{moneyLabel(totals.oneTime)}</span>
             </div>
           )}
-          <div className="text-[11.5px] text-[var(--color-ink-3)]">
+          <div className="text-[11.5px] text-ink-3">
             {unitCount
               ? totals.slowestKnownLeadDays !== null
                 ? `Longest known vendor lead time ${totals.slowestKnownLeadDays === 1 ? 'next day' : `${totals.slowestKnownLeadDays} days`}${totals.hasUnknownVendor ? ' · vendor pending on some items' : ''} · billed to hospice contract`

@@ -10,7 +10,7 @@ export function AddressMapPreview({
   const src = `https://www.google.com/maps?q=${query}&z=15&output=embed`;
 
   return (
-    <div className="mt-3 overflow-hidden border border-[var(--color-line)] bg-[var(--color-bg-subtle)]">
+    <div className="mt-3 overflow-hidden border border-line bg-bg-subtle">
       <iframe
         title={`Map preview for ${addressLine1}`}
         src={src}

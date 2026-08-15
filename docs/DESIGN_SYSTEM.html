@@ -147,9 +147,8 @@
 </p>
 
 <div class="note">
-  <p><b>This file is both the reference and the spec.</b> Open it in a browser to see the system;
-  read it as text to build against it. It is the one HTML file agents should read as well as humans.
-  The values here are implemented once, in <code>frontend/src/index.css</code>.</p>
+  <p><b>Token source of truth for the app:</b> <code>frontend/src/styles/tokens.css</code>, imported
+  by <code>frontend/src/index.css</code>. Keep this file's values in sync when you change the palette.</p>
   <p><b>Anyone can change this as we go.</b> It is a starting point, not a rulebook. The only rule:
   change it <i>here</i> and in <code>index.css</code>, rather than working around it inside one
   component. Token or pattern changes affect everyone's screens, so keep them in a small standalone
@@ -211,6 +210,9 @@
       <tr><td>--ink-2</td><td><code>text-ink-2</code></td><td>Secondary text, labels</td></tr>
       <tr><td>--ink-3</td><td><code>text-ink-3</code></td><td>Breadcrumbs, axis labels, timestamps</td></tr>
       <tr><td>--solid-bg / --solid-ink</td><td><code>bg-solid-bg</code>, <code>text-solid-ink</code></td><td>Primary buttons, active pills, tooltips. Inverts in dark mode</td></tr>
+      <tr><td>--radius-control</td><td><code>rounded-control</code></td><td>Inputs, small buttons</td></tr>
+      <tr><td>--radius-card</td><td><code>rounded-card</code></td><td>Cards, panels, modals</td></tr>
+      <tr><td>--radius-panel</td><td><code>rounded-panel</code></td><td>Large shells and drawers</td></tr>
     </tbody>
   </table>
 </div>

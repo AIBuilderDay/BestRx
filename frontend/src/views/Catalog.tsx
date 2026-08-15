@@ -153,9 +153,9 @@ export default function Catalog({ user }: { user: User }) {
         <main className="min-w-0 px-10 pb-20 pt-8.5">
           <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
             <div>
-              <div className="text-xs text-[var(--color-ink-3)]">{hospice?.name ?? 'Hospice'} / Catalog</div>
+              <div className="text-xs text-ink-3">{hospice?.name ?? 'Hospice'} / Catalog</div>
               <h1 className="mt-1.5 text-3xl font-normal tracking-tight">Durable Medical Equipment</h1>
-              <div className="mt-1.5 text-[13px] text-[var(--color-ink-2)]">
+              <div className="mt-1.5 text-[13px] text-ink-2">
                 {filteredSorted.length} of {catalogItems.length} items · Medicare-allowed rates on file, vendor and
                 lead time shown where known from live inventory.
               </div>
@@ -169,10 +169,10 @@ export default function Catalog({ user }: { user: User }) {
                     setFilters((f) => ({ ...f, sort: s.key }));
                     setCurrentPage(1);
                   }}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-[var(--color-ink)] ${
+                  className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
                     filters.sort === s.key
-                      ? 'border-[var(--color-ink)] bg-solid-bg text-solid-ink'
-                      : 'border-[var(--color-line)] bg-surface text-[var(--color-ink-2)]'
+                      ? 'border-ink bg-solid-bg text-solid-ink'
+                      : 'border-line bg-surface text-ink-2'
                   }`}
                 >
                   {s.label}
@@ -182,7 +182,7 @@ export default function Catalog({ user }: { user: User }) {
           </div>
 
           {filteredSorted.length === 0 ? (
-            <div className="py-15 text-center text-[13px] text-[var(--color-ink-3)]">No equipment matches these filters.</div>
+            <div className="py-15 text-center text-[13px] text-ink-3">No equipment matches these filters.</div>
           ) : (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
               {catalogPage.items.map((item, i) => (

@@ -18,9 +18,9 @@ export function CatalogPagination({
   return (
     <nav
       aria-label="Catalog pages"
-      className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--color-line)] pt-5"
+      className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-5"
     >
-      <div className="font-mono text-[11px] tabular-nums text-[var(--color-ink-3)]">
+      <div className="font-mono text-[11px] tabular-nums text-ink-3">
         {firstItem}–{lastItem} of {totalItems} items
       </div>
       <div className="flex items-center gap-1.5">
@@ -30,7 +30,7 @@ export function CatalogPagination({
             aria-label="Previous page"
             title="Previous page"
             onClick={() => onPageChange(page - 1)}
-            className="h-8 min-w-8 border border-[var(--color-line-strong)] px-2 text-sm transition-colors hover:border-[var(--color-ink)]"
+            className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
           >
             ←
           </button>
@@ -45,7 +45,7 @@ export function CatalogPagination({
             className={`h-8 min-w-8 border px-2 font-mono text-xs tabular-nums transition-colors ${
               pageNumber === page
                 ? 'border-solid-bg bg-solid-bg text-solid-ink'
-                : 'border-[var(--color-line-strong)] bg-surface hover:border-[var(--color-ink)]'
+                : 'border-line-strong bg-surface hover:border-ink'
             }`}
           >
             {pageNumber}
@@ -57,7 +57,7 @@ export function CatalogPagination({
             aria-label="Next page"
             title="Next page"
             onClick={() => onPageChange(page + 1)}
-            className="h-8 min-w-8 border border-[var(--color-line-strong)] px-2 text-sm transition-colors hover:border-[var(--color-ink)]"
+            className="h-8 min-w-8 border border-line-strong px-2 text-sm transition-colors hover:border-ink"
           >
             →
           </button>
