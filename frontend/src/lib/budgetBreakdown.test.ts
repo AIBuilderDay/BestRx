@@ -30,7 +30,7 @@ describe('productBreakdown', () => {
   it('matches the real per-code paid figures exactly', () => {
     expect(slices.find((s) => s.key === 'E0250')?.valueUsd).toBeCloseTo(6484, 0);
     expect(slices.find((s) => s.key === 'E0277')?.valueUsd).toBeCloseTo(5898, 0);
-    expect(slices.find((s) => s.key === 'other')?.valueUsd).toBeCloseTo(2284, 0);
+    expect(slices.find((s) => s.key === 'other')?.valueUsd).toBeCloseTo(2286, 0);
   });
 
   it('sorts the named slices biggest first, with Other trailing regardless of its own size', () => {
@@ -52,14 +52,14 @@ describe('accountBreakdown', () => {
   });
 
   it('matches the real per-account spend exactly', () => {
-    expect(slices.find((s) => s.label === 'Bea Cordova')?.valueUsd).toBeCloseTo(8855.5, 1);
+    expect(slices.find((s) => s.label === 'Bea Cordova')?.valueUsd).toBeCloseTo(8857.5, 1);
     expect(slices.find((s) => s.label === 'Dana Whitfield')?.valueUsd).toBeCloseTo(6530, 1);
     expect(slices.find((s) => s.label === 'Marcus Lee')?.valueUsd).toBeCloseTo(192.5, 1);
   });
 
   it('sums exactly to total spend, since no account is folded into Other', () => {
     const sum = slices.reduce((total, s) => total + s.valueUsd, 0);
-    expect(sum).toBeCloseTo(15578, 0);
+    expect(sum).toBeCloseTo(15580, 0);
   });
 });
 

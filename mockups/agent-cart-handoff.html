@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BestRx — Agent → Cart hand-off, final</title>
+<!--
+  DECIDED. Replaces agent-cart-options.html (A/B/C) and the two-cut final round.
+  The hand-off is Option C's comet + Option B's landing, flashy cut: a streaking
+  comet (glowing tail + ember trail) arcs from the bar to the cart icon, the icon
+  bounces with a double-ring burst and sparks, the drawer opens, and the item
+  scales in wearing the flowing gradient ring before settling. Comet slowed and
+  the landing ring extended per review. Implemented for real in the app
+  (src/lib/fx/agentComet.ts + the .agent-added treatment in index.css).
+  Pairs with mockups/enhanced-search.html (the decided bar + Ocean sweep).
+  Tokens copied from frontend/src/styles/tokens.css; AI blues from
+  enhanced-search.html (blues only, no purple).
+-->
+<style>
+  :root {
+    --bg: #ffffff; --bg-subtle: #fafafa; --surface: #ffffff;
+    --hover: #f5f5f5; --track: #ececec;
+    --line: #eaeaea; --line-strong: #d4d4d4;
+    --ink: #0a0a0a; --ink-2: #555555; --ink-3: #888888;
+    --solid-bg: #0a0a0a; --solid-ink: #ffffff;
+    --radius-control: 7px; --radius-card: 10px; --radius-panel: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+
+    /* the decided AI blues — dark → light, purple-free (from enhanced-search.html) */
+    --ai-navy: #0a2540; --ai-indigo: #1e3a8a; --ai-royal: #1d4ed8;
+    --ai-sky: #0ea5e9; --ai-bright: #38bdf8; --ai-crest: #7dd3fc;
+    --ai-ink: #1d4ed8;
+    --ai-glow-opacity: 0.45;
+    --ai-wash: color-mix(in srgb, var(--ai-sky) 13%, var(--surface));
+    --ai-wave: linear-gradient(90deg,
+      var(--ai-royal), var(--ai-indigo), var(--ai-royal), var(--ai-sky),
+      var(--ai-bright), var(--ai-crest), var(--ai-bright), var(--ai-sky),
+      var(--ai-royal), var(--ai-indigo), var(--ai-royal));
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --bg-subtle: #141414; --surface: #161616;
+      --hover: #1f1f1f; --track: #2a2a2a;
+      --line: #555555; --line-strong: #777777;
+      --ink: #fafafa; --ink-2: #c8c8c8; --ink-3: #9a9a9a;
+      --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+      --ai-ink: #7cc0ff; --ai-glow-opacity: 0.72;
+      --ai-wash: color-mix(in srgb, var(--ai-sky) 20%, var(--surface));
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --bg-subtle: #141414; --surface: #161616;
+    --hover: #1f1f1f; --track: #2a2a2a;
+    --line: #555555; --line-strong: #777777;
+    --ink: #fafafa; --ink-2: #c8c8c8; --ink-3: #9a9a9a;
+    --solid-bg: #fafafa; --solid-ink: #0a0a0a;
+    --ai-ink: #7cc0ff; --ai-glow-opacity: 0.72;
+    --ai-wash: color-mix(in srgb, var(--ai-sky) 20%, var(--surface));
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { background: var(--bg-subtle); }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-subtle);
+    color: var(--ink);
+    padding: 48px 32px 96px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ── Mockup chrome ───────────────────────────────────────────────────── */
+  .chrome-head {
+    max-width: 1200px; margin: 0 auto 40px;
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px;
+  }
+  .chrome-head h1 { font-size: 22px; letter-spacing: -0.5px; }
+  .chrome-head p { margin-top: 6px; font-size: 13px; color: var(--ink-2); max-width: 700px; line-height: 1.5; }
+  .theme-flip {
+    flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+    border-radius: 999px; padding: 9px 16px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+    font-family: inherit; cursor: pointer;
+  }
+  .theme-flip:hover { border-color: var(--ink); }
+
+  .option { max-width: 1200px; margin: 0 auto 56px; }
+  .option-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--ink-3); margin-bottom: 4px;
+    display: flex; gap: 10px; align-items: center;
+  }
+  .rec { color: var(--ai-ink); border: 1px solid var(--ai-ink); border-radius: 999px; padding: 1px 9px; font-size: 10px; }
+  .option-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .option-note { font-size: 12.5px; color: var(--ink-2); margin-bottom: 14px; line-height: 1.5; max-width: 900px; }
+  .frame { border: 1px solid var(--line); border-radius: var(--radius-panel); overflow: hidden; background: var(--bg); }
+  .demo-note { margin-top: 10px; font-size: 11.5px; color: var(--ink-3); display: flex; align-items: center; gap: 10px; }
+  .runbtn {
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 1px solid var(--ai-ink); background: var(--surface); color: var(--ai-ink);
+    border-radius: 999px; padding: 6px 14px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600;
+    font-family: inherit; cursor: pointer;
+  }
+  .runbtn:hover { background: var(--hover); }
+  .runbtn:disabled { opacity: 0.45; cursor: default; }
+
+  /* ── Stage: nav + catalog ghost + drawer overlay ─────────────────────── */
+  .stage { position: relative; height: 620px; overflow: hidden; background: var(--bg); }
+
+  .topnav {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 460px) 1fr;
+    align-items: center; gap: 24px;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    padding: 14px 28px;
+    position: relative; z-index: 2;
+  }
+  .nav-left { display: flex; align-items: center; gap: 22px; min-width: 0; }
+  .nav-right { display: flex; align-items: center; gap: 12px; justify-self: end; }
+  .brand { color: var(--ink); display: flex; align-items: center; flex-shrink: 0; }
+  .navlinks { display: flex; gap: 15px; align-items: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; white-space: nowrap; }
+  .navlinks a { color: var(--ink-2); text-decoration: none; }
+  .navlinks a.active { color: var(--ink); }
+  .cartwrap {
+    display: inline-flex; align-items: center; cursor: pointer;
+    background: none; border: 0; color: var(--ink); padding: 4px;
+    flex-shrink: 0; border-radius: 999px; position: relative;
+  }
+  .cartwrap .basket { fill: currentColor; }
+  .cartwrap .cartcount { fill: var(--bg); font-family: var(--font-sans); font-weight: 700; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 999px;
+    background: var(--solid-bg); color: var(--solid-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+
+  .ghost { padding: 22px 28px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .ghost .pc { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); overflow: hidden; }
+  .ghost .pc .im { height: 110px; background: var(--bg-subtle); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink-3); }
+  .ghost .pc .im svg { width: 42px; height: 42px; }
+  .ghost .pc .cap { padding: 11px 12px; display: flex; justify-content: space-between; font-size: 12px; }
+  .ghost .pc .cap span:last-child { color: var(--ink-3); }
+
+  /* ── The decided search bar (Option C + Ocean sweep, from enhanced-search) */
+  .shell {
+    position: relative;
+    isolation: isolate;            /* keep the z-index:-1 glow inside the shell */
+    border-radius: 999px;
+    padding: 1.5px;
+    background: var(--line-strong);
+    width: 100%;
+  }
+  .shell::before {
+    content: ''; position: absolute; inset: -4px; border-radius: inherit;
+    z-index: -1; opacity: 0; transform: scale(0.98);
+    transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1);
+    pointer-events: none;
+  }
+  .sbar {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border-radius: 999px;
+    padding: 7px 14px 7px 7px;
+    color: var(--ink-3); font-size: 12.5px; min-width: 0;
+  }
+  .sbar input {
+    border: 0; outline: 0; background: transparent; color: var(--ink);
+    font-family: inherit; font-size: 12.5px; width: 100%; min-width: 0;
+  }
+  .sbar input::placeholder { color: var(--ink-3); }
+  .mode { display: inline-flex; flex-shrink: 0; background: var(--hover); border-radius: 999px; padding: 2.5px; gap: 2px; }
+  .mode button {
+    border: 0; background: transparent; color: var(--ink-3);
+    font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em;
+    border-radius: 999px; padding: 5px 11px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .mode button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+  .mode button.on.ai-btn { color: var(--ai-ink); }
+  .shell.ai .spark .s-big { transform-origin: 12px 12px; animation: twinkle 2.6s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+  .status {
+    display: none; flex-shrink: 0; font-size: 11px; padding-right: 4px; white-space: nowrap;
+    background: linear-gradient(90deg, var(--ai-ink), var(--ai-crest), var(--ai-ink));
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 1.4s linear infinite;
+  }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0% 0; } }
+  .shell.thinking .status { display: inline; }
+
+  .shell.ai {
+    background: var(--ai-wave); background-size: 300% 100%;
+    animation: ignite 0.9s cubic-bezier(0.22,1,0.36,1), sweep 7s linear 0.9s infinite;
+  }
+  .shell.ai::before {
+    background: var(--ai-wave); background-size: 300% 100%;
+    filter: blur(14px); opacity: var(--ai-glow-opacity); transform: scale(1);
+    animation: ignite 0.9s cubic-bezier(0.22,1,0.36,1), sweep 9s linear 0.9s infinite;
+  }
+  @keyframes ignite { from { background-position: 0% 50%; } to { background-position: 150% 50%; } }
+  @keyframes sweep  { from { background-position: 150% 50%; } to { background-position: 450% 50%; } }
+  .shell.thinking, .shell.thinking::before { animation-duration: 0.9s, 2.2s; }
+
+  /* ── Cart drawer ─────────────────────────────────────────────────────── */
+  .scrim {
+    position: absolute; inset: 0; background: rgba(0,0,0,.28);
+    opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 4;
+  }
+  .stage.open .scrim { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 400px; max-width: 94%;
+    background: var(--surface); border-left: 1px solid var(--line);
+    box-shadow: -18px 0 40px rgba(0,0,0,.16);
+    display: flex; flex-direction: column;
+    transform: translateX(108%);
+    transition: transform 0.45s cubic-bezier(0.22,1,0.36,1);
+    z-index: 5;
+  }
+  .stage.open .drawer { transform: none; }
+  .d-head { padding: 16px 20px 13px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; }
+  .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-3); }
+  .d-head .t { font-size: 16px; margin-top: 4px; }
+  .d-head .s { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .d-x { border: 0; background: none; color: var(--ink-3); font-size: 16px; cursor: pointer; padding: 2px; }
+  .d-x:hover { color: var(--ink); }
+  .d-body { flex: 1; overflow-y: auto; padding: 14px 20px; position: relative; }
+
+  .item {
+    display: grid; grid-template-columns: 44px minmax(0,1fr) auto; gap: 12px;
+    padding: 13px 10px; margin: 0 -10px; border-bottom: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .thumb { border: 1px solid var(--line); background: var(--bg-subtle); border-radius: 8px;
+    width: 44px; height: 52px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); }
+  .thumb svg { width: 58%; height: 58%; }
+  .item .nm { font-size: 12.5px; }
+  .item .mt { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+  .item .pt { font-size: 11px; color: var(--ink-2); margin-top: 4px; }
+  .item .pr { text-align: right; font-size: 12.5px; white-space: nowrap; }
+  .item .pr .u { color: var(--ink-3); font-size: 11px; }
+  .stepper { display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: var(--radius-control); overflow: hidden; margin-top: 8px; }
+  .stepper button { font: inherit; width: 24px; height: 24px; border: 0; background: var(--surface); color: var(--ink); cursor: pointer; line-height: 1; }
+  .stepper .q { width: 28px; text-align: center; font-size: 12px; }
+
+  .ai-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--ai-ink); border: 1px solid var(--ai-ink);
+    background: color-mix(in srgb, var(--ai-sky) 9%, transparent);
+    border-radius: 999px; padding: 1.5px 8px; margin-top: 5px;
+  }
+
+  .d-foot { border-top: 1px solid var(--line); padding: 14px 20px 16px; }
+  .frow { display: flex; justify-content: space-between; font-size: 12.5px; padding: 4px 0; color: var(--ink-2); }
+  .frow b { color: var(--ink); font-weight: 500; }
+  .fine { font-size: 10.5px; color: var(--ink-3); margin: 7px 0 11px; line-height: 1.45; }
+  .primary { font: inherit; width: 100%; border: 1px solid var(--solid-bg); background: var(--solid-bg); color: var(--solid-ink);
+    border-radius: var(--radius-control); padding: 12px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+  .primary:hover { opacity: .85; }
+
+  /* ── The landing (Option B's ending, both finals) ────────────────────── */
+  .ringwrap {
+    position: relative; isolation: isolate;
+    padding: 1.5px; margin: 4px 0;
+    background: var(--line); border-radius: 11px;
+  }
+  .ringwrap.hidden { display: none; }
+  .ringwrap .newitem { border-radius: 10px; border-bottom: 0; margin: 0; padding: 13px 10px; background: var(--surface); }
+  .ringwrap::before {
+    content: ''; position: absolute; inset: -3px; border-radius: inherit; z-index: -1;
+    background: var(--ai-wave); background-size: 300% 100%;
+    filter: blur(10px); opacity: 0; transition: opacity 0.6s;
+  }
+  .land.ringwrap {
+    background: var(--ai-wave); background-size: 300% 100%;
+    animation: sweep 2.2s linear infinite;
+  }
+  .land.ringwrap::before { opacity: var(--ai-glow-opacity); animation: sweep 2.8s linear infinite; }
+  .land.ringwrap.settled { background: var(--line); animation: none; }
+  .land.ringwrap.settled::before { opacity: 0; animation: none; }
+  .land .newitem { animation: scalein 0.5s cubic-bezier(0.22,1,0.36,1), wash 2s ease-out forwards; }
+  @keyframes scalein { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  @keyframes wash { from { background: var(--ai-wash); } to { background: var(--surface); } }
+
+  /* Final 2: hotter ring — faster sweep, stronger glow, and an arrival pop */
+  .o2 .land.ringwrap { animation-duration: 1.4s; }
+  .o2 .land.ringwrap::before {
+    opacity: calc(var(--ai-glow-opacity) + 0.2); animation-duration: 1.8s;
+    filter: blur(13px);
+  }
+  .o2 .land.ringwrap:not(.settled)::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 1;
+    pointer-events: none;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 65%, transparent);
+    animation: ringpop 0.9s ease-out forwards;
+  }
+  @keyframes ringpop {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 65%, transparent); }
+    100% { box-shadow: 0 0 0 18px transparent; }
+  }
+
+  /* ── The comet (both finals) ─────────────────────────────────────────── */
+  .comet {
+    position: absolute; left: 0; top: 0; width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, var(--ai-crest), var(--ai-royal));
+    box-shadow: 0 0 14px 5px color-mix(in srgb, var(--ai-bright) 70%, transparent),
+                0 0 3px 1px var(--ai-crest);
+    z-index: 10; pointer-events: none;
+  }
+  /* Final 2: bigger head + a streaking tail behind the direction of travel */
+  .comet.big {
+    width: 15px; height: 15px;
+    box-shadow: 0 0 22px 8px color-mix(in srgb, var(--ai-bright) 75%, transparent),
+                0 0 5px 2px var(--ai-crest);
+  }
+  .comet.big .tail {
+    position: absolute; right: 55%; top: 50%;
+    width: 74px; height: 7px; transform: translateY(-50%);
+    border-radius: 999px;
+    background: linear-gradient(270deg,
+      color-mix(in srgb, var(--ai-crest) 90%, transparent),
+      color-mix(in srgb, var(--ai-bright) 55%, transparent) 40%,
+      transparent);
+    filter: blur(1.5px);
+    pointer-events: none;
+  }
+  .trail {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: var(--ai-bright);
+    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--ai-bright) 60%, transparent);
+    z-index: 9; pointer-events: none;
+    animation: trailfade 0.5s ease-out forwards;
+  }
+  @keyframes trailfade { from { opacity: 0.9; transform: scale(1); } to { opacity: 0; transform: scale(0.3); } }
+
+  /* ── Cart arrival ────────────────────────────────────────────────────── */
+  .cartwrap.flash { color: var(--ai-ink); animation: cartpulse 0.9s ease-out; }
+  @keyframes cartpulse {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-sky) 55%, transparent); }
+    100% { box-shadow: 0 0 0 14px transparent; }
+  }
+  /* Final 2: brighter double-ring pop + a little bounce */
+  .cartwrap.boom { color: var(--ai-ink); animation: cartboom 1s ease-out; }
+  .cartwrap.boom svg { animation: cartjolt 0.5s cubic-bezier(0.34, 1.6, 0.64, 1); }
+  @keyframes cartboom {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--ai-bright) 75%, transparent),
+                       0 0 0 0 color-mix(in srgb, var(--ai-crest) 55%, transparent); }
+    100% { box-shadow: 0 0 0 16px transparent, 0 0 0 26px transparent; }
+  }
+  @keyframes cartjolt { 0% { transform: scale(1); } 35% { transform: scale(1.22); } 100% { transform: scale(1); } }
+  .spark-bit {
+    position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--ai-crest);
+    box-shadow: 0 0 6px 1px color-mix(in srgb, var(--ai-bright) 70%, transparent);
+    z-index: 10; pointer-events: none;
+  }
+
+  /* accessibility: no motion — every state lands instantly */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .land .newitem { background: var(--ai-wash); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG glyph defs reused by thumbnails -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="g-bed"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 12h18M3 12v-4a2 2 0 0 1 2-2h6v6M21 12v6M3 12v6M3 16h18"/></g>
+    <g id="g-o2"><rect x="7" y="3" width="10" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" d="M10 7h4M10 11h4"/></g>
+    <g id="g-table"><path fill="none" stroke="currentColor" stroke-width="2" d="M3 8h18M5 8v13M19 8v13M5 14h14M12 8V5"/></g>
+    <g id="g-walk"><path fill="none" stroke="currentColor" stroke-width="2" d="M6 3v16M18 3v16M6 8h12M8 21l-2 0M18 21l-2 0M6 12h12"/></g>
+    <g id="g-cpap"><rect x="3" y="8" width="13" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path fill="none" stroke="currentColor" stroke-width="2" d="M16 12h3a2 2 0 0 1 0 4h-1"/></g>
+  </defs>
+</svg>
+
+<div class="chrome-head">
+  <div>
+    <h1>AI agent → cart hand-off — decided</h1>
+    <p><strong>The decided hand-off:</strong> a streaking comet carries the order from the bar to
+    the cart icon (glowing tail + ember trail), the icon bounces with a double-ring burst and
+    sparks, the drawer opens, and the item scales in wearing the flowing gradient ring before
+    settling. Hit <strong>Run the sequence</strong>; flip the theme and run it again.</p>
+  </div>
+  <button class="theme-flip" onclick="flip()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4m11.4-11.4 1.4-1.4"/></svg>
+    Toggle light / dark
+  </button>
+</div>
+
+<!-- ════════════════ THE DECIDED HAND-OFF — STREAKING COMET + BURST ════════════════ -->
+<div class="option o2" id="opt2">
+  <div class="option-label">Decided <span class="rec">Shipping</span></div>
+  <div class="option-title">Streaking comet + burst + gradient-ring landing</div>
+  <div class="option-note">The comet is big and streaks — a glowing tail plus a trail of fading
+  embers behind it. On impact the cart icon bounces with a bright double-ring burst and a few
+  sparks fly. The landing ring sweeps fast and glows hot with a quick arrival pop, holds for a
+  few seconds, then settles. Still blues-only, still ends quiet.</div>
+  <div class="frame"><div class="stage" data-stage></div></div>
+  <div class="demo-note"><button class="runbtn" onclick="run('2', this)">▶ Run the sequence</button>
+  typing → thinking → streaking comet → burst + bounce at the cart → drawer opens → hot ring landing with a pop.</div>
+</div>
+
+<script>
+  const root = document.documentElement;
+  const forced = new URLSearchParams(location.search).get('theme');
+  if (forced === 'dark' || forced === 'light') root.dataset.theme = forced;
+  function flip() {
+    const dark = getComputedStyle(root).getPropertyValue('--bg').trim().toLowerCase() === '#0a0a0a';
+    root.dataset.theme = dark ? 'light' : 'dark';
+  }
+
+  const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = ms => new Promise(r => setTimeout(r, RM ? 0 : ms));
+
+  /* ── stamp the shared stage into each option ─────────────────────────── */
+  const stageHTML = `
+    <header class="topnav">
+      <div class="nav-left">
+        <div class="brand"><svg width="71" height="26" viewBox="0 0 300 110" role="img" aria-label="BestRx"><rect x="5" y="5" width="290" height="100" rx="50" fill="currentColor"/><text x="80" y="74" fill="var(--bg)" font-family="var(--font-sans)" font-size="52" font-weight="700" letter-spacing="-2">best</text><text x="187" y="46" fill="var(--bg)" font-family="var(--font-sans)" font-size="21" font-weight="700" letter-spacing="0.5">RX</text></svg></div>
+        <nav class="navlinks"><a href="#" class="active">Catalog</a><a href="#">Patients</a><a href="#">Orders</a></nav>
+      </div>
+      <div class="shell" data-bar>
+        <div class="sbar">
+          <div class="mode">
+            <button data-search>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              Search
+            </button>
+            <button class="ai-btn" data-ai>
+              <svg class="spark" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path class="s-big" d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z"/>
+                <path d="M19 2.5l.7 1.9 1.9.6-1.9.7-.7 2-.7-2-1.9-.7 1.9-.6.7-1.9Z"/>
+              </svg>
+              AI
+            </button>
+          </div>
+          <input type="text" placeholder="Search equipment…" data-input />
+          <span class="status" data-status>Placing order…</span>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button class="cartwrap" data-cart title="Cart">
+          <svg width="34" height="34" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path class="basket" d="M7.5 10.5h19l-2.2 10.2a2 2 0 0 1-2 1.6H11.4a2 2 0 0 1-2-1.6L7.5 10.5Z" stroke="none"/><path d="M7.5 10.5 6.2 6.8H3.5"/><circle cx="12.5" cy="26.7" r="1.7"/><circle cx="22" cy="26.7" r="1.7"/><text class="cartcount" data-count x="16.9" y="16.6" text-anchor="middle" dominant-baseline="central" font-size="10.5" stroke="none">2</text></svg>
+        </button>
+        <span class="avatar">MS</span>
+      </div>
+    </header>
+    <div class="ghost">
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></div><div class="cap"><span>Hospital Bed</span><span class="num">$65/mo</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></div><div class="cap"><span>Oxygen Conc.</span><span class="num">$116/mo</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-cpap"/></svg></div><div class="cap"><span>CPAP Device</span><span class="num">$47/mo</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-walk"/></svg></div><div class="cap"><span>Walker</span><span class="num">$64</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></div><div class="cap"><span>Air Mattress</span><span class="num">$212/mo</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></div><div class="cap"><span>Portable O₂</span><span class="num">$21/mo</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-table"/></svg></div><div class="cap"><span>Overbed Table</span><span class="num">$19/mo</span></div></div>
+      <div class="pc"><div class="im"><svg viewBox="0 0 24 24"><use href="#g-cpap"/></svg></div><div class="cap"><span>Suction Pump</span><span class="num">$38/mo</span></div></div>
+    </div>
+    <div class="scrim" data-scrim></div>
+    <aside class="drawer" data-drawer>
+      <div class="d-head">
+        <div>
+          <div class="k">Cart</div>
+          <div class="t" data-title>2 items · 2 patients</div>
+          <div class="s">Ordering as M. Snell · Field Nurse · Sample Hospice A</div>
+        </div>
+        <button class="d-x" data-close aria-label="Close cart">✕</button>
+      </div>
+      <div class="d-body">
+        <div class="ringwrap hidden" data-newwrap>
+          <div class="item newitem">
+            <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-bed"/></svg></span>
+            <div>
+              <div class="nm">Hospital Bed — Semi-Electric</div>
+              <div class="mt">E0260 · Sample Vendor 1 · 1-day lead</div>
+              <div class="pt">Patient M.G. · Room 4 · rental</div>
+              <span class="ai-chip">✦ Added by AI</span>
+            </div>
+            <div class="pr num">$65.47<span class="u">/mo</span></div>
+          </div>
+        </div>
+        <div class="item">
+          <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-o2"/></svg></span>
+          <div>
+            <div class="nm">Oxygen Concentrator</div>
+            <div class="mt">E1390 · Sample Vendor 2 · 2-day lead</div>
+            <div class="pt">Patient R.T. · Room 12 · rental</div>
+            <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+          </div>
+          <div class="pr num">$115.77<span class="u">/mo</span></div>
+        </div>
+        <div class="item" style="border-bottom:0">
+          <span class="thumb"><svg viewBox="0 0 24 24"><use href="#g-table"/></svg></span>
+          <div>
+            <div class="nm">Overbed Table</div>
+            <div class="mt">E0274 · Sample Vendor 1 · 1-day lead</div>
+            <div class="pt">Patient L.P. · Room 9 · rental</div>
+            <span class="stepper"><button aria-label="decrease">−</button><span class="q num">1</span><button aria-label="increase">+</button></span>
+          </div>
+          <div class="pr num">$19.25<span class="u">/mo</span></div>
+        </div>
+      </div>
+      <div class="d-foot">
+        <div class="frow"><span>Monthly rentals</span><b class="num" data-total>$135.02/mo</b></div>
+        <div class="fine" data-ppd>Adds ≈ $0.03 to DME PPD across the census · figures derived from sample data</div>
+        <button class="primary">Place order</button>
+      </div>
+    </aside>`;
+
+  const state = {};
+  for (const id of ['2']) {
+    const stage = document.querySelector('#opt' + id + ' [data-stage]');
+    stage.innerHTML = stageHTML;
+    const q = s => stage.querySelector(s);
+    const o = state[id] = {
+      id, stage,
+      shell: q('[data-bar]'), input: q('[data-input]'), status: q('[data-status]'),
+      btnSearch: q('[data-search]'), btnAI: q('[data-ai]'),
+      cart: q('[data-cart]'), count: q('[data-count]'),
+      drawer: q('[data-drawer]'),
+      newwrap: q('[data-newwrap]'), title: q('[data-title]'), total: q('[data-total]'),
+      ppd: q('[data-ppd]'), running: false,
+    };
+    q('[data-close]').addEventListener('click', () => o.stage.classList.remove('open'));
+    q('[data-scrim]').addEventListener('click', () => o.stage.classList.remove('open'));
+    o.cart.addEventListener('click', () => o.stage.classList.toggle('open'));
+    o.btnAI.addEventListener('click', () => setAI(o, true));
+    o.btnSearch.addEventListener('click', () => setAI(o, false));
+    reset(o);
+  }
+
+  function setAI(o, ai) {
+    o.shell.classList.remove('thinking');
+    o.btnAI.classList.toggle('on', ai);
+    o.btnSearch.classList.toggle('on', !ai);
+    if (ai) {
+      o.shell.classList.remove('ai');
+      void o.shell.offsetWidth;               // reflow: restart the ignition
+      o.shell.classList.add('ai');
+      o.input.placeholder = 'Ask or command — "order a hospital bed for Room 4"';
+    } else {
+      o.shell.classList.remove('ai');
+      o.input.placeholder = 'Search equipment…';
+    }
+  }
+
+  function reset(o) {
+    o.stage.classList.remove('open');
+    setAI(o, false);
+    o.input.value = '';
+    o.newwrap.classList.add('hidden');
+    o.newwrap.classList.remove('land', 'settled');
+    o.cart.classList.remove('flash', 'boom');
+    o.count.textContent = '2';
+    o.title.textContent = '2 items · 2 patients';
+    o.total.textContent = '$135.02/mo';
+    o.ppd.textContent = 'Adds ≈ $0.03 to DME PPD across the census · figures derived from sample data';
+  }
+
+  async function typeText(o, text) {
+    if (RM) { o.input.value = text; return; }
+    for (const ch of text) { o.input.value += ch; await wait(34); }
+  }
+
+  function land(o) {
+    o.newwrap.classList.remove('hidden');
+    void o.newwrap.offsetWidth;               // restart landing animations on re-run
+    o.newwrap.classList.add('land');
+    o.count.textContent = '3';
+    o.title.textContent = '3 items · 3 patients';
+    o.total.textContent = '$200.49/mo';
+    o.ppd.textContent = 'Adds ≈ $0.05 to DME PPD across the census · figures derived from sample data';
+  }
+
+  /* The comet: manual rAF flight along a quadratic arc so Final 2 can rotate
+     its tail along the velocity and drop ember trail dots as it goes. */
+  function cometFly(o, flashy) {
+    return new Promise(resolve => {
+      if (RM) { resolve(); return; }
+      const sr = o.shell.getBoundingClientRect();
+      const cr = o.cart.getBoundingClientRect();
+      const gr = o.stage.getBoundingClientRect();
+      const x0 = sr.right - gr.left - 14, y0 = sr.top - gr.top + sr.height / 2;
+      const x1 = cr.left - gr.left + cr.width / 2, y1 = cr.top - gr.top + cr.height / 2;
+      const cx = (x0 + x1) / 2, cy = Math.min(y0, y1) - (flashy ? 36 : 28);
+
+      const c = document.createElement('div');
+      c.className = 'comet' + (flashy ? ' big' : '');
+      if (flashy) c.innerHTML = '<div class="tail"></div>';
+      o.stage.appendChild(c);
+
+      const D = 1100;   /* slowed per review — let the eye follow it */
+      const half = (flashy ? 15 : 10) / 2;
+      let start = null, lastTrail = 0;
+      const bez = t => {
+        const u = 1 - t;
+        return {
+          x: u * u * x0 + 2 * u * t * cx + t * t * x1,
+          y: u * u * y0 + 2 * u * t * cy + t * t * y1,
+        };
+      };
+      function frame(ts) {
+        if (start === null) start = ts;
+        const raw = (ts - start) / D;
+        const t = Math.min(1, raw);
+        const e = 1 - Math.pow(1 - t, 2.2);    // ease-out along the arc
+        const p = bez(e);
+        const ahead = bez(Math.min(1, e + 0.02));
+        const angle = Math.atan2(ahead.y - p.y, ahead.x - p.x) * 180 / Math.PI;
+        const s = 1 - (flashy ? 0.3 : 0.45) * e;
+        c.style.transform = `translate(${p.x - half}px, ${p.y - half}px) rotate(${angle}deg) scale(${s})`;
+        c.style.opacity = e > 0.94 ? 0 : 1;
+        if (flashy && ts - lastTrail > 36 && e < 0.9) {
+          lastTrail = ts;
+          const d = document.createElement('div');
+          d.className = 'trail';
+          d.style.left = (p.x - 2.5) + 'px';
+          d.style.top = (p.y - 2.5) + 'px';
+          o.stage.appendChild(d);
+          setTimeout(() => d.remove(), 550);
+        }
+        if (t < 1) requestAnimationFrame(frame);
+        else { c.remove(); resolve(); }
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  /* Final 2 impact: a few sparks fly out from the cart icon. */
+  function sparkBurst(o) {
+    if (RM) return;
+    const cr = o.cart.getBoundingClientRect();
+    const gr = o.stage.getBoundingClientRect();
+    const x = cr.left - gr.left + cr.width / 2, y = cr.top - gr.top + cr.height / 2;
+    for (let i = 0; i < 7; i++) {
+      const s = document.createElement('div');
+      s.className = 'spark-bit';
+      s.style.left = (x - 2) + 'px';
+      s.style.top = (y - 2) + 'px';
+      o.stage.appendChild(s);
+      const a = (Math.PI * 2 * i) / 7 - Math.PI / 2 + (i % 2 ? 0.3 : -0.2);
+      const r = 20 + (i % 3) * 8;
+      s.animate(
+        [
+          { transform: 'translate(0,0) scale(1)', opacity: 1 },
+          { transform: `translate(${Math.cos(a) * r}px, ${Math.sin(a) * r}px) scale(0.2)`, opacity: 0 },
+        ],
+        { duration: 520, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' }
+      ).onfinish = () => s.remove();
+    }
+  }
+
+  async function run(id, btn) {
+    const o = state[id];
+    if (o.running) return;
+    o.running = true; btn.disabled = true;
+    const flashy = id === '2';
+    try {
+      reset(o);
+      await wait(350);
+      setAI(o, true);                                     // ignition
+      await wait(500);
+      await typeText(o, 'Order a hospital bed for Room 4');
+      await wait(400);
+      o.shell.classList.add('thinking');                  // fast sweep + shimmer
+      await wait(2400);
+      o.shell.classList.remove('thinking');
+      setAI(o, false);                                    // the glow leaves the bar
+
+      await cometFly(o, flashy);                          // the order travels to the cart
+      if (flashy) {
+        o.cart.classList.add('boom');
+        sparkBurst(o);
+      } else {
+        o.cart.classList.add('flash');
+      }
+      o.count.textContent = '3';
+      await wait(flashy ? 380 : 300);
+      o.stage.classList.add('open');
+      await wait(350);
+      land(o);                                            // B's gradient-ring arrival
+      setTimeout(() => o.newwrap.classList.add('settled'), RM ? 0 : 2200);  /* ~2.2s hold — trimmed per review */
+      setTimeout(() => o.cart.classList.remove('flash', 'boom'), RM ? 0 : 1100);
+      await wait(2200);
+    } finally {
+      o.running = false; btn.disabled = false;
+    }
+  }
+</script>
+
+</body>
+</html>

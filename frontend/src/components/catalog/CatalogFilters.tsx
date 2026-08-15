@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import type { EquipmentCategory, Vendor } from '../../types/domain';
-import { moneyLabel, type CatalogFilterState, type SpeedFilter } from '../../lib/catalog';
+import { moneyLabel, type CatalogFilterState, type CategoryOption, type SpeedFilter, type VendorFilterOption } from '../../lib/catalog';
+
+export type { CategoryOption } from '../../lib/catalog';
 
 const SPEED_OPTIONS: { key: SpeedFilter; label: string }[] = [
   { key: 'any', label: 'Any lead time' },
@@ -8,12 +9,6 @@ const SPEED_OPTIONS: { key: SpeedFilter; label: string }[] = [
   { key: '3', label: 'Within 3 days' },
   { key: '7', label: 'Within a week' },
 ];
-
-export interface CategoryOption {
-  key: 'All' | EquipmentCategory;
-  label: string;
-  count: number;
-}
 
 export function CatalogFilters({
   filters,
@@ -25,7 +20,7 @@ export function CatalogFilters({
 }: {
   filters: CatalogFilterState;
   categories: CategoryOption[];
-  vendors: Vendor[];
+  vendors: VendorFilterOption[];
   priceMax: number;
   onChange: (patch: Partial<CatalogFilterState>) => void;
   onReset: () => void;
@@ -37,11 +32,7 @@ export function CatalogFilters({
 
   return (
     <aside className="sticky top-[57px] min-h-[calc(100vh-57px)] border-r border-line px-5.5 py-7.5 pb-15">
-      <div className="border-b border-ink pb-2.5 text-xs uppercase tracking-[0.12em]">
-        Filters
-      </div>
-
-      <FilterGroup label="Category">
+      <FilterGroup label="Category" first>
         <div className="grid gap-0.5">
           {categories.map((c) => (
             <button
@@ -49,7 +40,7 @@ export function CatalogFilters({
               type="button"
               onClick={() => onChange({ category: c.key })}
               className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover hover:text-ink ${
-                filters.category === c.key ? 'bg-hover text-ink' : 'text-ink-2'
+                filters.category === c.key ? 'bg-hover text-ink' : c.count === 0 ? 'text-ink-3' : 'text-ink-2'
               }`}
             >
               <span>{c.label}</span>
@@ -79,9 +70,10 @@ export function CatalogFilters({
                     ✓
                   </span>
                 </span>
-                <span className={on ? 'text-ink' : 'text-ink-2'}>
+                <span className={`min-w-0 flex-1 truncate ${on ? 'text-ink' : v.count === 0 ? 'text-ink-3' : 'text-ink-2'}`}>
                   {v.displayName}
                 </span>
+                <span className="font-mono text-xs tabular-nums text-ink-3">{v.count}</span>
               </button>
             );
           })}
@@ -138,9 +130,9 @@ export function CatalogFilters({
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
+function FilterGroup({ label, children, first }: { label: string; children: ReactNode; first?: boolean }) {
   return (
-    <div className="mt-6.5">
+    <div className={first ? undefined : 'mt-6.5'}>
       <div className="mb-2.5 border-b border-line pb-2 text-[11px] uppercase tracking-[0.1em] text-ink-2">
         {label}
       </div>

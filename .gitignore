@@ -14,6 +14,7 @@ coverage/
 
 # Future backend
 __pycache__/
+*.egg-info/
 *.py[cod]
 .venv/
 .pytest_cache/
@@ -22,3 +23,21 @@ __pycache__/
 # Build and tooling artifacts
 *.tsbuildinfo
 .pnpm-store/
+
+# Terraform. State can hold resource metadata and secret values — never commit it.
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+terraform.tfvars
+!terraform.tfvars.example
+# Zipped Lambda packages, produced by archive_file.
+infra/modules/*/.build/
+
+# Lambda deployment package, produced by notification-service/scripts/build.sh.
+notification-service/build/
+# Fixtures copied from frontend/src/data at build time. The frontend's copy is the original.
+backend/data/
+# Browser-automation scratch output. Never part of the repo.
+.playwright-mcp/

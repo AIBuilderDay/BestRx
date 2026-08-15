@@ -7,9 +7,10 @@ import { TREND_RANGES, type TrendRange } from '../../lib/trendRange';
 import { SpendTrendChart } from './SpendTrendChart';
 
 /**
- * Total Spend's range picker. This is real: 1wk is the last 7 real days on file, and 1mo is the
- * real weekly split across August. 3mo/6mo/1yr have no order history behind them yet, so the panel
- * shows an honest "not enough history" message and no chart.
+ * Total Spend's range picker. Unlike Cost per patient-day, this is real: 1wk is the last 7 real
+ * days on file, 1mo is the real weekly split across August, both from lib/costLedger.ts. 3mo/6mo/
+ * 1yr have no order history behind them yet — rather than fabricate a placeholder like the PPD
+ * tile does, this shows an honest "not enough history" message and no chart.
  */
 export function SpendRangePanel({
   hospiceId,
@@ -67,15 +68,13 @@ export function SpendRangePanel({
         </div>
       </div>
 
-      <div key={range} className="animate-[sheetIn_0.3s_cubic-bezier(0.2,0.7,0.2,1)_both] motion-reduce:animate-none">
-        {buckets ? (
-          <SpendRangeChart buckets={buckets} hoverIndex={hoverIndex} onHoverIndex={setHoverIndex} />
-        ) : (
-          <p className="mt-6 py-8 text-center text-[13px] text-ink-3">
-            * No real order history behind this range yet.
-          </p>
-        )}
-      </div>
+      {buckets ? (
+        <SpendRangeChart buckets={buckets} hoverIndex={hoverIndex} onHoverIndex={setHoverIndex} />
+      ) : (
+        <p className="mt-6 py-8 text-center text-[13px] text-ink-3">
+          * No real order history behind this range yet.
+        </p>
+      )}
     </section>
   );
 }

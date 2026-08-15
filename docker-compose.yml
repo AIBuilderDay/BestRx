@@ -5,31 +5,64 @@ services:
       target: dev
     container_name: bestrx-frontend
     ports:
-      - "5173:5173"
+      # Loopback only: the dev server proxies /api/anthropic with the API key attached,
+      # so it must not be reachable from other machines on the network.
+      - "127.0.0.1:5173:5173"
     volumes:
       # Bind-mount the source for HMR, but keep the container's own node_modules.
       - ./frontend:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
+      # Points the app at the backend container. Set to an empty string (or drop the line) to run
+      # the frontend against its JSON fixtures alone — it works either way.
+      # Read by the browser, so it is localhost from the host's perspective, not the service name.
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL-http://localhost:8000}
+      # SSE is served by the same container, so it is the API URL plus /stream.
+      - VITE_SSE_URL=${VITE_SSE_URL-http://localhost:8000/stream}
+    depends_on:
+      backend:
+        condition: service_healthy
     command: node_modules/.bin/vite --host 0.0.0.0 --port 5173
 
-  # ── Future backend ──────────────────────────────────────────────────────────
-  # Python FastAPI, cloned in from our fast template when we need one. Until then the frontend
-  # reads JSON fixtures from frontend/src/data/. Deployment target is Cloudflare Workers.
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  # FastAPI on :8000, serving both the REST API and the SSE stream at /stream. The same image runs
+  # on EC2 in AWS — see ./infra.
   #
-  # backend:
-  #   build:
-  #     context: ./backend
-  #   container_name: bestrx-backend
-  #   ports:
-  #     - "8000:8000"
-  #   volumes:
-  #     - ./backend:/app
-  #   env_file:
-  #     - ./backend/.env
-  #   command: uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-  #
-  # And uncomment this on the frontend service so it can reach the API:
-  #   depends_on:
-  #     - backend
+  # No AWS account or credentials needed: orders live in memory, seeded from the JSON fixtures, and
+  # SSE fans out in-process.
+  backend:
+    build:
+      # The repo root, not ./backend — the fixtures live in frontend/src/data and Docker cannot
+      # copy from outside the build context.
+      context: .
+      dockerfile: backend/Dockerfile
+      target: dev
+    container_name: bestrx-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mount the source so --reload picks up edits.
+      - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
+      # The frontend's data directory is the one copy of the fixtures under version control.
+      - ./frontend/src/data:/app/data:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CORS_ORIGINS=http://localhost:5173
+      # Uncomment to send real push notifications from a local container. Needs AWS credentials
+      # mounted in, and the notification service deployed.
+      # - PUSH_QUEUE_URL=
+      # - PUSH_SUBSCRIPTIONS_TABLE=bestrx-push-subscriptions
+      # - VAPID_PUBLIC_KEY=
+      # - AWS_REGION=us-east-2
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s

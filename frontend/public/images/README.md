@@ -1,10 +1,10 @@
 # Images
 
-Served from the site root, so `/images/equipment/e0250-hospital-bed.jpg` in a `src` attribute.
+Served from the site root, so `/images/equipment/e0250-hospital-bed.png` in a `src` attribute.
 
 | Folder | Holds |
 | --- | --- |
-| `equipment/` | Product photos, one per HCPCS code. Name files `<hcpcs-lowercase>-<slug>.jpg` |
+| `equipment/` | Product photos, one per HCPCS code. Name files `<hcpcs-lowercase>-<slug>.png` |
 | `vendors/` | Vendor logos |
 | `brand/` | BestRx and hospice logos, icons |
 | `people/` | Avatars for case managers, nurses, dispatchers |

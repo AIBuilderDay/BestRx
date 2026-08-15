@@ -1,5 +1,5 @@
 /**
- * The 1wk/1mo/3mo/6mo/1yr range picker shared by the dashboard's over-time panels. Neutral
+ * The 1wk/1mo/3mo/6mo/1yr range picker for the cost dashboard's Total Spend panel. Neutral
  * metadata only: how many points a range has, and whether the dataset actually has history for it.
  */
 

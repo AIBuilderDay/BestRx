@@ -39,7 +39,7 @@ describe('buildAccountRows', () => {
   it('flags an account that has blown through its cap', () => {
     const bea = rowFor('USR-010'); // admissions_nurse, sole account in the role
     expect(bea.capUsd).toBeCloseTo(12000, 2);
-    expect(bea.spentUsd).toBeCloseTo(8855.5, 2);
+    expect(bea.spentUsd).toBeCloseTo(8857.5, 2);
     expect(bea.status).toBe('under');
   });
 
@@ -82,7 +82,7 @@ describe('accountTotals', () => {
   it('sums only rows with a real cap, and names the exclusions', () => {
     const totals = accountTotals(rows);
     expect(totals.capUsd).toBeCloseTo(4000 + 12000 + 4000 + 20000, 2);
-    expect(totals.spentUsd).toBeCloseTo(15578, 2);
+    expect(totals.spentUsd).toBeCloseTo(15580, 2);
     expect(totals.excludedUserIds).toEqual(['USR-013']);
     expect(totals.excludedReason).toContain('1 account excluded');
   });
@@ -123,7 +123,7 @@ describe('hospiceBudgetUsage', () => {
     const usage = hospiceBudgetUsage('HSP-001', rows, NO_OVERRIDES);
     expect(usage.monthlyBudgetUsd).toBe(40000);
     expect(usage.monthlyBudgetOverridden).toBe(false);
-    expect(usage.spentUsd).toBeCloseTo(15578, 2);
+    expect(usage.spentUsd).toBeCloseTo(15580, 2);
     expect(usage.utilizationPct).toBe(39);
     expect(usage.overageUsd).toBe(0);
   });
@@ -132,8 +132,8 @@ describe('hospiceBudgetUsage', () => {
     const overrides = setTotalBudgetOverride(NO_OVERRIDES, 10000, 40000);
     const usage = hospiceBudgetUsage('HSP-001', rows, overrides);
     expect(usage.monthlyBudgetOverridden).toBe(true);
-    expect(usage.utilizationPct).toBe(156); // round(15578 / 10000 * 100)
-    expect(usage.overageUsd).toBeCloseTo(5578, 2);
+    expect(usage.utilizationPct).toBe(156); // round(15580 / 10000 * 100)
+    expect(usage.overageUsd).toBeCloseTo(5580, 2);
   });
 
   it('clears the override when set back to the hospice default', () => {

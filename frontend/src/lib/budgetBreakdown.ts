@@ -1,5 +1,6 @@
 /**
- * Real, non-synthetic breakdowns of what is driving spend this period.
+ * Real, non-synthetic breakdowns of who and what is driving DME spend this period — everything
+ * here is derived directly from actual orders.
  *
  * Capped at 4 slices to match the design system's categorical ramp (--s1..--s4; "if a chart needs
  * more than four series, it needs a different chart" — docs/DESIGN_SYSTEM.html). Zero-value entries

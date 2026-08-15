@@ -111,7 +111,7 @@ function roleDefaultPctOfBudget(hospiceId: string, role: UserRole): number | nul
 }
 
 function hospiceStaff(hospiceId: string): User[] {
-  return users
+  return users()
     .filter((u) => u.orgType === 'hospice' && u.orgId === hospiceId)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -135,7 +135,7 @@ function visibleHospiceStaff(hospiceId: string, viewerRole: UserRole): User[] {
 }
 
 const caseloadSize = (hospiceId: string, userId: string): number =>
-  patients.filter((p) => p.hospiceId === hospiceId && p.caseManagerId === userId).length;
+  patients().filter((p) => p.hospiceId === hospiceId && p.caseManagerId === userId).length;
 
 /** The hospice's total monthly budget for this session: the override if set, else the on-file default. */
 export function effectiveMonthlyBudgetUsd(hospiceId: string, overrides: BudgetOverrides): number {

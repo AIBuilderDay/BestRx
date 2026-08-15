@@ -1,0 +1,420 @@
+[
+  {
+    "id": "RVND-UT-001",
+    "name": "Alpine Home Medical",
+    "displayName": "Alpine Home Medical",
+    "scope": "regional",
+    "market": "Salt Lake City, UT",
+    "headquarters": {
+      "street1": "4030 S State St",
+      "city": "Salt Lake City",
+      "state": "UT",
+      "zip": "84107"
+    },
+    "hours": "Mon-Fri 8:30-18:00; Sat-Sun closed",
+    "contact": {
+      "dispatchPhone": "801-463-0044",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Salt Lake City and surrounding communities including Murray, Millcreek, Holladay, Cottonwood Heights, South Salt Lake, West Valley City, and the broader Wasatch Front",
+    "statesServed": [
+      "UT",
+      "ID"
+    ],
+    "locationCount": 11,
+    "locations": [
+      {
+        "city": "Salt Lake City",
+        "state": "UT",
+        "street1": "4030 S State St",
+        "zip": "84107",
+        "phone": "801-463-0044"
+      },
+      {
+        "city": "Draper",
+        "state": "UT",
+        "street1": "132 E 13065 S, Ste 100",
+        "zip": "84020",
+        "phone": "801-841-4990"
+      },
+      {
+        "city": "Ogden",
+        "state": "UT",
+        "street1": "4669 Harrison Blvd",
+        "zip": "84403",
+        "phone": "801-393-0015"
+      },
+      {
+        "city": "Provo",
+        "state": "UT",
+        "street1": "1481 N State St",
+        "zip": "84604",
+        "phone": "801-852-0077"
+      },
+      {
+        "city": "Logan",
+        "state": "UT",
+        "street1": "1395 N 400 E, Ste A",
+        "zip": "84341",
+        "phone": "435-774-4500"
+      },
+      {
+        "city": "Tooele",
+        "state": "UT",
+        "street1": "168 W 1280 N, Building E, Ste E5",
+        "zip": "84074",
+        "phone": "435-522-5511"
+      },
+      {
+        "city": "Price",
+        "state": "UT",
+        "street1": "451 S Carbon Ave",
+        "zip": "84501",
+        "phone": "435-994-3062"
+      },
+      {
+        "city": "Richfield",
+        "state": "UT",
+        "street1": "43 S Main",
+        "zip": "84701",
+        "phone": "435-896-6474"
+      },
+      {
+        "city": "St. George",
+        "state": "UT",
+        "street1": "1361 E Red Hills Pkwy",
+        "zip": "84770",
+        "phone": "435-674-0080"
+      },
+      {
+        "city": "Vernal",
+        "state": "UT",
+        "street1": "753 W Hwy 40",
+        "zip": "84078",
+        "phone": "435-781-6594"
+      },
+      {
+        "city": "Idaho Falls",
+        "state": "ID",
+        "street1": "2425 Channing Wy",
+        "zip": "83404",
+        "phone": "208-535-8627"
+      }
+    ],
+    "hcpcsCarried": [
+      "E0250",
+      "E1390",
+      "E0601",
+      "E0470",
+      "E1130",
+      "E0143",
+      "E0163",
+      "E0630",
+      "E0244"
+    ],
+    "categoriesCarried": [
+      "bed",
+      "respiratory",
+      "mobility",
+      "bathroom_safety"
+    ],
+    "catalogNotes": "Site lists hospital beds, portable and home oxygen concentrators, CPAP and BiPAP machines, manual wheelchairs, power chairs, mobility scooters, walkers, Hoyer lifts, bath chairs, commodes, toilet seat risers, lift chairs.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://www.alpinehomemedical.com/our-locations/salt-lake-city-ut/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-UT-002",
+    "name": "Affinity Home Medical",
+    "displayName": "Affinity Home Medical",
+    "scope": "regional",
+    "market": "Salt Lake City, UT",
+    "headquarters": {
+      "street1": "3737 S State Street",
+      "city": "Salt Lake City",
+      "state": "UT",
+      "zip": "84115"
+    },
+    "hours": "Mon-Fri 9:30-18:00; Sat 10:00-15:00; Sun closed",
+    "contact": {
+      "dispatchPhone": "801-906-3900",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Salt Lake Valley for delivery and setup; nationwide shipping available",
+    "statesServed": [
+      "UT"
+    ],
+    "locationCount": 1,
+    "locations": [
+      {
+        "city": "Salt Lake City",
+        "state": "UT",
+        "street1": "3737 S State Street",
+        "zip": "84115",
+        "phone": "801-906-3900"
+      }
+    ],
+    "hcpcsCarried": [
+      "E0250",
+      "E1390",
+      "E0601",
+      "E1130",
+      "E0143",
+      "E0163",
+      "E0244"
+    ],
+    "categoriesCarried": [
+      "bed",
+      "respiratory",
+      "mobility",
+      "bathroom_safety"
+    ],
+    "catalogNotes": "Site lists wheelchairs, walkers, power chairs, lift chairs, hospital beds, oxygen concentrators, nebulizers, CPAPs, bathroom safety equipment, wound care, compression stockings, orthopedic braces, ostomy/urinary supplies, ramps and vehicle lifts. Locally owned since 2011.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://affinityhomemedical.com/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-UT-003",
+    "name": "Medway Medical",
+    "displayName": "Medway Medical",
+    "scope": "regional",
+    "market": "Salt Lake City, UT",
+    "headquarters": {
+      "street1": "1837 S 4130 W, Ste B",
+      "city": "Salt Lake City",
+      "state": "UT",
+      "zip": "84104"
+    },
+    "hours": null,
+    "contact": {
+      "dispatchPhone": "801-566-0567",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Salt Lake City metro area",
+    "statesServed": [
+      "UT"
+    ],
+    "locationCount": 1,
+    "locations": [
+      {
+        "city": "Salt Lake City",
+        "state": "UT",
+        "street1": "1837 S 4130 W, Ste B",
+        "zip": "84104",
+        "phone": "801-566-0567"
+      }
+    ],
+    "hcpcsCarried": [
+      "E0250",
+      "E0601",
+      "E0470",
+      "E1130"
+    ],
+    "categoriesCarried": [
+      "bed",
+      "respiratory",
+      "mobility"
+    ],
+    "catalogNotes": "Listed as delivering hospital beds, wheelchairs, and CPAP/respiratory equipment.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://www.yelp.com/biz/medway-medical-salt-lake-city",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-UT-004",
+    "name": "Wasatch Medical Supply",
+    "displayName": "Wasatch Medical Supply",
+    "scope": "regional",
+    "market": "West Jordan, UT",
+    "headquarters": {
+      "street1": "6824 S Redwood Rd",
+      "city": "West Jordan",
+      "state": "UT",
+      "zip": "84084"
+    },
+    "hours": "Mon-Sat 9:00-17:30; Sun closed",
+    "contact": {
+      "dispatchPhone": "801-566-5844",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "West Jordan and the Salt Lake Valley",
+    "statesServed": [
+      "UT"
+    ],
+    "locationCount": 1,
+    "locations": [
+      {
+        "city": "West Jordan",
+        "state": "UT",
+        "street1": "6824 S Redwood Rd",
+        "zip": "84084",
+        "phone": "801-566-5844"
+      }
+    ],
+    "hcpcsCarried": [
+      "E1130",
+      "E0143",
+      "E0114",
+      "E0100"
+    ],
+    "categoriesCarried": [
+      "mobility"
+    ],
+    "catalogNotes": "Site lists wheelchairs, walkers, crutches and other durable medical equipment, plus wound care, compression stockings, orthopedic soft supports, orthotics, incontinence, diabetic and bariatric supplies. No hospital bed or oxygen line confirmed on source page.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://wasatchmedicalsupply.com/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-US-001",
+    "name": "National HME, Inc.",
+    "displayName": "National HME",
+    "scope": "national",
+    "market": "Nationwide (HQ Irving, TX)",
+    "headquarters": {
+      "street1": "7651 Esters Blvd, Ste 125",
+      "city": "Irving",
+      "state": "TX",
+      "zip": "75063"
+    },
+    "hours": null,
+    "contact": {
+      "dispatchPhone": "800-734-0831",
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "60+ owned and operated branches nationwide; 17 direct service states. Operates a 40,000 sq ft national distribution center and approximately 250 delivery trucks.",
+    "statesServed": null,
+    "locationCount": 60,
+    "locations": [],
+    "hcpcsCarried": [
+      "E0250",
+      "E1390",
+      "E0601",
+      "E0470",
+      "E1130",
+      "E0143",
+      "E0163",
+      "E0630"
+    ],
+    "categoriesCarried": [
+      "bed",
+      "respiratory",
+      "mobility",
+      "bathroom_safety"
+    ],
+    "catalogNotes": "Hospice-specialized DME. Site describes STAT and discharge order handling and oxygen delivery, plus Hospice Cloud Pro platform for real-time order tracking and ETA notifications. Founded 2006, HQAA accredited. Specific HCPCS line not published; categories inferred from hospice DME scope.",
+    "hospiceFocused": true,
+    "logoPath": null,
+    "sourceUrl": "https://www.nationalhme.com/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-US-002",
+    "name": "Central Medical Supply Group",
+    "displayName": "Central Medical Supply",
+    "scope": "regional",
+    "market": "Northeast US",
+    "headquarters": null,
+    "hours": "24 hours a day",
+    "contact": {
+      "dispatchPhone": null,
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "12 strategic warehouse locations throughout the Northeast; states as much as a 30-minute drive from patient locations. Founded 1997, 195+ employees.",
+    "statesServed": null,
+    "locationCount": 12,
+    "locations": [],
+    "hcpcsCarried": [],
+    "categoriesCarried": [],
+    "catalogNotes": "Hospice-focused equipment management. Source page references durable medical equipment generically without listing specific categories.",
+    "hospiceFocused": true,
+    "logoPath": null,
+    "sourceUrl": "https://centralmedsupply.com/hospice-dme-supplier/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-US-003",
+    "name": "Rotech Healthcare Inc.",
+    "displayName": "Rotech Healthcare",
+    "scope": "national",
+    "market": "Nationwide (HQ Orlando, FL)",
+    "headquarters": {
+      "street1": null,
+      "city": "Orlando",
+      "state": "FL",
+      "zip": null
+    },
+    "hours": null,
+    "contact": {
+      "dispatchPhone": null,
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Over 300 locations across 45 states. National provider of home respiratory therapy and durable medical equipment.",
+    "statesServed": null,
+    "locationCount": 300,
+    "locations": [],
+    "hcpcsCarried": [
+      "E1390",
+      "E0601",
+      "E0470",
+      "E0431"
+    ],
+    "categoriesCarried": [
+      "respiratory"
+    ],
+    "catalogNotes": "Primary line is home respiratory therapy (oxygen, CPAP/BiPAP) plus general DME. Category list reflects the respiratory focus stated on the source.",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://www.rotech.com/",
+    "sourceRetrieved": "2026-08-15"
+  },
+  {
+    "id": "RVND-US-004",
+    "name": "Lincare Holdings Inc.",
+    "displayName": "Lincare",
+    "scope": "national",
+    "market": "Nationwide (HQ Clearwater, FL)",
+    "headquarters": {
+      "street1": null,
+      "city": "Clearwater",
+      "state": "FL",
+      "zip": null
+    },
+    "hours": null,
+    "contact": {
+      "dispatchPhone": null,
+      "dispatchEmail": null,
+      "repName": null
+    },
+    "serviceAreaDescription": "Over 700 locations in 49 states. Respiratory healthcare company.",
+    "statesServed": null,
+    "locationCount": 700,
+    "locations": [],
+    "hcpcsCarried": [
+      "E1390",
+      "E0601",
+      "E0470",
+      "E0431"
+    ],
+    "categoriesCarried": [
+      "respiratory"
+    ],
+    "catalogNotes": "Respiratory-focused national provider (oxygen, CPAP/BiPAP, nebulizers).",
+    "hospiceFocused": false,
+    "logoPath": null,
+    "sourceUrl": "https://en.wikipedia.org/wiki/Lincare_Holdings",
+    "sourceRetrieved": "2026-08-15"
+  }
+]

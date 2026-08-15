@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { ROLE_LABELS } from '../../lib/auth';
+import { isFamilyMember, ROLE_LABELS } from '../../lib/auth';
+import { familyCardLabel } from '../../lib/family';
 import type { User } from '../../types/domain';
+import { Tooltip } from '../ui/Tooltip';
 
 /** "Jordan Reyes" → "JR". Falls back to "?" so a blank name can't render an empty circle. */
 function initialsOf(name: string): string {
@@ -37,27 +39,29 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
 
   return (
     <div ref={rootRef} className="relative">
-      <button
-        type="button"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="Account menu"
-        data-testid="profile-menu-button"
-        onClick={() => setOpen((v) => !v)}
-        className={`flex h-9 w-9 items-center justify-center rounded-full border text-[12px] font-semibold tracking-wide transition-colors ${
-          open
-            ? 'border-ink bg-solid-bg text-solid-ink'
-            : 'border-line-strong bg-surface text-ink hover:border-ink'
-        }`}
-      >
-        {initialsOf(user.name)}
-      </button>
+      <Tooltip label="Account menu" hidden={open}>
+        <button
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          aria-label="Account menu"
+          data-testid="profile-menu-button"
+          onClick={() => setOpen((v) => !v)}
+          className={`flex h-9 w-9 items-center justify-center rounded-full border text-[12px] font-semibold tracking-wide transition-colors ${
+            open
+              ? 'border-ink bg-solid-bg text-solid-ink'
+              : 'border-line-strong bg-surface text-ink hover:border-ink'
+          }`}
+        >
+          {initialsOf(user.name)}
+        </button>
+      </Tooltip>
 
       {open ? (
         <div
           role="menu"
           data-testid="profile-menu"
-          className="absolute right-0 top-[calc(100%+10px)] z-30 w-60 rounded-panel border border-line bg-surface p-1.5 shadow-lg"
+          className="profile-menu-panel absolute right-0 top-[calc(100%+10px)] z-30 w-60 rounded-panel border border-line bg-surface p-1.5 shadow-lg"
         >
           <div className="px-3 pb-2.5 pt-2">
             <div className="text-[13px] font-medium text-ink">{user.name}</div>
@@ -67,6 +71,16 @@ export function ProfileMenu({ user, onSignOut }: { user: User; onSignOut: () => 
           </div>
 
           <div className="mx-1.5 border-t border-line" />
+
+          {isFamilyMember(user) ? (
+            <div
+              data-testid="family-payment"
+              className="mt-1.5 flex items-center justify-between rounded-control px-3 py-2 text-[13px] text-ink"
+            >
+              <span className="text-ink-2">Payment method</span>
+              <span className="font-mono text-[12px] tabular-nums">{familyCardLabel}</span>
+            </div>
+          ) : null}
 
           <button
             type="button"

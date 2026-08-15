@@ -24,7 +24,7 @@ import {
   patients,
   vendors,
 } from '../data/db';
-import { CATEGORY_LABELS, patientFullName } from './catalog';
+import { CATEGORY_LABELS, offerPrice, patientFullName } from './catalog';
 import { bucketIndexFor, periodContains, type CostPeriod } from './costPeriod';
 import type { TrendRange } from './trendRange';
 import type { EquipmentItem, Order, Vendor, VendorOffer } from '../types/domain';
@@ -111,6 +111,9 @@ export interface LadderRow {
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
+/** The price this offer actually bills at, under its own default arrangement. */
+const offerPriceUsd = (offer: VendorOffer): number => offerPrice(offer)?.amount ?? 0;
+
 /**
  * Cheapest offer a vendor lists for a code, or null when it doesn't sell it. Billing model
  * (`unit`) is read off the offer itself rather than `equipment_catalog.rental` — a code's
@@ -120,7 +123,7 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 function cheapestOfferFor(vendorId: string, hcpcs: string): VendorOffer | null {
   const offers = getOffersForItem(hcpcs).filter((o) => o.vendorId === vendorId);
   if (offers.length === 0) return null;
-  return offers.reduce((min, o) => (o.priceUsd < min.priceUsd ? o : min));
+  return offers.reduce((min, o) => (offerPriceUsd(o) < offerPriceUsd(min) ? o : min));
 }
 
 const monthsFor = (offer: VendorOffer, period: CostPeriod): number =>
@@ -137,7 +140,7 @@ function codeUnitKind(hcpcs: string): BasketLine['kind'] {
 export function vendorColumns(hospiceId: string): VendorColumn[] {
   const patientZips = hospicePatientZips(hospiceId);
   const patientLocations = hospicePatientLocations(hospiceId);
-  return [...vendors]
+  return [...vendors()]
     .map((vendor) => {
       const served = [...patientZips].filter((zip) => vendor.serviceAreaZips.includes(zip));
       const servedLocations: string[] = [];
@@ -164,13 +167,13 @@ export function vendorColumns(hospiceId: string): VendorColumn[] {
 }
 
 function hospicePatientZips(hospiceId: string): Set<string> {
-  return new Set(patients.filter((p) => p.hospiceId === hospiceId).map((p) => p.address.zip));
+  return new Set(patients().filter((p) => p.hospiceId === hospiceId).map((p) => p.address.zip));
 }
 
 /** This hospice's distinct patient locations ("City, ST" -> the ZIPs on file for it), alphabetical. */
 function hospicePatientLocations(hospiceId: string): Map<string, string[]> {
   const map = new Map<string, string[]>();
-  for (const p of patients) {
+  for (const p of patients()) {
     if (p.hospiceId !== hospiceId) continue;
     const label = `${p.address.city}, ${p.address.state}`;
     const zips = map.get(label);
@@ -188,7 +191,7 @@ export function orderItemExtendedUsd(order: Order, item: EquipmentItem, period: 
   if (!order.vendorId) return 0;
   const offer = cheapestOfferFor(order.vendorId, item.hcpcs);
   if (offer === null) return 0;
-  return round2(item.qty * offer.priceUsd * monthsFor(offer, period));
+  return round2(item.qty * offerPriceUsd(offer) * monthsFor(offer, period));
 }
 
 export function orderExtendedUsd(order: Order, period: CostPeriod): number {
@@ -227,7 +230,7 @@ export function orderHistoryForCode(
       orderId: order.id,
       orderedAt: order.orderedAt,
       qty: item.qty,
-      unitUsd: offer?.priceUsd ?? null,
+      unitUsd: offer ? offerPriceUsd(offer) : null,
       extendedUsd: orderItemExtendedUsd(order, item, period),
       vendorName: getVendor(order.vendorId)?.displayName ?? 'Vendor not yet assigned',
       orderedByName: getUser(order.orderedById)?.name ?? 'Unknown',
@@ -258,7 +261,7 @@ export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[]
       weeklyUnits.set(item.hcpcs, weeks);
 
       const paidOffer = order.vendorId ? cheapestOfferFor(order.vendorId, item.hcpcs) : null;
-      const paid = paidOffer === null ? 0 : item.qty * paidOffer.priceUsd * monthsFor(paidOffer, period);
+      const paid = paidOffer === null ? 0 : item.qty * offerPriceUsd(paidOffer) * monthsFor(paidOffer, period);
       actual.set(item.hcpcs, (actual.get(item.hcpcs) ?? 0) + paid);
 
       const paidWeeks = weeklyActual.get(item.hcpcs) ?? new Array<number>(bucketCount).fill(0);
@@ -274,12 +277,12 @@ export function buildBasket(hospiceId: string, period: CostPeriod): BasketLine[]
 
     const prices: VendorUnitPrice[] = columns.map((column) => {
       const offer = cheapestOfferFor(column.vendor.id, hcpcs);
-      const unitUsd = offer?.priceUsd ?? null;
+      const unitUsd = offer ? offerPriceUsd(offer) : null;
       return {
         vendorId: column.vendor.id,
         unitUsd,
         extendedUsd:
-          offer === null ? null : round2(unitCount * offer.priceUsd * monthsFor(offer, period)),
+          offer === null ? null : round2(unitCount * offerPriceUsd(offer) * monthsFor(offer, period)),
       };
     });
 
@@ -360,13 +363,6 @@ export function spendTrend(
   });
 }
 
-function newestOrderDate(hospiceId: string): string | null {
-  const dates = getOrdersForHospice(hospiceId)
-    .map((o) => o.orderedAt?.slice(0, 10))
-    .filter((d): d is string => typeof d === 'string');
-  return dates.length === 0 ? null : dates.reduce((a, b) => (a > b ? a : b));
-}
-
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -415,6 +411,13 @@ export function spendTrendForRange(
   if (range === '1w') return dailySpendTrend(hospiceId, period);
   if (range === '1m') return spendTrend(lines, period, hospiceId);
   return null;
+}
+
+function newestOrderDate(hospiceId: string): string | null {
+  const dates = getOrdersForHospice(hospiceId)
+    .map((o) => o.orderedAt?.slice(0, 10))
+    .filter((d): d is string => typeof d === 'string');
+  return dates.length === 0 ? null : dates.reduce((a, b) => (a > b ? a : b));
 }
 
 /** Total Spend tile summary for the selected range. Null means the range has no real history. */
@@ -480,3 +483,4 @@ export function ledgerPpd(hospiceId: string, spendUsd: number, period: CostPerio
     days: period.days,
   };
 }
+

@@ -1,25 +1,27 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { moneyCents, moneyLabel } from '../../lib/catalog';
-import { aiUsageTotals, formatTokenCount } from '../../lib/aiUsage';
+import { moneyLabel } from '../../lib/catalog';
 import { accountOverageBreakdown, overBudgetProductBreakdown } from '../../lib/budgetBreakdown';
+import { summarizeUsage } from '../../lib/ai/usage';
 import type { AccountBudgetRow, AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, VendorColumn } from '../../lib/costLedger';
 import { spendSummaryForRange } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
 import { getRangeMeta, type TrendRange } from '../../lib/trendRange';
 import { buildProductSavings, countGenuineSavings, totalPotentialSavingsUsd } from '../../lib/vendorSavings';
-import { AiTokenRangePanel } from './AiTokenRangePanel';
 import { BudgetBreakdownPanel } from './BudgetBreakdownPanel';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
 import { ProductSavingsPanel } from './ProductSavingsPanel';
 import { SpendRangePanel } from './SpendRangePanel';
 import { StatTiles, type StatTileVM } from './StatTiles';
+import { costLabel, TokenUsagePanel } from './TokenUsagePanel';
 import { VendorPriceMatrix } from './VendorPriceMatrix';
 
 const DEFAULT_TREND_RANGE: TrendRange = '1m';
 
-type TileKey = 'spend' | 'ai' | 'delta' | 'budget';
+/** The four selectable stat tiles. Spend opens a real range-picker panel; tokens opens the real
+ *  AI token ledger breakdown. */
+type TileKey = 'spend' | 'tokens' | 'delta' | 'budget';
 
 export function CostLedgerPanel({
   hospiceId,
@@ -48,21 +50,20 @@ export function CostLedgerPanel({
 
   const [selectedMetric, setSelectedMetric] = useState<TileKey | null>('spend');
   const [spendRange, setSpendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
-  const [aiRange, setAiRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
 
   const productSavings = useMemo(() => buildProductSavings(lines, columns), [lines, columns]);
   const totalSavingsUsd = useMemo(() => totalPotentialSavingsUsd(productSavings), [productSavings]);
   const savingsProductCount = useMemo(() => countGenuineSavings(productSavings), [productSavings]);
-  const budgetUserIds = useMemo(() => accountRows.map((row) => row.user.id), [accountRows]);
-  const aiTotals = useMemo(
-    () => aiUsageTotals(hospiceId, period, budgetUserIds),
-    [hospiceId, period, budgetUserIds],
-  );
   const spendRangeSummary = useMemo(
     () => spendSummaryForRange(hospiceId, period, lines, spendRange),
     [hospiceId, period, lines, spendRange],
   );
   const spendRangeLabel = getRangeMeta(spendRange).label;
+
+  // Read fresh on every render — cheap localStorage read, and this tile should reflect AI calls
+  // made elsewhere in the app (e.g. catalog search) without requiring a full page reload.
+  const usage = summarizeUsage();
+  const totalTokens = usage.total.inputTokens + usage.total.outputTokens;
 
   const tiles: StatTileVM[] = [
     {
@@ -76,10 +77,13 @@ export function CostLedgerPanel({
       tone: 'plain',
     },
     {
-      key: 'ai',
-      label: 'AI token spend',
-      value: moneyCents(aiTotals.costUsd),
-      detail: `${formatTokenCount(aiTotals.tokenCount)} tokens · ${aiTotals.requestCount} requests`,
+      key: 'tokens',
+      label: 'AI Token Usage',
+      value: totalTokens.toLocaleString('en-US'),
+      detail:
+        usage.total.calls > 0
+          ? `${costLabel(usage.total.costUsd)} across ${usage.total.calls} call${usage.total.calls === 1 ? '' : 's'}`
+          : 'No AI calls yet this session',
       tone: 'plain',
     },
     {
@@ -112,7 +116,7 @@ export function CostLedgerPanel({
   ];
 
   const selectMetric = (key: string) => {
-    if (!['spend', 'ai', 'delta', 'budget'].includes(key)) return;
+    if (!['spend', 'tokens', 'delta', 'budget'].includes(key)) return;
     setSelectedMetric((current) => (current === key ? null : (key as TileKey)));
   };
 
@@ -146,16 +150,8 @@ export function CostLedgerPanel({
         onRangeChange={setSpendRange}
       />
     );
-  } else if (selectedMetric === 'ai') {
-    panel = (
-      <AiTokenRangePanel
-        hospiceId={hospiceId}
-        period={period}
-        userIds={budgetUserIds}
-        range={aiRange}
-        onRangeChange={setAiRange}
-      />
-    );
+  } else if (selectedMetric === 'tokens') {
+    panel = <TokenUsagePanel summary={usage} />;
   }
 
   return (

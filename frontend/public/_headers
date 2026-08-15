@@ -1,0 +1,16 @@
+# Cloudflare Pages headers.
+#
+# The service worker must not be cached: a stale one keeps running the old push handler for as long
+# as the browser holds it, which is how a push silently stops rendering after a deploy.
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
+
+# The manifest changes rarely but must not be stale either — iOS reads it when the app is installed
+# to the Home Screen, which is what makes push work there at all.
+/manifest.json
+  Cache-Control: public, max-age=3600
+
+# Hashed assets are immutable by construction.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
