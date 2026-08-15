@@ -150,6 +150,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
   // when the query names one patient, their sanitized context. Deterministic results render
   // immediately; the AI order is applied when it lands. Any failure = plain keyword search.
   const aiRerank = useAiRerank(aiMode && !!searchQuery, searchQuery, catalogItems, assignablePatients);
+  const aiFailed = aiMode && !!searchQuery && aiRerank.failed;
   const aiActive = aiMode && !!searchQuery && !aiRerank.failed;
   let filteredSorted: typeof catalogItems;
   if (aiActive) {
@@ -162,6 +163,10 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
     } else {
       filteredSorted = base;
     }
+  } else if (aiFailed) {
+    // AI mode couldn't rank (no API key, or the call failed). The query is natural language, so
+    // keyword-matching it would show zero products — fall back to the full catalog instead.
+    filteredSorted = filterAndSortCatalog(catalogItems, filters);
   } else {
     filteredSorted = filterAndSortCatalog(searchCatalog(catalogItems, searchQuery), filters);
   }
@@ -226,7 +231,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
               <div className="mb-7.5 flex flex-wrap items-end justify-between gap-5">
                 <div>
                   <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
-                  {searchQuery ? (
+                  {searchQuery && !aiFailed ? (
                     <div className="mt-1.5 text-[13px] text-ink-2">
                       {filteredSorted.length} result{filteredSorted.length === 1 ? '' : 's'} for
                       {' '}&ldquo;{searchQuery}&rdquo;{' '}
@@ -243,7 +248,7 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                       {aiRerank.busy ? (
                         <span className="ai-status">Ranking for this search…</span>
                       ) : aiRerank.failed ? (
-                        <span className="text-ink-3">AI unavailable — standard results</span>
+                        <span className="text-ink-3">AI unavailable — showing all equipment</span>
                       ) : (
                         <span className="text-ai-ink">
                           AI-ranked, best match first
