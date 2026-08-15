@@ -289,6 +289,10 @@ export default function Catalog({ user }: { user: User }) {
         onQtyChange={(id, patientId, qty) => setLines((prev) => setCartLineQty(prev, id, patientId, qty))}
         onRemove={(id, patientId) => setLines((prev) => setCartLineQty(prev, id, patientId, 0))}
         onClose={() => setCartOpen(false)}
+        onViewCart={() => {
+          setCartOpen(false);
+          navigate('/cart');
+        }}
         onPlaceOrder={placeOrder}
       />
 

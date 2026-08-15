@@ -8,6 +8,7 @@ export function CartDrawer({
   onQtyChange,
   onRemove,
   onClose,
+  onViewCart,
   onPlaceOrder,
 }: {
   open: boolean;
@@ -16,6 +17,7 @@ export function CartDrawer({
   onQtyChange: (offerId: string, patientId: string, qty: number) => void;
   onRemove: (offerId: string, patientId: string) => void;
   onClose: () => void;
+  onViewCart: () => void;
   onPlaceOrder: () => void;
 }) {
   const unitCount = groups.reduce((n, g) => n + g.lines.reduce((m, l) => m + l.qty, 0), 0);
@@ -150,13 +152,22 @@ export function CartDrawer({
                 : 'Billed to hospice contract'
               : 'Add equipment to start an order.'}
           </div>
-          <button
-            type="button"
-            onClick={onPlaceOrder}
-            className="mt-1 w-full border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
-          >
-            Place order
-          </button>
+          <div className="mt-1 grid grid-cols-[auto_1fr] gap-2">
+            <button
+              type="button"
+              onClick={onViewCart}
+              className="border border-line-strong bg-surface px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-ink-2 transition-colors hover:border-ink hover:bg-solid-bg hover:text-solid-ink"
+            >
+              View cart
+            </button>
+            <button
+              type="button"
+              onClick={onPlaceOrder}
+              className="border border-solid-bg bg-solid-bg px-4 py-3.5 text-[11px] uppercase tracking-[0.1em] text-solid-ink transition-opacity hover:opacity-85"
+            >
+              Place order
+            </button>
+          </div>
         </div>
       </section>
     </>

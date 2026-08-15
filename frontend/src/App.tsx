@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { readSession, writeSession } from './lib/auth';
 import type { User } from './types/domain';
+import Cart from './views/Cart';
 import Catalog from './views/Catalog';
 import Login from './views/Login';
 import PatientDetail from './views/PatientDetail';
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/catalog" replace />} />
             <Route path="/catalog/:offerId" element={user ? <Catalog user={user} /> : toLogin} />
             <Route path="/catalog" element={user ? <Catalog user={user} /> : toLogin} />
+            <Route path="/cart" element={user ? <Cart user={user} /> : toLogin} />
             <Route path="/patients" element={user ? <Patients user={user} /> : toLogin} />
             <Route
               path="/patients/:patientId"
