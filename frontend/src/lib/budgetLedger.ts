@@ -92,7 +92,15 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 const BUDGET_VISIBLE_ROLES: Partial<Record<UserRole, UserRole[]>> = {
   hospice_admin: ['director_of_nursing', 'case_manager', 'field_nurse', 'admissions_nurse'],
-  director_of_nursing: ['case_manager', 'field_nurse', 'admissions_nurse'],
+  // The director can see the whole budget, including the owner's row and her own department — she
+  // just can't adjust anything (gated separately by the `budgets:configure` permission).
+  director_of_nursing: [
+    'hospice_admin',
+    'director_of_nursing',
+    'case_manager',
+    'field_nurse',
+    'admissions_nurse',
+  ],
 };
 
 /** Accepts partial input like "8." while typing; rejects anything not a finite, non-negative number. */

@@ -181,14 +181,6 @@ export function CostLedgerPanel({
       {openLine ? (
         <CodeDrawer hospiceId={hospiceId} period={period} line={openLine} onClose={onCloseRow} />
       ) : null}
-
-      <p className="mt-3 max-w-[92ch] text-[12px] text-ink-3">
-        Paid is what this hospice actually spent, each order at the vendor that took it. See{' '}
-        <strong className="font-medium text-ink-2">Potential Savings</strong> above for an
-        AI-suggested vendor on every product ordered this period, or select{' '}
-        <strong className="font-medium text-ink-2">Total Spend</strong> to see it broken out over
-        time.
-      </p>
     </div>
   );
 }

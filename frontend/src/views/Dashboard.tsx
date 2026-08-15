@@ -22,6 +22,7 @@ import {
 import { basketTotals, buildBasket, vendorColumns } from '../lib/costLedger';
 import { getPeriod } from '../lib/costPeriod';
 import { getHospice } from '../data/db';
+import { can } from '../lib/auth';
 import type { User, UserRole } from '../types/domain';
 
 const isDashboardTab = (value: string | null): value is DashboardTab =>
@@ -51,6 +52,7 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
   const hospiceId = user.orgId;
   const period = getPeriod('aug-2026');
   const hospiceDefaultBudgetUsd = getHospice(hospiceId)?.monthlyBudgetUsd ?? 0;
+  const canEditBudget = can(user, 'budgets:configure');
 
   const columns = useMemo(() => vendorColumns(hospiceId), [hospiceId]);
   const lines = useMemo(() => buildBasket(hospiceId, period), [hospiceId, period]);
@@ -150,6 +152,7 @@ export default function Dashboard({ user, onSignOut }: { user: User; onSignOut: 
             sortKey={sort.key}
             sortDir={sort.dir}
             editMode={editMode}
+            canEdit={canEditBudget}
             onSort={sortBy}
             onStartEdit={startEditingBudgets}
             onSave={saveBudgetEdits}
