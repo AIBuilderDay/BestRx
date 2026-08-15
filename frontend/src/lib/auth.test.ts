@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { users } from '../data/db';
-import { can, DEMO_ACCOUNT_IDS, findUserByEmail, permissionsFor } from './auth';
+import { can, DEMO_ACCOUNT_IDS, findUserByEmail, landingPathFor, permissionsFor } from './auth';
 
 describe('auth', () => {
   it('gives every user a unique login email', () => {
@@ -30,6 +30,17 @@ describe('auth', () => {
       expect(can(user, 'reporting'), user.id).toBe(senior);
       expect(can(user, 'vendors:manage'), user.id).toBe(user.role === 'hospice_admin');
     }
+  });
+
+  it('opens the dashboard for reporting roles and the storefront for everyone else', () => {
+    for (const user of users.filter((u) => u.orgType === 'hospice')) {
+      const expected = can(user, 'reporting') ? '/dashboard' : '/catalog';
+      expect(landingPathFor(user), user.id).toBe(expected);
+    }
+    expect(landingPathFor(users.find((u) => u.id === 'USR-013')!)).toBe('/dashboard');
+    expect(landingPathFor(users.find((u) => u.id === 'USR-012')!)).toBe('/dashboard');
+    expect(landingPathFor(users.find((u) => u.id === 'USR-001')!)).toBe('/catalog');
+    expect(landingPathFor(users.find((u) => u.id === 'USR-010')!)).toBe('/catalog');
   });
 
   it('offers four Sample Hospice A demo accounts on the login page', () => {

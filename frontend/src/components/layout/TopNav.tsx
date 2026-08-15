@@ -4,13 +4,12 @@ import { RESET_CATALOG_FILTERS_STATE } from '../../lib/catalog';
 import type { User } from '../../types/domain';
 import { Logo } from '../ui/Logo';
 
-export type NavSection = 'catalog' | 'patients' | 'settings';
+export type NavSection = 'dashboard' | 'catalog' | 'patients' | 'settings';
 
 /** Placeholder sections, shown only to roles whose permissions will unlock them when built. */
 const GATED_SECTIONS: { label: string; permission: Permission }[] = [
   { label: 'Orders', permission: 'storefront:purchase' },
   { label: 'Pickups', permission: 'pickup:trigger' },
-  { label: 'Costs', permission: 'reporting' },
   { label: 'Vendors', permission: 'vendors:manage' },
 ];
 
@@ -38,6 +37,15 @@ export function TopNav({
       </div>
 
       <nav className="flex gap-6 text-xs uppercase tracking-[0.09em] text-ink-2">
+        {can(user, 'reporting') ? (
+          <Link
+            to="/dashboard"
+            aria-current={activeSection === 'dashboard' ? 'page' : undefined}
+            className={linkClass('dashboard')}
+          >
+            Dashboard
+          </Link>
+        ) : null}
         <Link
           to="/catalog"
           state={RESET_CATALOG_FILTERS_STATE}

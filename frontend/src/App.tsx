@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { readSession, writeSession } from './lib/auth';
+import { can, landingPathFor, readSession, writeSession } from './lib/auth';
 import type { User } from './types/domain';
 import Cart from './views/Cart';
 import Catalog from './views/Catalog';
+import Dashboard from './views/Dashboard';
 import Login from './views/Login';
 import PatientDetail from './views/PatientDetail';
 import Patients from './views/Patients';
@@ -36,7 +37,19 @@ export default function App() {
         <CartProvider>
           <Routes>
             <Route path="/login" element={<Login onSignIn={signIn} />} />
-            <Route path="/" element={<Navigate to="/catalog" replace />} />
+            <Route path="/" element={user ? <Navigate to={landingPathFor(user)} replace /> : toLogin} />
+            {/* Roles without reporting are sent to the storefront rather than shown an error —
+                there is nothing for them to fix, and the link is already hidden from their nav. */}
+            <Route
+              path="/dashboard"
+              element={
+                user ? (
+                  can(user, 'reporting') ? <Dashboard user={user} /> : <Navigate to="/catalog" replace />
+                ) : (
+                  toLogin
+                )
+              }
+            />
             <Route path="/catalog/:offerId" element={user ? <Catalog user={user} /> : toLogin} />
             <Route path="/catalog" element={user ? <Catalog user={user} /> : toLogin} />
             <Route path="/cart" element={user ? <Cart user={user} /> : toLogin} />
