@@ -1,13 +1,20 @@
+import { useState } from 'react';
 import { moneyCents, moneyLabel } from '../../lib/catalog';
 import type { AccountTotals } from '../../lib/budgetLedger';
 import type { BasketLine, BasketTotals, TrendBucket, VendorColumn } from '../../lib/costLedger';
 import { ledgerPpd, SERVICE_FLOOR_PCT } from '../../lib/costLedger';
 import type { CostPeriod } from '../../lib/costPeriod';
+import type { MetricKey, TrendRange } from '../../lib/costTrendMock';
 import { CodeDrawer } from './CodeDrawer';
 import { LedgerControls } from './LedgerControls';
+import { MetricTrendPanel, type TrendMetricVM } from './MetricTrendPanel';
 import { SpendTrendCard } from './SpendTrendCard';
 import { StatTiles, type StatTileVM } from './StatTiles';
 import { VendorPriceMatrix } from './VendorPriceMatrix';
+
+const DEFAULT_TREND_RANGE: TrendRange = '1m';
+
+const percentLabel = (value: number): string => `${Math.round(value)}%`;
 
 export function CostLedgerPanel({
   hospiceId,
@@ -44,6 +51,9 @@ export function CostLedgerPanel({
   const delta = totals.qualifiedDeltaUsd;
   const openLine = lines.find((l) => l.hcpcs === openHcpcs) ?? null;
 
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey | null>(null);
+  const [trendRange, setTrendRange] = useState<TrendRange>(DEFAULT_TREND_RANGE);
+
   const tiles: StatTileVM[] = [
     {
       key: 'spend',
@@ -75,6 +85,7 @@ export function CostLedgerPanel({
           ? `${qualified.vendor.displayName} ${qualified.onTimePct}% on-time vs ${contracted.onTimePct}% contracted`
           : `No vendor clears the ${SERVICE_FLOOR_PCT}% floor`,
       tone: delta !== null && delta > 0 ? 'good' : 'plain',
+      chartable: delta !== null,
     },
     {
       key: 'budget',
@@ -84,12 +95,43 @@ export function CostLedgerPanel({
         budgetTotals.assignedPatients
       } assigned patients`,
       tone: (budgetTotals.utilizationPct ?? 0) >= 90 ? 'alert' : 'plain',
+      chartable: budgetTotals.utilizationPct !== null,
     },
   ];
 
+  const trendMetrics: Record<MetricKey, TrendMetricVM> = {
+    spend: { key: 'spend', label: 'Total DME spend', currentValue: totals.actualUsd, formatValue: moneyLabel },
+    ppd: { key: 'ppd', label: 'Cost per patient-day', currentValue: ppd.ppdUsd, formatValue: moneyCents },
+    delta: {
+      key: 'delta',
+      label: tiles[2].label,
+      currentValue: delta ?? 0,
+      formatValue: (v) => (v < 0 ? `-${moneyLabel(Math.abs(v))}` : moneyLabel(v)),
+    },
+    budget: {
+      key: 'budget',
+      label: 'Budget utilization',
+      currentValue: budgetTotals.utilizationPct ?? 0,
+      formatValue: percentLabel,
+    },
+  };
+
+  const selectMetric = (key: string) => {
+    if (!['spend', 'ppd', 'delta', 'budget'].includes(key)) return;
+    setSelectedMetric((current) => (current === key ? null : (key as MetricKey)));
+  };
+
   return (
     <div className="mt-5">
-      <StatTiles tiles={tiles} />
+      <StatTiles tiles={tiles} selectedKey={selectedMetric} onSelect={selectMetric} />
+
+      {selectedMetric ? (
+        <MetricTrendPanel
+          metric={trendMetrics[selectedMetric]}
+          range={trendRange}
+          onRangeChange={setTrendRange}
+        />
+      ) : null}
 
       <div className="mt-4">
         <LedgerControls
