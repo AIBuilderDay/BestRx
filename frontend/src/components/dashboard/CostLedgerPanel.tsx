@@ -94,7 +94,7 @@ export function CostLedgerPanel({
       detail: `of ${moneyLabel(budgetTotals.capUsd)} across ${
         budgetTotals.assignedPatients
       } assigned patients`,
-      tone: (budgetTotals.utilizationPct ?? 0) >= 90 ? 'alert' : 'plain',
+      tone: (budgetTotals.utilizationPct ?? 0) > 100 ? 'alert' : 'plain',
       chartable: budgetTotals.utilizationPct !== null,
     },
   ];
