@@ -1,25 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
+import { PatientNotesSection } from '../components/patients/PatientNotesSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
+import { DetailReveal } from '../components/ui/DetailReveal';
 import { useCart } from '../context/CartContext';
+import { patientNotes } from '../data/db';
 import { buildPatientDetailVM, isInCaseload } from '../lib/patients';
 import type { PatientEquipmentVM } from '../lib/patients';
-import type { User } from '../types/domain';
-
-interface SessionNote {
-  meta: string;
-  text: string;
-}
+import type { PatientNote, User } from '../types/domain';
 
 export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
   const { cartCount, setCartOpen } = useCart();
 
-  const [draft, setDraft] = useState('');
-  const [addedNotes, setAddedNotes] = useState<SessionNote[]>([]);
+  const [sessionNotes, setSessionNotes] = useState<PatientNote[]>([]);
 
   const inCaseload = patientId ? isInCaseload(patientId, user.id, user.orgId) : false;
   const vm = useMemo(
@@ -28,16 +25,6 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
   );
 
   const [imgBroken, setImgBroken] = useState(false);
-
-  const handleAddNote = () => {
-    const text = draft.trim();
-    if (!text) return;
-    setAddedNotes((prev) => [
-      { meta: `Just now · ${user.name}`, text },
-      ...prev,
-    ]);
-    setDraft('');
-  };
 
   const handleCallVendor = (item: PatientEquipmentVM) => {
     const digits = item.phone.replace(/\D/g, '');
@@ -88,116 +75,105 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       {topNav}
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-5.5">
-        <Link
-          to="/patients"
-          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
-        >
-          <span className="text-sm leading-none">←</span>
-          <span>All my patients</span>
-        </Link>
+        <DetailReveal step={0}>
+          <Link
+            to="/patients"
+            className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
+          >
+            <span className="text-sm leading-none">←</span>
+            <span>All my patients</span>
+          </Link>
+        </DetailReveal>
 
-        <div className="mb-5 flex flex-wrap items-start gap-4">
-          <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
-            {imagePath && !imgBroken ? (
-              <img
-                src={imagePath}
-                alt={fullName}
-                onError={() => setImgBroken(true)}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div
-                className="h-full w-full"
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
-                }}
-              />
-            )}
+        <DetailReveal step={1}>
+          <div className="mb-5 flex flex-wrap items-start gap-4">
+            <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
+              {imagePath && !imgBroken ? (
+                <img
+                  src={imagePath}
+                  alt={fullName}
+                  onError={() => setImgBroken(true)}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div
+                  className="h-full w-full"
+                  style={{
+                    backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
+                  }}
+                />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-[22px] font-semibold tracking-tight">{fullName}</h1>
-          </div>
-        </div>
+        </DetailReveal>
 
         <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
           <div className="flex min-w-0 flex-col gap-5">
-            <ProductsOrderedSection
-              equipment={equipment}
-              onCallVendor={handleCallVendor}
-              onNewOrder={() => navigate('/catalog')}
-            />
+            <DetailReveal step={2}>
+              <PatientNotesSection
+                patientId={patient.id}
+                user={user}
+                storedNotes={patientNotes}
+                sessionNotes={sessionNotes}
+                onAddNote={(note) => setSessionNotes((prev) => [note, ...prev])}
+                onSessionNotesChange={setSessionNotes}
+              />
+            </DetailReveal>
 
-            <section className="overflow-hidden rounded-[10px] border border-line bg-surface">
-              <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
-                <h2 className="text-[13px] font-semibold tracking-tight">Notes</h2>
-              </div>
-              <div className="p-4">
-                <textarea
-                  placeholder="Add a note for this patient — visible to the care team."
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  rows={3}
-                  className="w-full resize-y rounded-lg border border-line bg-bg-subtle px-2.5 py-2.5 text-ink outline-none focus:border-line-strong"
-                />
-                <div className="mt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleAddNote}
-                    className="cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-1.5 text-[13px] font-medium text-solid-ink transition-opacity hover:opacity-85"
-                  >
-                    Add note
-                  </button>
-                </div>
-                <div className="mt-1.5 flex flex-col">
-                  {addedNotes.map((n, i) => (
-                    <div key={`added-${i}`} className="border-t border-line py-3 first:border-t-0">
-                      <div className="text-xs tabular-nums text-ink-3">{n.meta}</div>
-                      <div className="mt-0.5 text-[13px] text-pretty">{n.text}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
+            <DetailReveal step={3}>
+              <ProductsOrderedSection
+                equipment={equipment}
+                onCallVendor={handleCallVendor}
+                onNewOrder={() => navigate('/catalog')}
+              />
+            </DetailReveal>
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">
-            <section className="rounded-[10px] border border-line bg-surface p-4">
-              <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
-                {facts.map((f) => (
-                  <div key={f.key} className="contents">
-                    <div className="whitespace-nowrap text-ink-3">{f.key}</div>
-                    <div className="text-right tabular-nums">{f.value}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <DetailReveal step={2}>
+              <section className="rounded-[10px] border border-line bg-surface p-4">
+                <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
+                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
+                  {facts.map((f) => (
+                    <div key={f.key} className="contents">
+                      <div className="whitespace-nowrap text-ink-3">{f.key}</div>
+                      <div className="text-right tabular-nums">{f.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </DetailReveal>
 
-            <section className="rounded-[10px] border border-line bg-surface p-4">
-              <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
-              <div className="text-[13px] leading-relaxed">
-                {addressLine1}
-                <br />
-                {addressLine2}
-              </div>
-              <AddressMapPreview addressLine1={addressLine1} addressLine2={addressLine2} />
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleDirections}
-                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                >
-                  Directions
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCopyAddr}
-                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
-                >
-                  Copy for vendor
-                </button>
-              </div>
-            </section>
+            <DetailReveal step={3}>
+              <section className="rounded-[10px] border border-line bg-surface p-4">
+                <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
+                <div className="text-[13px] leading-relaxed">
+                  {addressLine1}
+                  <br />
+                  {addressLine2}
+                </div>
+                <AddressMapPreview addressLine1={addressLine1} addressLine2={addressLine2} />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDirections}
+                    className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
+                  >
+                    Directions
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCopyAddr}
+                    className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
+                  >
+                    Copy for vendor
+                  </button>
+                </div>
+              </section>
+            </DetailReveal>
           </div>
         </div>
       </main>

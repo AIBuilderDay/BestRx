@@ -30,7 +30,7 @@ export function OrderPlacedDialog({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[420px] animate-[sheetIn_0.45s_cubic-bezier(0.2,0.7,0.2,1)_both] border border-ink bg-surface p-5.5"
+        className="w-full max-w-[420px] animate-sheet-in motion-reduce:animate-none border border-ink bg-surface p-5.5"
         role="dialog"
         aria-labelledby="order-placed-title"
       >

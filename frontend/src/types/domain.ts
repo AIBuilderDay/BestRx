@@ -290,3 +290,15 @@ export interface EmrEvent {
   payload: Record<string, unknown>;
   note?: string;
 }
+
+/** Care-team note pinned to one patient chart. */
+export interface PatientNote {
+  id: string;
+  patientId: string;
+  authorId: string;
+  title: string;
+  body: string;
+  /** Calendar date shown on the sticky-note footer (YYYY-MM-DD). */
+  date: string;
+  createdAt: string;
+}

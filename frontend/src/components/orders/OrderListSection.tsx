@@ -17,13 +17,18 @@ export function OrderListSection({
 
   return (
     <div className="flex flex-col gap-3.5">
-      {items.map((item) => (
-        <OrderCard
+      {items.map((item, i) => (
+        <div
           key={item.orderId}
-          item={item}
-          onCallVendor={onCallVendor}
-          onDownloadReceipt={onDownloadReceipt}
-        />
+          className="animate-card-in motion-reduce:animate-none"
+          style={{ animationDelay: `${i * 0.045}s` }}
+        >
+          <OrderCard
+            item={item}
+            onCallVendor={onCallVendor}
+            onDownloadReceipt={onDownloadReceipt}
+          />
+        </div>
       ))}
     </div>
   );

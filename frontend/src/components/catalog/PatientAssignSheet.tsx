@@ -90,7 +90,7 @@ export function PatientAssignSheet({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[470px] animate-[sheetIn_0.45s_cubic-bezier(0.2,0.7,0.2,1)_both] border border-ink bg-surface p-5.5"
+        className="w-full max-w-[470px] animate-sheet-in motion-reduce:animate-none border border-ink bg-surface p-5.5"
       >
         {step === 'patient' ? (
           <>
@@ -159,7 +159,7 @@ export function PatientAssignSheet({
             </div>
 
             {dupes.length > 0 && (
-              <div className="mt-3 animate-[chipIn_0.3s_cubic-bezier(0.2,0.7,0.2,1)_both] border-l border-ink pl-2.5 text-xs">
+              <div className="mt-3 animate-chip-in motion-reduce:animate-none border-l border-ink pl-2.5 text-xs">
                 {dupes.length === 1
                   ? `${patientFullName(patients.find((p) => p.id === dupes[0])!)} already has this item — this will be an additional unit.`
                   : `${dupes.length} selected patients already have this item — these will be additional units.`}
