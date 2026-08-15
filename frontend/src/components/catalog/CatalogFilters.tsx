@@ -36,8 +36,8 @@ export function CatalogFilters({
   };
 
   return (
-    <aside className="sticky top-[57px] min-h-[calc(100vh-57px)] border-r border-[var(--color-line)] px-5.5 py-7.5 pb-15">
-      <div className="border-b border-[var(--color-ink)] pb-2.5 text-xs uppercase tracking-[0.12em]">
+    <aside className="sticky top-[57px] min-h-[calc(100vh-57px)] border-r border-line px-5.5 py-7.5 pb-15">
+      <div className="border-b border-ink pb-2.5 text-xs uppercase tracking-[0.12em]">
         Filters
       </div>
 
@@ -48,12 +48,12 @@ export function CatalogFilters({
               key={c.key}
               type="button"
               onClick={() => onChange({ category: c.key })}
-              className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-neutral-100 hover:text-[var(--color-ink)] ${
-                filters.category === c.key ? 'bg-neutral-100 text-[var(--color-ink)]' : 'text-[var(--color-ink-2)]'
+              className={`flex items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover hover:text-ink ${
+                filters.category === c.key ? 'bg-hover text-ink' : 'text-ink-2'
               }`}
             >
               <span>{c.label}</span>
-              <span className="font-mono text-xs tabular-nums text-[var(--color-ink-3)]">{c.count}</span>
+              <span className="font-mono text-xs tabular-nums text-ink-3">{c.count}</span>
             </button>
           ))}
         </div>
@@ -68,18 +68,18 @@ export function CatalogFilters({
                 key={v.id}
                 type="button"
                 onClick={() => toggleVendor(v.id)}
-                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-neutral-100"
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover"
               >
                 <span
                   className={`grid h-3 w-3 flex-none place-items-center rounded-[3px] border transition-colors ${
-                    on ? 'border-[var(--color-ink)] bg-[var(--color-ink)]' : 'border-[var(--color-line-strong)]'
+                    on ? 'border-solid-bg bg-solid-bg' : 'border-line-strong'
                   }`}
                 >
-                  <span className={`text-[8px] leading-none text-white ${on ? 'scale-100' : 'scale-0'} transition-transform`}>
+                  <span className={`text-[8px] leading-none text-solid-ink ${on ? 'scale-100' : 'scale-0'} transition-transform`}>
                     ✓
                   </span>
                 </span>
-                <span className={on ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink-2)]'}>
+                <span className={on ? 'text-ink' : 'text-ink-2'}>
                   {v.name.replace('Sample ', '')}
                 </span>
               </button>
@@ -97,24 +97,24 @@ export function CatalogFilters({
                 key={s.key}
                 type="button"
                 onClick={() => onChange({ speed: s.key })}
-                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-neutral-100"
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-hover"
               >
                 <span
                   className={`grid h-3 w-3 flex-none place-items-center rounded-full border transition-colors ${
-                    on ? 'border-[var(--color-ink)]' : 'border-[var(--color-line-strong)]'
+                    on ? 'border-ink' : 'border-line-strong'
                   }`}
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full bg-[var(--color-ink)] ${on ? 'scale-100' : 'scale-0'} transition-transform`} />
+                  <span className={`h-1.5 w-1.5 rounded-full bg-ink ${on ? 'scale-100' : 'scale-0'} transition-transform`} />
                 </span>
-                <span className={on ? 'text-[var(--color-ink)]' : 'text-[var(--color-ink-2)]'}>{s.label}</span>
+                <span className={on ? 'text-ink' : 'text-ink-2'}>{s.label}</span>
               </button>
             );
           })}
         </div>
       </FilterGroup>
 
-      <div className="mb-3 mt-6.5 flex items-center gap-2 border-b border-[var(--color-line)] pb-2">
-        <span className="text-[11px] uppercase tracking-[0.1em] text-[var(--color-ink-2)]">Max price</span>
+      <div className="mb-3 mt-6.5 flex items-center gap-2 border-b border-line pb-2">
+        <span className="text-[11px] uppercase tracking-[0.1em] text-ink-2">Max price</span>
         <span className="ml-auto font-mono text-xs tabular-nums">{moneyLabel(filters.maxPrice)}</span>
       </div>
       <input
@@ -124,13 +124,13 @@ export function CatalogFilters({
         step={5}
         value={filters.maxPrice}
         onChange={(e) => onChange({ maxPrice: Number(e.target.value) })}
-        className="w-full accent-[var(--color-ink)]"
+        className="w-full accent-ink"
       />
 
       <button
         type="button"
         onClick={onReset}
-        className="mt-7.5 w-full rounded-lg border border-[var(--color-line-strong)] bg-white py-2.5 text-xs text-[var(--color-ink)] transition-colors hover:border-[var(--color-ink)] hover:bg-[var(--color-ink)] hover:text-white"
+        className="mt-7.5 w-full rounded-lg border border-line-strong bg-surface py-2.5 text-xs text-ink transition-colors hover:border-ink hover:bg-solid-bg hover:text-solid-ink"
       >
         Clear all
       </button>
@@ -141,7 +141,7 @@ export function CatalogFilters({
 function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="mt-6.5">
-      <div className="mb-2.5 border-b border-[var(--color-line)] pb-2 text-[11px] uppercase tracking-[0.1em] text-[var(--color-ink-2)]">
+      <div className="mb-2.5 border-b border-line pb-2 text-[11px] uppercase tracking-[0.1em] text-ink-2">
         {label}
       </div>
       {children}

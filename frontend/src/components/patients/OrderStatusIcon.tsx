@@ -11,9 +11,9 @@ export function OrderStatusIcon({ icon, className }: { icon: OrderDisplayIcon; c
   if (icon === 'late') {
     return (
       <span
-        className={`flex h-5 w-5 flex-none items-center justify-center rounded-[5px] bg-[var(--color-ink)] ${className ?? ''}`}
+        className={`flex h-5 w-5 flex-none items-center justify-center rounded-[5px] bg-solid-bg ${className ?? ''}`}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-solid-ink" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M10.4 3.9 2.7 17.4A1.6 1.6 0 0 0 4.1 20h15.8a1.6 1.6 0 0 0 1.4-2.6L13.6 3.9a1.6 1.6 0 0 0-3.2 0z" />
           <path d="M12 9v4.5" />
           <path d="M12 16.8h.01" />
@@ -23,10 +23,10 @@ export function OrderStatusIcon({ icon, className }: { icon: OrderDisplayIcon; c
   }
 
   const muted = icon === 'picked_up';
-  const stroke = muted ? 'var(--color-ink-3)' : 'var(--color-ink)';
+  const stroke = 'currentColor';
 
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" className={`flex-none ${className ?? ''}`} {...strokeProps} stroke={stroke}>
+    <svg width="20" height="20" viewBox="0 0 24 24" className={`flex-none ${muted ? 'text-ink-3' : 'text-ink'} ${className ?? ''}`} {...strokeProps} stroke={stroke}>
       {icon === 'ordered' && (
         <>
           <rect x="5" y="4" width="14" height="17" rx="2" />

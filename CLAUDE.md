@@ -59,9 +59,9 @@ BetterRX has said they may build on the winning code.
   training data. Verify the API, then write the code. Do not guess at library syntax.
 - **Use the design system.** [docs/DESIGN_SYSTEM.html](docs/DESIGN_SYSTEM.html) is the reference —
   open it in a browser to see it, read it as text to build against it. The token values are
-  implemented once, in `frontend/src/index.css`. Never hardcode a hex value or a one-off radius in a
+  implemented once, in `frontend/src/styles/tokens.css` (imported by `index.css`). Never hardcode a hex value or a one-off radius in a
   component: use a token, or add one. The system is **deliberately basic and expected to change** —
-  if it is in your way, improve it in a small standalone PR, updating the HTML and `index.css`
+  if it is in your way, improve it in a small standalone PR, updating the HTML and `tokens.css`
   together. Building a chart? Read the Charts section there first, and load the `dataviz` skill if
   it is available.
 - **Modular by default.** One job per component/function. Components stay under ~150 lines; split

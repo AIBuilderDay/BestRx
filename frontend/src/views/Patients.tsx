@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { getHospice } from '../data/db';
 import { useCart } from '../context/CartContext';
 import { TopNav } from '../components/layout/TopNav';
 import { PatientCard } from '../components/patients/PatientCard';
@@ -11,8 +10,7 @@ import {
 } from '../lib/patients';
 import type { User } from '../types/domain';
 
-export default function Patients({ user, onSignOut }: { user: User; onSignOut: () => void }) {
-  const hospice = getHospice(user.orgId);
+export default function Patients({ user }: { user: User }) {
   const { cartCount, setCartOpen } = useCart();
   const [query, setQuery] = useState('');
 
@@ -26,19 +24,17 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
   return (
     <div className="min-h-screen bg-bg">
       <TopNav
-        hospiceName={hospice?.name ?? 'Hospice'}
         user={user}
         cartCount={cartCount}
         activeSection="patients"
         onOpenCart={() => setCartOpen(true)}
-        onSignOut={onSignOut}
       />
 
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-6.5">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-[22px] font-semibold tracking-tight">My patients</h1>
-            <div className="mt-1 text-[13px] text-[var(--color-ink-2)]">
+            <div className="mt-1 text-[13px] text-ink-2">
               {caseloadSubtitle(caseload, attentionTotal)}
             </div>
           </div>
@@ -47,12 +43,12 @@ export default function Patients({ user, onSignOut }: { user: User; onSignOut: (
             placeholder="Search patients or MRN"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-[250px] rounded-lg border border-[var(--color-line-strong)] bg-white px-3 py-2 text-sm text-[var(--color-ink)] outline-none focus:border-[var(--color-ink)]"
+            className="w-[250px] rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-ink"
           />
         </div>
 
         {filtered.length === 0 ? (
-          <div className="py-5 text-[13px] text-[var(--color-ink-3)]">No patients on your caseload match that.</div>
+          <div className="py-5 text-[13px] text-ink-3">No patients on your caseload match that.</div>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(236px,1fr))] gap-x-6.5 gap-y-10">
             {filtered.map((patient, i) => (

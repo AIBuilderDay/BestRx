@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { getHospice } from '../data/db';
 import { ProductsOrderedSection } from '../components/patients/ProductsOrderedSection';
 import { AddressMapPreview } from '../components/patients/AddressMapPreview';
 import { TopNav } from '../components/layout/TopNav';
@@ -14,10 +13,9 @@ interface SessionNote {
   text: string;
 }
 
-export default function PatientDetail({ user, onSignOut }: { user: User; onSignOut: () => void }) {
+export default function PatientDetail({ user }: { user: User }) {
   const { patientId } = useParams<{ patientId: string }>();
   const navigate = useNavigate();
-  const hospice = getHospice(user.orgId);
   const { cartCount, setCartOpen } = useCart();
 
   const [draft, setDraft] = useState('');
@@ -60,12 +58,10 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
 
   const topNav = (
     <TopNav
-      hospiceName={hospice?.name ?? 'Hospice'}
       user={user}
       cartCount={cartCount}
       activeSection="patients"
       onOpenCart={() => setCartOpen(true)}
-      onSignOut={onSignOut}
     />
   );
 
@@ -74,7 +70,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       <div className="min-h-screen bg-bg">
         {topNav}
         <main className="mx-auto max-w-[1220px] px-8 py-12">
-          <p className="text-[13px] text-[var(--color-ink-3)]">This patient is not on your caseload or could not be found.</p>
+          <p className="text-[13px] text-ink-3">This patient is not on your caseload or could not be found.</p>
           <Link to="/patients" className="mt-4 inline-block text-[13px] underline underline-offset-2">
             Back to all my patients
           </Link>
@@ -93,14 +89,14 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
       <main className="mx-auto max-w-[1220px] px-8 pb-20 pt-5.5">
         <Link
           to="/patients"
-          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-[var(--color-line-strong)] bg-white px-3 py-1.5 text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+          className="mb-4 inline-flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5 text-[13px] transition-colors hover:bg-hover"
         >
           <span className="text-sm leading-none">←</span>
           <span>All my patients</span>
         </Link>
 
         <div className="mb-5 flex flex-wrap items-start gap-4">
-          <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-[var(--color-line)] bg-[var(--color-bg-subtle)]">
+          <div className="h-[84px] w-[84px] flex-none overflow-hidden border border-line bg-bg-subtle">
             {imagePath && !imgBroken ? (
               <img
                 src={imagePath}
@@ -112,7 +108,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
               <div
                 className="h-full w-full"
                 style={{
-                  backgroundImage: 'repeating-linear-gradient(135deg, #ececec 0 6px, #f5f5f5 6px 12px)',
+                  backgroundImage: 'repeating-linear-gradient(135deg, var(--track) 0 6px, var(--hover) 6px 12px)',
                 }}
               />
             )}
@@ -123,7 +119,7 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
           <button
             type="button"
             onClick={() => navigate('/catalog')}
-            className="ml-auto flex-none cursor-pointer rounded-[7px] border border-[var(--color-ink)] bg-[var(--color-ink)] px-3.5 py-2 text-[13px] font-medium whitespace-nowrap text-white transition-opacity hover:opacity-85"
+            className="ml-auto flex-none cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-2 text-[13px] font-medium whitespace-nowrap text-solid-ink transition-opacity hover:opacity-85"
           >
             New order
           </button>
@@ -133,8 +129,8 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
           <div className="flex min-w-0 flex-col gap-5">
             <ProductsOrderedSection equipment={equipment} onCallVendor={handleCallVendor} />
 
-            <section className="overflow-hidden rounded-[10px] border border-[var(--color-line)] bg-white">
-              <div className="border-b border-[var(--color-line)] bg-[var(--color-bg-subtle)] px-4 py-3.5">
+            <section className="overflow-hidden rounded-[10px] border border-line bg-surface">
+              <div className="border-b border-line bg-bg-subtle px-4 py-3.5">
                 <h2 className="text-[13px] font-semibold tracking-tight">Notes</h2>
               </div>
               <div className="p-4">
@@ -143,21 +139,21 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   rows={3}
-                  className="w-full resize-y rounded-lg border border-[var(--color-line)] bg-[var(--color-bg-subtle)] px-2.5 py-2.5 text-[var(--color-ink)] outline-none focus:border-[var(--color-line-strong)]"
+                  className="w-full resize-y rounded-lg border border-line bg-bg-subtle px-2.5 py-2.5 text-ink outline-none focus:border-line-strong"
                 />
                 <div className="mt-2 flex justify-end">
                   <button
                     type="button"
                     onClick={handleAddNote}
-                    className="cursor-pointer rounded-[7px] border border-[var(--color-ink)] bg-[var(--color-ink)] px-3.5 py-1.5 text-[13px] font-medium text-white transition-opacity hover:opacity-85"
+                    className="cursor-pointer rounded-[7px] border border-solid-bg bg-solid-bg px-3.5 py-1.5 text-[13px] font-medium text-solid-ink transition-opacity hover:opacity-85"
                   >
                     Add note
                   </button>
                 </div>
                 <div className="mt-1.5 flex flex-col">
                   {addedNotes.map((n, i) => (
-                    <div key={`added-${i}`} className="border-t border-[var(--color-line)] py-3 first:border-t-0">
-                      <div className="text-xs tabular-nums text-[var(--color-ink-3)]">{n.meta}</div>
+                    <div key={`added-${i}`} className="border-t border-line py-3 first:border-t-0">
+                      <div className="text-xs tabular-nums text-ink-3">{n.meta}</div>
                       <div className="mt-0.5 text-[13px] text-pretty">{n.text}</div>
                     </div>
                   ))}
@@ -167,19 +163,19 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
           </div>
 
           <div className="flex min-w-0 flex-col gap-5">
-            <section className="rounded-[10px] border border-[var(--color-line)] bg-white p-4">
+            <section className="rounded-[10px] border border-line bg-surface p-4">
               <h2 className="mb-3 text-[13px] font-semibold tracking-tight">Patient</h2>
               <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-2 text-[13px]">
                 {facts.map((f) => (
                   <div key={f.key} className="contents">
-                    <div className="whitespace-nowrap text-[var(--color-ink-3)]">{f.key}</div>
+                    <div className="whitespace-nowrap text-ink-3">{f.key}</div>
                     <div className="text-right tabular-nums">{f.value}</div>
                   </div>
                 ))}
               </div>
             </section>
 
-            <section className="rounded-[10px] border border-[var(--color-line)] bg-white p-4">
+            <section className="rounded-[10px] border border-line bg-surface p-4">
               <h2 className="mb-2.5 text-[13px] font-semibold tracking-tight">Address</h2>
               <div className="text-[13px] leading-relaxed">
                 {addressLine1}
@@ -191,14 +187,14 @@ export default function PatientDetail({ user, onSignOut }: { user: User; onSignO
                 <button
                   type="button"
                   onClick={handleDirections}
-                  className="cursor-pointer rounded-[7px] border border-[var(--color-line-strong)] bg-white px-2.5 py-1.5 text-xs transition-colors hover:bg-[var(--color-hover)]"
+                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
                 >
                   Directions
                 </button>
                 <button
                   type="button"
                   onClick={handleCopyAddr}
-                  className="cursor-pointer rounded-[7px] border border-[var(--color-line-strong)] bg-white px-2.5 py-1.5 text-xs transition-colors hover:bg-[var(--color-hover)]"
+                  className="cursor-pointer rounded-[7px] border border-line-strong bg-surface px-2.5 py-1.5 text-xs transition-colors hover:bg-hover"
                 >
                   Copy for vendor
                 </button>
