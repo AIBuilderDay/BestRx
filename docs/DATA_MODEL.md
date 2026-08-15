@@ -37,6 +37,7 @@ usable.
 | `product_reviews.json` | 408 | `id` (REV-) | `offerId`, `reviewerId` |
 | `patient_notes.json` | 8 | `id` (PN-) | `patientId`, `authorId` |
 | `budgets.json` | 7 | `id` (BUD-) | `hospiceId`, `scopeRef`, `setById` |
+| `family_members.json` | 2 | `id` (FAM-) | `patientId`. A relative who signs in to a read-only family view; also the audience for delivery notifications. See below |
 
 ```
 hospices ──< patients ──< orders >── vendors
@@ -123,6 +124,25 @@ until a dedicated `assignedNurseId` exists.
 
 **`imagePath` (optional):** placeholder portrait for patient cards in the UI. Lives under
 `public/images/patients/`. When absent, the card shows a striped fallback with the patient id.
+
+## Family members & purchase requests (runtime stores, not frozen tables)
+
+Family members are a new login role (`family_member`). Each links to exactly one `patientId`, signs
+in to a **read-only family view** (`/family`), and can browse the catalog scoped to their own loved
+one. They are the audience for the delivery notifications (SQS/messaging) still to come.
+
+Unlike the JSON tables above, family members are **mutable at runtime** — staff add them live from
+the patient chart — so they live in [`src/lib/familyMembers.ts`](../frontend/src/lib/familyMembers.ts):
+seeded from `family_members.json`, with additions layered on top and persisted to localStorage
+(`bestrx.familyMembers`) so a newly-added relative survives sign-out and can log in. A family login
+is synthesized into a `User` (`orgType: 'family'`, `orgId` = the patient's hospice, plus `patientId`).
+Sign in as **Grace Nguyen** (`grace@family.example`, seeded for `PT-88601`) to see it.
+
+From the catalog a family member either **buys directly** (paid with a static mock card on file — see
+`FAMILY_CARD` in `src/lib/family.ts`) or **requests** the item from the hospice. Requests live in
+[`src/lib/purchaseRequests.ts`](../frontend/src/lib/purchaseRequests.ts) (same seed + localStorage
+pattern, key `bestrx.purchaseRequests`) and surface on the patient chart for staff. Both stores expose
+a `useSyncExternalStore`-friendly `subscribe`/`getSnapshot` pair.
 
 ## AI token ledger (localStorage, not a JSON table)
 
