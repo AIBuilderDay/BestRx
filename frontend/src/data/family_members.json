@@ -1,0 +1,4 @@
+[
+  { "id": "FAM-001", "patientId": "PT-88601", "name": "Grace Nguyen", "relationship": "Daughter", "email": "grace@family.example", "phone": "801-555-0401", "notify": true, "addedAt": "2026-08-10T15:20:00Z" },
+  { "id": "FAM-002", "patientId": "PT-88421", "name": "David Benavides", "relationship": "Son", "email": "david@family.example", "phone": "801-555-0402", "notify": true, "addedAt": "2026-08-12T18:05:00Z" }
+]
