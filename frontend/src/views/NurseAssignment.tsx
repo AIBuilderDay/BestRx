@@ -77,18 +77,11 @@ export default function NurseAssignment({ user, onSignOut }: { user: User; onSig
         onSignOut={onSignOut}
       />
 
-      <div className="grid grid-cols-[224px_minmax(0,1fr)] items-start">
-        <div aria-hidden className="border-r border-line" />
-
-        <main className="min-w-0 px-10 pb-20 pt-8.5">
-          <div className="mb-7 flex flex-wrap items-end justify-between gap-5">
-            <div>
-              <h1 className="text-3xl font-normal tracking-tight">Nurse Assignment</h1>
-              <p className="mt-1 text-[13px] text-ink-2">
-                {roster.length} {roster.length === 1 ? 'patient' : 'patients'} · {nurses.length}{' '}
-                {nurses.length === 1 ? 'nurse' : 'nurses'} on your team
-              </p>
-            </div>
+      {/* No filter sidebar here — same phantom 224px column as Patients had before the fix. */}
+      <main className="min-w-0 px-4 pb-16 pt-5 sm:px-6 lg:px-10 lg:pb-20 lg:pt-8.5">
+        <div className="mb-5 lg:mb-7">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <h1 className="text-2xl font-normal tracking-tight lg:text-3xl">Nurse Assignment</h1>
             <NurseFilterMenu
               nurses={nurses}
               value={filterNurseId}
@@ -96,6 +89,11 @@ export default function NurseAssignment({ user, onSignOut }: { user: User; onSig
               onChange={setFilterNurseId}
             />
           </div>
+          <p className="mt-1 text-[13px] text-ink-2">
+            {roster.length} {roster.length === 1 ? 'patient' : 'patients'} · {nurses.length}{' '}
+            {nurses.length === 1 ? 'nurse' : 'nurses'} on your team
+          </p>
+        </div>
 
           {/* Live caseload per nurse, so the DON can see and balance the load as they assign. */}
           <div className="mb-8 overflow-hidden rounded-lg border border-line">
@@ -138,7 +136,7 @@ export default function NurseAssignment({ user, onSignOut }: { user: User; onSig
                 return (
                   <div
                     key={patient.id}
-                    className="flex items-center justify-between gap-4 px-5 py-3.5"
+                    className="flex flex-col items-start gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5"
                   >
                     <div className="min-w-0">
                       <div className="truncate text-[13.5px] font-medium tracking-tight text-ink">
@@ -150,6 +148,7 @@ export default function NurseAssignment({ user, onSignOut }: { user: User; onSig
                     </div>
 
                     <NurseSelect
+                      className="w-full sm:w-auto"
                       nurses={nurses}
                       value={assignments[patient.id] ?? ''}
                       onChange={(nurseId) => assign(patient.id, nurseId)}
@@ -160,8 +159,7 @@ export default function NurseAssignment({ user, onSignOut }: { user: User; onSig
               })}
             </div>
           )}
-        </main>
-      </div>
+      </main>
     </div>
   );
 }
