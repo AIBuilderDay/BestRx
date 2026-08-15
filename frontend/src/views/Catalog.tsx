@@ -298,54 +298,54 @@ export default function Catalog({ user, onSignOut }: { user: User; onSignOut: ()
                 </div>
               ) : null}
 
-              <div className="mb-7.5 hidden flex-wrap items-end justify-between gap-5 lg:flex">
-                <div>
+              <div className="mb-7.5 hidden lg:block">
+                <div className="flex flex-wrap items-center justify-between gap-5">
                   <h1 className="text-3xl font-normal tracking-tight">Equipment</h1>
-                  {searchQuery && !aiFailed ? (
-                    <div className="mt-1.5 text-[13px] text-ink-2">
-                      {filteredSorted.length} result{filteredSorted.length === 1 ? '' : 's'} for
-                      {' '}&ldquo;{searchQuery}&rdquo;{' '}
-                      <Link to="/catalog" className="underline underline-offset-2 hover:text-ink">
-                        Clear
-                      </Link>
-                    </div>
-                  ) : null}
-                  {aiMode && searchQuery ? (
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[12px]" data-testid="ai-rank-status">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="text-ai-ink">
-                        <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
-                      </svg>
-                      {aiRerank.busy ? (
-                        <span className="ai-status">Ranking for this search…</span>
-                      ) : aiRerank.failed ? (
-                        <span className="text-ink-3">AI unavailable — showing all equipment</span>
-                      ) : (
-                        <span className="text-ai-ink">
-                          AI-ranked, best match first
-                          {aiRerank.patientLabel ? ` · considered ${aiRerank.patientLabel}` : ''}
-                        </span>
-                      )}
-                    </div>
-                  ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <PricingModeToggle mode={mode} onChange={switchMode} />
+                    <span className="mx-1 h-5 w-px bg-line" aria-hidden />
+                    {SORTS.map((s) => (
+                      <button
+                        key={s.key}
+                        type="button"
+                        onClick={() => applyFilters({ sort: s.key })}
+                        className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
+                          filters.sort === s.key
+                            ? 'border-ink bg-solid-bg text-solid-ink'
+                            : 'border-line bg-surface text-ink-2'
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <PricingModeToggle mode={mode} onChange={switchMode} />
-                  <span className="mx-1 h-5 w-px bg-line" aria-hidden />
-                  {SORTS.map((s) => (
-                    <button
-                      key={s.key}
-                      type="button"
-                      onClick={() => applyFilters({ sort: s.key })}
-                      className={`rounded-full border px-3.5 py-1.5 text-xs transition-colors hover:border-ink ${
-                        filters.sort === s.key
-                          ? 'border-ink bg-solid-bg text-solid-ink'
-                          : 'border-line bg-surface text-ink-2'
-                      }`}
-                    >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
+                {searchQuery && !aiFailed ? (
+                  <div className="mt-1.5 text-[13px] text-ink-2">
+                    {filteredSorted.length} result{filteredSorted.length === 1 ? '' : 's'} for
+                    {' '}&ldquo;{searchQuery}&rdquo;{' '}
+                    <Link to="/catalog" className="underline underline-offset-2 hover:text-ink">
+                      Clear
+                    </Link>
+                  </div>
+                ) : null}
+                {aiMode && searchQuery ? (
+                  <div className="mt-1.5 flex items-center gap-1.5 text-[12px]" data-testid="ai-rank-status">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" className="text-ai-ink">
+                      <path d="M12 4l1.7 4.7L18.5 10l-4.8 1.6L12 16.5l-1.7-4.9L5.5 10l4.8-1.3L12 4Z" />
+                    </svg>
+                    {aiRerank.busy ? (
+                      <span className="ai-status">Ranking for this search…</span>
+                    ) : aiRerank.failed ? (
+                      <span className="text-ink-3">AI unavailable — showing all equipment</span>
+                    ) : (
+                      <span className="text-ai-ink">
+                        AI-ranked, best match first
+                        {aiRerank.patientLabel ? ` · considered ${aiRerank.patientLabel}` : ''}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
               {filteredSorted.length === 0 ? (

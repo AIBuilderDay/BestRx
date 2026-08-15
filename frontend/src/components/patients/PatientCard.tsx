@@ -16,6 +16,8 @@ export function PatientCard({ patient }: { patient: Patient }) {
             <img
               src={imagePath}
               alt={name}
+              loading="lazy"
+              decoding="async"
               onError={() => setImgBroken(true)}
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]"
             />
